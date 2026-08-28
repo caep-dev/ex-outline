@@ -90,6 +90,11 @@ export default defineConfig({
           },
           include: ["app/**/*.test.{ts,tsx}"],
           setupFiles: ["./__mocks__/window.js", "./app/test/setup.ts"],
+          server: {
+            deps: {
+              inline: ["@radix-ui"],
+            },
+          },
         },
       },
       {
