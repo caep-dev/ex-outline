@@ -1,6 +1,10 @@
 import { darken, lighten, transparentize } from "polished";
 import type { DefaultTheme, Colors } from "styled-components";
+import type { CustomTheme } from "../types";
 import breakpoints from "./breakpoints";
+import { buildExuiTheme } from "./exuiTheme";
+import { isValidHexColor } from "./exuiTheme";
+import type { ExuiLegacyTheme } from "./exuiTheme";
 
 const defaultColors: Colors = {
   transparent: "transparent",
@@ -25,6 +29,7 @@ const defaultColors: Colors = {
   black50: "rgba(0, 0, 0, 0.50)",
   black75: "rgba(0, 0, 0, 0.75)",
   accent: "#0366d6",
+  accentText: "#FFFFFF",
   yellow: "#EDBA07",
   warmGrey: "hsl(212 31% 95% / 1)",
   danger: "#ed2651",
@@ -74,7 +79,6 @@ const buildBaseTheme = (input: Partial<Colors>) => {
     fontWeightRegular: 400,
     fontWeightMedium: 500,
     fontWeightBold: 600,
-    accentText: colors.white,
     selected: colors.accent,
     textHighlight: "#FDEA9B",
     textHighlightForeground: colors.almostBlack,
@@ -117,8 +121,23 @@ const buildBaseTheme = (input: Partial<Colors>) => {
   };
 };
 
-export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
-  const colors = buildBaseTheme(input);
+/**
+ * Replaces invalid brand colors in the input palette with the Outline
+ * defaults, so that no invalid value can reach legacy theme fields.
+ *
+ * @param input the partial color palette supplied by the caller.
+ * @returns the sanitized palette.
+ */
+const sanitizeBrandInput = (input: Partial<Colors>): Partial<Colors> => ({
+  ...input,
+  accent: isValidHexColor(input.accent) ? input.accent : defaultColors.accent,
+  accentText: isValidHexColor(input.accentText)
+    ? input.accentText
+    : defaultColors.accentText,
+});
+
+const buildLightLegacy = (input: Partial<Colors>): ExuiLegacyTheme => {
+  const colors = buildBaseTheme(sanitizeBrandInput(input));
 
   return {
     ...colors,
@@ -183,8 +202,8 @@ export const buildLightTheme = (input: Partial<Colors>): DefaultTheme => {
   };
 };
 
-export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
-  const colors = buildBaseTheme(input);
+const buildDarkLegacy = (input: Partial<Colors>): ExuiLegacyTheme => {
+  const colors = buildBaseTheme(sanitizeBrandInput(input));
 
   return {
     ...colors,
@@ -273,16 +292,47 @@ export const buildDarkTheme = (input: Partial<Colors>): DefaultTheme => {
   };
 };
 
-export const buildPitchBlackTheme = (input: Partial<Colors>) => {
-  const colors = buildDarkTheme(input);
+/**
+ * Extracts the workspace brand override from a legacy color palette input.
+ *
+ * @param input the partial color palette supplied by the caller.
+ * @returns the brand override carried by the input.
+ */
+const toCustomTheme = (input: Partial<Colors>): Partial<CustomTheme> => ({
+  accent: input.accent,
+  accentText: input.accentText,
+});
 
-  return {
-    ...colors,
-    background: colors.black,
-    codeBackground: colors.almostBlack,
-  };
-};
+/**
+ * Builds the Light theme from the versioned ExUI token contract.
+ *
+ * @param input a partial color palette carrying the workspace brand override.
+ * @returns the complete Light theme.
+ */
+export const buildLightTheme = (input: Partial<Colors> = {}): DefaultTheme =>
+  buildExuiTheme("light", buildLightLegacy(input), toCustomTheme(input));
 
-export const light = buildLightTheme(defaultColors);
+/**
+ * Builds the Dark theme from the versioned ExUI token contract.
+ *
+ * @param input a partial color palette carrying the workspace brand override.
+ * @returns the complete Dark theme.
+ */
+export const buildDarkTheme = (input: Partial<Colors> = {}): DefaultTheme =>
+  buildExuiTheme("dark", buildDarkLegacy(input), toCustomTheme(input));
 
-export default light as DefaultTheme;
+/**
+ * Builds the Pitch Black theme from the versioned ExUI token contract. Pitch
+ * Black is its own token group, not a runtime mutation of Dark.
+ *
+ * @param input a partial color palette carrying the workspace brand override.
+ * @returns the complete Pitch Black theme.
+ */
+export const buildPitchBlackTheme = (
+  input: Partial<Colors> = {}
+): DefaultTheme =>
+  buildExuiTheme("pitchBlack", buildDarkLegacy(input), toCustomTheme(input));
+
+export const light = buildLightTheme();
+
+export default light;

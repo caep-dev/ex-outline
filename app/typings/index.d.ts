@@ -8,6 +8,8 @@ declare module "string-replace-to-array";
 
 declare module "styled-components-breakpoint";
 
+declare module "@exre/exui-tokens/font.css";
+
 declare module "command-score";
 
 declare module "*.png" {

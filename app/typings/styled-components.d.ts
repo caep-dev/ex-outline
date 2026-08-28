@@ -1,5 +1,6 @@
 // import original module declarations
 import "styled-components";
+import type { ExuiSemanticTheme } from "@shared/styles/exuiTheme";
 
 // and extend them!
 declare module "styled-components" {
@@ -86,6 +87,7 @@ declare module "styled-components" {
     black50: string;
     black75: string;
     accent: string;
+    accentText: string;
     yellow: string;
     warmGrey: string;
     danger: string;
@@ -182,5 +184,11 @@ declare module "styled-components" {
     progressBarBackground: string;
     scrollbarBackground: string;
     scrollbarThumb: string;
+    /**
+     * Namespaced ExUI semantics. Migrated components read these instead of
+     * deriving their own colors; legacy fields above remain for components
+     * that are not migrated yet.
+     */
+    exui: ExuiSemanticTheme;
   }
 }
