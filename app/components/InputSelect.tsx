@@ -2,7 +2,7 @@ import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import { QuestionMarkIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
+
 import Text from "~/components/Text";
 import useMobile from "~/hooks/useMobile";
 import Flex from "./Flex";
@@ -430,7 +430,7 @@ const StyledScrollable = styled(Scrollable)`
 `;
 
 const TooltipButton = styled(NudeButton)`
-  color: ${s("textSecondary")};
+  color: ${(props) => props.theme.exui.surface.foregroundSecondary};
 
   &:hover,
   &[aria-expanded="true"] {

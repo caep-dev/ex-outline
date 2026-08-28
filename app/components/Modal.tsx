@@ -5,7 +5,7 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s, borderRadius } from "@shared/styles";
+import { depths } from "@shared/styles";
 import Flex from "~/components/Flex";
 import NudeButton from "~/components/NudeButton";
 import Scrollable from "~/components/Scrollable";
@@ -123,7 +123,8 @@ const StyledOverlay = styled(Dialog.Overlay)`
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: ${(props) => props.theme.modalBackdrop} !important;
+  background-color: ${(props) =>
+    props.theme.exui.overlay.dialog.overlay} !important;
   z-index: ${depths.overlay};
   animation: ${fadeIn} 200ms ease;
 `;
@@ -153,7 +154,7 @@ const Mobile = styled.div`
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: ${s("background")};
+  background: ${(props) => props.theme.exui.surface.background};
   outline: none;
 `;
 
@@ -184,7 +185,7 @@ const Close = styled(NudeButton)`
   right: 0;
   margin: 12px;
   opacity: 0.75;
-  color: ${s("text")};
+  color: ${(props) => props.theme.exui.surface.foreground};
   width: auto;
   height: auto;
 
@@ -204,8 +205,8 @@ const Back = styled(NudeButton)`
   top: ${Desktop.hasInsetTitlebar() ? "3rem" : "2rem"};
   left: 2rem;
   opacity: 0.75;
-  color: ${s("text")};
-  font-weight: 500;
+  color: ${(props) => props.theme.exui.surface.foreground};
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   width: auto;
   height: auto;
 
@@ -219,10 +220,10 @@ const Back = styled(NudeButton)`
 `;
 
 const Header = styled(Flex)`
-  color: ${s("textSecondary")};
+  color: ${(props) => props.theme.exui.overlay.dialog.foregroundMuted};
   align-items: center;
   justify-content: space-between;
-  font-weight: 600;
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightBold};
   padding: 24px 24px 12px;
   flex-shrink: 0;
   gap: 8px;
@@ -253,15 +254,15 @@ const Wrapper = styled.div<{
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: ${s("modalBackground")};
-  box-shadow: ${s("modalShadow")};
-  ${borderRadius(10)}
+  background: ${(props) => props.theme.exui.overlay.dialog.background};
+  box-shadow: ${(props) => props.theme.exui.overlay.dialog.shadow};
+  border-radius: ${(props) => props.theme.exui.overlay.dialog.radius};
   outline: none;
 
   ${NudeButton} {
     &:hover,
     &[aria-expanded="true"] {
-      background: ${s("sidebarControlHoverBackground")};
+      background: ${(props) => props.theme.exui.control.neutralHover};
     }
     vertical-align: middle;
   }

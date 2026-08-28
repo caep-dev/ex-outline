@@ -1,13 +1,11 @@
 import { uniqueId } from "es-toolkit/compat";
 import { LayoutGroup } from "framer-motion";
-import { transparentize } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
 import useWindowSize from "~/hooks/useWindowSize";
 
 const Nav = styled.nav<{ $shadowVisible?: boolean }>`
-  border-bottom: 1px solid ${s("divider")};
+  border-bottom: 1px solid ${(props) => props.theme.exui.surface.divider};
   margin: 12px 0;
   overflow-y: auto;
   white-space: nowrap;
@@ -35,8 +33,8 @@ const Nav = styled.nav<{ $shadowVisible?: boolean }>`
       props.$shadowVisible
         ? `linear-gradient(
       90deg,
-      ${transparentize(1, props.theme.background)} 0%,
-      ${props.theme.background} 100%
+      transparent 0%,
+      ${props.theme.exui.surface.background} 100%
     )`
         : `transparent`};
   }
@@ -49,12 +47,12 @@ const Sticky = styled.div`
   top: 54px;
   margin: 0 -8px;
   padding: 0 8px;
-  background: ${s("background")};
+  background: ${(props) => props.theme.exui.surface.background};
   z-index: 1;
 `;
 
 export const Separator = styled.span`
-  border-left: 1px solid ${s("divider")};
+  border-left: 1px solid ${(props) => props.theme.exui.surface.divider};
   position: relative;
   top: 2px;
   margin-top: 6px;

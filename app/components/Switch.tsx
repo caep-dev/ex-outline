@@ -1,8 +1,6 @@
 import * as RadixSwitch from "@radix-ui/react-switch";
-import { darken } from "polished";
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
 import { LabelText } from "~/components/Input";
 import Text from "~/components/Text";
 import { undraggableOnDesktop } from "~/styles";
@@ -160,7 +158,7 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
   position: relative;
   width: ${(props) => props.width}px;
   height: ${(props) => props.height}px;
-  background-color: ${(props) => props.theme.slate};
+  background-color: ${(props) => props.theme.exui.surface.surfaceTertiary};
   border-radius: ${(props) => props.height}px;
   border: none;
   cursor: var(--pointer);
@@ -169,24 +167,24 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
   flex-shrink: 0;
 
   &:focus {
-    box-shadow: 0 0 1px ${s("accent")};
+    box-shadow: ${(props) => props.theme.exui.shadow.focus};
     outline: none;
   }
 
   &[data-state="checked"] {
-    background-color: ${s("accent")};
+    background-color: ${(props) => props.theme.exui.control.primary};
   }
 
   &:active:not(:disabled) {
-    background-color: ${(props) => darken(0.1, props.theme.slate)};
+    background-color: ${(props) => props.theme.exui.surface.borderStrong};
   }
 
   &:active:not(:disabled)[data-state="checked"] {
-    background-color: ${(props) => darken(0.1, props.theme.accent)};
+    background-color: ${(props) => props.theme.exui.control.primaryActive};
   }
 
   &:disabled {
-    opacity: 0.75;
+    background-color: ${(props) => props.theme.exui.control.disabled};
     cursor: default;
   }
 

@@ -1,7 +1,7 @@
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
 import styled, { css } from "styled-components";
-import { hover, s } from "@shared/styles";
+import { hover } from "@shared/styles";
 import NudeButton from "~/components/NudeButton";
 
 type Props = {
@@ -62,9 +62,9 @@ const Checkbox = styled(NudeButton)<{ $checked: boolean }>`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
-  border: 2px solid ${s("inputBorder")};
-  color: ${(props) => props.theme.accentText};
+  border-radius: ${(props) => props.theme.exui.radii.small};
+  border: 2px solid ${(props) => props.theme.exui.surface.borderInput};
+  color: ${(props) => props.theme.exui.control.primaryForeground};
   opacity: 0.75;
   transition:
     opacity 100ms ease,
@@ -78,8 +78,8 @@ const Checkbox = styled(NudeButton)<{ $checked: boolean }>`
   ${(props) =>
     props.$checked &&
     css`
-      background: ${props.theme.accent};
-      border-color: ${props.theme.accent};
+      background: ${props.theme.exui.control.primary};
+      border-color: ${props.theme.exui.control.primary};
       opacity: 1;
     `}
 `;

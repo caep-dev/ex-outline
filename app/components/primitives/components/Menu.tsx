@@ -2,8 +2,9 @@ import { ExpandedIcon } from "outline-icons";
 import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
+import type { DefaultTheme, ThemeProps } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { depths, s, borderRadius } from "@shared/styles";
+import { depths } from "@shared/styles";
 import Scrollable from "~/components/Scrollable";
 import { fadeAndScaleIn } from "~/styles/animations";
 
@@ -19,7 +20,7 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
   justify-content: flex-start;
   align-items: center;
   width: 100%;
-  min-height: 32px;
+  min-height: ${(props) => props.theme.exui.density.compact.controlHeight};
   font-size: 16px;
   cursor: var(--pointer);
   user-select: none;
@@ -27,12 +28,14 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
 
   background: none;
   color: ${(props) =>
-    props.disabled ? props.theme.textTertiary : props.theme.textSecondary};
+    props.disabled
+      ? props.theme.exui.overlay.menu.foregroundDisabled
+      : props.theme.exui.overlay.menu.foreground};
 
   margin: 0;
   border: 0;
-  border-radius: 4px;
-  padding: 12px;
+  border-radius: ${(props) => props.theme.exui.radii.small};
+  padding: ${(props) => props.theme.exui.density.compact.controlPaddingInline};
 
   ${(props) => props.disabled && "pointer-events: none;"}
 
@@ -49,17 +52,35 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     props.$active &&
     !props.disabled &&
     `
-    color: ${props.theme.accentText};
-    background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
+    color: ${
+      props.$dangerous
+        ? props.theme.exui.overlay.menu.itemForegroundDanger
+        : props.theme.exui.overlay.menu.itemForegroundSelected
+    };
+    background: ${
+      props.$dangerous
+        ? props.theme.exui.overlay.menu.itemBackgroundDanger
+        : props.theme.exui.overlay.menu.itemBackgroundSelected
+    };
     outline-color: ${
-      props.$dangerous ? props.theme.danger : props.theme.accent
+      props.$dangerous
+        ? props.theme.exui.overlay.menu.itemBackgroundDanger
+        : props.theme.exui.overlay.menu.itemBackgroundSelected
     };
     box-shadow: none;
     cursor: var(--pointer);
 
     svg:not([data-fixed-color]) {
-      color: ${props.theme.accentText};
-      fill: ${props.theme.accentText};
+      color: ${
+        props.$dangerous
+          ? props.theme.exui.overlay.menu.itemForegroundDanger
+          : props.theme.exui.overlay.menu.itemForegroundSelected
+      };
+      fill: ${
+        props.$dangerous
+          ? props.theme.exui.overlay.menu.itemForegroundDanger
+          : props.theme.exui.overlay.menu.itemForegroundSelected
+      };
     }
   `}
 
@@ -69,24 +90,43 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
       &[data-highlighted],
       &[data-state="open"],
       &:focus-visible {
-        color: ${props.theme.accentText};
-        background: ${props.$dangerous ? props.theme.danger : props.theme.accent};
+        color: ${
+          props.$dangerous
+            ? props.theme.exui.overlay.menu.itemForegroundDanger
+            : props.theme.exui.overlay.menu.itemForegroundHover
+        };
+        background: ${
+          props.$dangerous
+            ? props.theme.exui.overlay.menu.itemBackgroundDanger
+            : props.theme.exui.overlay.menu.itemBackgroundHover
+        };
         outline-color: ${
-          props.$dangerous ? props.theme.danger : props.theme.accent
+          props.$dangerous
+            ? props.theme.exui.overlay.menu.itemBackgroundDanger
+            : props.theme.exui.overlay.menu.itemBackgroundHover
         };
         box-shadow: none;
         cursor: var(--pointer);
 
         svg:not([data-fixed-color]) {
-          color: ${props.theme.accentText};
-          fill: ${props.theme.accentText};
+          color: ${
+            props.$dangerous
+              ? props.theme.exui.overlay.menu.itemForegroundDanger
+              : props.theme.exui.overlay.menu.itemForegroundHover
+          };
+          fill: ${
+            props.$dangerous
+              ? props.theme.exui.overlay.menu.itemForegroundDanger
+              : props.theme.exui.overlay.menu.itemForegroundHover
+          };
         }
       }
   `}
 
   ${breakpoint("tablet")`
     padding: 4px 12px;
-    font-size: 14px;
+    font-size: ${(props: ThemeProps<DefaultTheme> & BaseMenuItemProps) =>
+      props.theme.exui.typography.smallFontSize};
   `}
 `;
 
@@ -114,7 +154,10 @@ export const MenuSubTrigger = styled.div<BaseMenuItemProps>`
 `;
 
 export const MenuSeparator = styled.hr`
+  border: 0;
+  height: 1px;
   margin: 6px 0;
+  background: ${(props) => props.theme.exui.overlay.menu.separator};
 `;
 
 export const MenuLabel = styled.div`
@@ -127,9 +170,9 @@ export const MenuLabel = styled.div`
 
 export const MenuHeader = styled.h3`
   font-size: 11px;
-  font-weight: 600;
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightBold};
   text-transform: uppercase;
-  color: ${s("sidebarText")};
+  color: ${(props) => props.theme.exui.surface.foregroundTertiary};
   letter-spacing: 0.04em;
   margin: 1em 12px 0.5em;
   user-select: none;
@@ -139,7 +182,7 @@ export const MenuDisclosure = styled(ExpandedIcon)`
   transform: rotate(270deg);
   position: absolute;
   inset-inline-end: 8px;
-  color: ${s("textTertiary")};
+  color: ${(props) => props.theme.exui.surface.foregroundTertiary};
 
   [dir="rtl"] & {
     transform: rotate(90deg);
@@ -151,7 +194,7 @@ export const MenuIconWrapper = styled.span`
   height: 24px;
   margin-inline-end: 6px;
   margin-inline-start: -4px;
-  color: ${s("textSecondary")};
+  color: ${(props) => props.theme.exui.overlay.menu.foreground};
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -162,7 +205,7 @@ export const SelectedIconWrapper = styled.span`
   width: 24px;
   height: 24px;
   margin-inline-end: -6px;
-  color: ${s("textSecondary")};
+  color: ${(props) => props.theme.exui.control.primary};
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -189,7 +232,7 @@ type MenuContentProps = {
 export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
   (props) => ({
     // Fades the last item out at the bottom edge when the menu is scrollable.
-    fadeTo: props.theme.menuBackground,
+    fadeTo: props.theme.exui.overlay.menu.background,
     bottomShadow: true,
   })
 )<MenuContentProps>`
@@ -200,9 +243,10 @@ export const MenuContent = styled(Scrollable).attrs<MenuContentProps>(
   max-height: ${({ maxHeightVar }) => `min(85vh, var(${maxHeightVar}))`};
   font-weight: normal;
 
-  background: ${s("menuBackground")};
-  box-shadow: ${s("menuShadow")};
-  ${borderRadius(8)}
+  background: ${(props) => props.theme.exui.overlay.menu.background};
+  color: ${(props) => props.theme.exui.overlay.menu.foreground};
+  box-shadow: ${(props) => props.theme.exui.overlay.menu.shadow};
+  border-radius: ${(props) => props.theme.exui.overlay.menu.radius};
   // Vertical spacing comes from spacers rather than padding so that the bottom
   // fade, which is confined to the content box, can reach the menu's edge.
   padding: 0 6px;

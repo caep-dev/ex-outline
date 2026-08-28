@@ -1,8 +1,7 @@
 import * as TooltipPrimitive from "@radix-ui/react-tooltip";
-import { transparentize } from "polished";
 import * as React from "react";
 import styled, { keyframes } from "styled-components";
-import { s, depths } from "@shared/styles";
+import { depths } from "@shared/styles";
 import { shortcutSeparator } from "@shared/utils/keyboard";
 import useMobile from "~/hooks/useMobile";
 import { useTooltipContext } from "./TooltipContext";
@@ -253,20 +252,21 @@ const Shortcut = styled.kbd`
   display: inline-block;
   padding: 2px 4px;
   font-size: 12px;
-  font-family: ${s("fontFamilyMono")};
+  font-family: ${(props) => props.theme.exui.typography.fontFamilyMono};
   font-feature-settings: "cv08", "zero";
   line-height: 10px;
-  color: ${s("tooltipText")};
-  border: 1px solid ${(props) => transparentize(0.75, props.theme.tooltipText)};
+  color: ${(props) => props.theme.exui.overlay.tooltip.foreground};
+  border: 1px solid ${(props) => props.theme.exui.overlay.tooltip.border};
   vertical-align: middle;
   border-radius: 3px;
 `;
 
 const StyledContent = styled(TooltipPrimitive.Content)`
   position: relative;
-  background-color: ${s("tooltipBackground")};
-  color: ${s("tooltipText")};
-  border-radius: 4px;
+  background-color: ${(props) => props.theme.exui.overlay.tooltip.background};
+  color: ${(props) => props.theme.exui.overlay.tooltip.foreground};
+  box-shadow: ${(props) => props.theme.exui.overlay.tooltip.shadow};
+  border-radius: ${(props) => props.theme.exui.overlay.tooltip.radius};
   font-size: 13px;
   line-height: 1.4;
   white-space: normal;

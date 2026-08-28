@@ -3,7 +3,7 @@ import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s, ellipsis } from "@shared/styles";
+import { ellipsis } from "@shared/styles";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import Fade from "~/components/Fade";
@@ -18,11 +18,17 @@ export const NativeTextarea = styled.textarea<{
 }>`
   border: 0;
   flex: 1;
-  padding: 8px 12px 8px
-    ${(props) => (props.hasPrefix ? 0 : props.hasIcon ? "8px" : "12px")};
+  padding: 8px
+    ${(props) => props.theme.exui.density.standard.controlPaddingInline} 8px
+    ${(props) =>
+      props.hasPrefix
+        ? 0
+        : props.hasIcon
+          ? "8px"
+          : props.theme.exui.density.standard.controlPaddingInline};
   outline: none;
   background: none;
-  color: ${s("text")};
+  color: ${(props) => props.theme.exui.surface.foreground};
 
   ${(props) => props.$autoSize && `field-sizing: content;`}
   ${(props) => props.$minHeight && `min-height: ${props.$minHeight};`}
@@ -30,7 +36,7 @@ export const NativeTextarea = styled.textarea<{
 
   &:disabled,
   &::placeholder {
-    color: ${s("placeholder")};
+    color: ${(props) => props.theme.exui.surface.placeholder};
     opacity: 1;
   }
 `;
@@ -41,32 +47,39 @@ export const NativeInput = styled.input<{
 }>`
   border: 0;
   flex: 1;
-  padding: 8px 12px 8px
-    ${(props) => (props.hasPrefix ? 0 : props.hasIcon ? "8px" : "12px")};
+  padding: 8px
+    ${(props) => props.theme.exui.density.standard.controlPaddingInline} 8px
+    ${(props) =>
+      props.hasPrefix
+        ? 0
+        : props.hasIcon
+          ? "8px"
+          : props.theme.exui.density.standard.controlPaddingInline};
   outline: none;
   background: none;
-  color: ${s("text")};
-  height: 30px;
+  color: ${(props) => props.theme.exui.surface.foreground};
+  height: ${(props) => props.theme.exui.density.standard.controlHeight};
   min-width: 0;
-  font-size: 15px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
 
   ${ellipsis()}
   ${undraggableOnDesktop()}
 
   &[readOnly] {
-    color: ${s("textSecondary")};
+    color: ${(props) => props.theme.exui.surface.foregroundSecondary};
   }
 
   &:disabled,
   &::placeholder {
-    color: ${s("placeholder")};
+    color: ${(props) => props.theme.exui.surface.placeholder};
     opacity: 1;
   }
 
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
   &:-webkit-autofill:focus {
-    -webkit-box-shadow: 0 0 0px 1000px ${s("background")} inset;
+    -webkit-box-shadow: 0 0 0px 1000px
+      ${(props) => props.theme.exui.surface.background} inset;
   }
 
   &::-webkit-search-cancel-button {
@@ -102,7 +115,7 @@ const IconWrapper = styled.span`
 
 export const Outline = styled(Flex)<{
   margin?: string | number;
-  hasError?: boolean;
+  $hasError?: boolean;
   $focused?: boolean;
   $round?: boolean;
 }>`
@@ -114,16 +127,17 @@ export const Outline = styled(Flex)<{
   border-width: 1px;
   border-style: solid;
   border-color: ${(props) =>
-    props.hasError
-      ? props.theme.danger
+    props.$hasError
+      ? props.theme.exui.control.invalid
       : props.$focused
-        ? props.theme.inputBorderFocused
-        : props.theme.inputBorder};
-  border-radius: ${(props) => (props.$round ? "16px" : "4px")};
+        ? props.theme.exui.surface.borderFocused
+        : props.theme.exui.surface.borderInput};
+  border-radius: ${(props) =>
+    props.$round ? "16px" : props.theme.exui.density.standard.controlRadius};
   font-weight: normal;
   align-items: center;
   overflow: hidden;
-  background: ${s("background")};
+  background: ${(props) => props.theme.exui.surface.background};
 
   /* Prevents an issue where input placeholder appears in a selected style when double clicking title bar */
   user-select: none;
@@ -141,9 +155,13 @@ const CharacterCount = styled.span<{ $warning?: boolean }>`
   border-end-end-radius: 0;
   border-end-start-radius: 2px;
   background: ${(props) =>
-    props.$warning ? props.theme.warning : props.theme.inputBorder};
+    props.$warning
+      ? props.theme.exui.feedback.warning
+      : props.theme.exui.surface.border};
   color: ${(props) =>
-    props.$warning ? props.theme.white : props.theme.textTertiary};
+    props.$warning
+      ? props.theme.exui.feedback.warningForeground
+      : props.theme.exui.surface.foregroundTertiary};
   pointer-events: none;
 `;
 
@@ -315,7 +333,12 @@ function Input(
           ) : (
             wrappedLabel
           ))}
-        <Outline $focused={focused} $round={round} margin={margin}>
+        <Outline
+          $focused={focused}
+          $round={round}
+          margin={margin}
+          $hasError={!!error}
+        >
           {prefix}
           {icon && <IconWrapper>{icon}</IconWrapper>}
           {type === "textarea" ? (

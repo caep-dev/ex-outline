@@ -6,11 +6,9 @@ import { CheckmarkIcon } from "outline-icons";
 import { forwardRef } from "react";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s } from "@shared/styles";
 import Button, { Inner } from "~/components/Button";
 import Flex from "~/components/Flex";
 import Text from "~/components/Text";
-import { transparentize } from "polished";
 
 export const SelectItem = forwardRef<
   HTMLDivElement,
@@ -57,7 +55,7 @@ export const SelectButton = styled(Button)<{ $nude?: boolean }>`
   cursor: var(--pointer);
 
   &:hover:not(:disabled) {
-    background: ${s("buttonNeutralBackground")};
+    background: ${(props) => props.theme.exui.control.neutral};
   }
 
   &:focus-visible {
@@ -83,7 +81,7 @@ export const SelectButton = styled(Button)<{ $nude?: boolean }>`
   }
 
   &[data-placeholder=""] {
-    color: ${s("placeholder")};
+    color: ${(props) => props.theme.exui.surface.placeholder};
   }
 `;
 
@@ -92,12 +90,12 @@ const ItemContainer = styled(Flex)`
   width: 100%;
   font-size: 16px;
   cursor: var(--pointer);
-  color: ${s("textSecondary")};
+  color: ${(props) => props.theme.exui.overlay.menu.foreground};
   background: none;
   margin: 0;
   padding: 12px;
   border: 0;
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.radii.small};
   outline: 0;
   user-select: none;
   white-space: nowrap;
@@ -109,16 +107,17 @@ const ItemContainer = styled(Flex)`
   @media (hover: hover) {
     &:hover,
     &:focus {
-      color: ${s("accentText")};
-      background: ${s("accent")};
+      color: ${(props) => props.theme.exui.overlay.menu.itemForegroundHover};
+      background: ${(props) =>
+        props.theme.exui.overlay.menu.itemBackgroundHover};
 
       svg {
-        color: ${s("accentText")};
-        fill: ${s("accentText")};
+        color: ${(props) => props.theme.exui.overlay.menu.itemForegroundHover};
+        fill: ${(props) => props.theme.exui.overlay.menu.itemForegroundHover};
       }
 
       ${Text} {
-        color: ${(props) => transparentize(0.5, props.theme.accentText)};
+        color: ${(props) => props.theme.exui.overlay.menu.foregroundDisabled};
       }
     }
   }

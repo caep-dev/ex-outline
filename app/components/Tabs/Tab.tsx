@@ -5,7 +5,7 @@ import queryString from "query-string";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import { s, hover } from "@shared/styles";
+import { hover } from "@shared/styles";
 import NavLink from "~/components/NavLink";
 
 interface BaseProps {
@@ -65,21 +65,24 @@ const tabStyles = css`
 
 const TabLink = styled(NavLink)`
   ${tabStyles}
-  color: ${s("textTertiary")};
+  color: ${(props) => props.theme.exui.overlay.tab.foreground};
 
   &: ${hover} {
-    color: ${s("textSecondary")};
+    color: ${(props) => props.theme.exui.overlay.tab.foregroundHover};
   }
 `;
 
 const TabButton = styled.button<{ $active: boolean }>`
   ${tabStyles}
-  color: ${({ $active }) => ($active ? s("textSecondary") : s("textTertiary"))};
+  color: ${({ $active, theme }) =>
+    $active
+      ? theme.exui.overlay.tab.foregroundActive
+      : theme.exui.overlay.tab.foreground};
   background: none;
   border: none;
 
   &: ${hover} {
-    color: ${s("textSecondary")};
+    color: ${(props) => props.theme.exui.overlay.tab.foregroundHover};
   }
 `;
 
@@ -91,7 +94,7 @@ const Active = styled(m.div)`
   height: 3px;
   width: 100%;
   border-radius: 3px;
-  background: ${s("textSecondary")};
+  background: ${(props) => props.theme.exui.overlay.tab.indicator};
 `;
 
 const transition = {
@@ -119,7 +122,7 @@ export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
   const { children, exact, exactQueryString } = props;
   const theme = useTheme();
   const activeStyle = {
-    color: theme.textSecondary,
+    color: theme.exui.overlay.tab.foregroundActive,
   };
 
   // Button mode - controlled by onClick and active props (no `to` prop)

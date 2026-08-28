@@ -16,11 +16,13 @@ function Toasts() {
       toastOptions={{
         duration: 5000,
         style: {
-          color: theme.toastText,
-          background: theme.toastBackground,
-          border: `1px solid ${theme.divider}`,
-          fontFamily: theme.fontFamily,
-          fontSize: "14px",
+          color: theme.exui.overlay.toast.foreground,
+          background: theme.exui.overlay.toast.background,
+          border: `1px solid ${theme.exui.overlay.toast.border}`,
+          borderRadius: theme.exui.overlay.toast.radius,
+          boxShadow: theme.exui.overlay.toast.shadow,
+          fontFamily: theme.exui.typography.fontFamily,
+          fontSize: theme.exui.typography.smallFontSize,
         },
       }}
     />

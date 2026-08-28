@@ -17,6 +17,8 @@ export type Props = React.HTMLAttributes<HTMLButtonElement> & {
   action?: Exclude<ActionVariant, ActionWithChildren>;
   /** If tooltip props are provided the button will be wrapped in a tooltip */
   tooltip?: Omit<TooltipProps, "children">;
+  /** Stable selector for browser acceptance checks */
+  "data-slot"?: string;
 };
 
 /**
@@ -34,7 +36,13 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
     const [executing, setExecuting] = React.useState(false);
 
     if (!actionContext || !action) {
-      return <button {...rest} ref={ref} />;
+      return (
+        <button
+          {...rest}
+          data-slot={rest["data-slot"] ?? "action-button"}
+          ref={ref}
+        />
+      );
     }
 
     const actionIsDisabled =
@@ -56,6 +64,7 @@ const ActionButton = React.forwardRef<HTMLButtonElement, Props>(
       <button
         {...rest}
         aria-label={label}
+        data-slot={rest["data-slot"] ?? "action-button"}
         disabled={disabled || executing}
         ref={ref}
         onClick={
