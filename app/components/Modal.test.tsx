@@ -8,8 +8,8 @@ vi.mock("~/hooks/useMobile", () => ({
 }));
 
 describe("Modal", () => {
-  it("binds the dialog surface to the dialog overlay tokens", () => {
-    const { getByRole } = renderWithTheme(
+  it("binds the dialog surface to the dialog recipe", () => {
+    const { getByRole, getByText } = renderWithTheme(
       <Modal isOpen title="Settings" onRequestClose={vi.fn()}>
         Content
       </Modal>
@@ -19,10 +19,19 @@ describe("Modal", () => {
 
     expect(dialog).toBeInTheDocument();
     expect(surface).toHaveStyle(
-      `background: ${light.exui.overlay.dialog.background}`
+      `background: ${light.exui.components.dialog.surface.background}`
     );
     expect(surface).toHaveStyle(
-      `border-radius: ${light.exui.overlay.dialog.radius}`
+      `border-radius: ${light.exui.components.dialog.surface.radius}`
+    );
+    expect(surface).toHaveStyle(
+      `padding: ${light.exui.components.dialog.surface.padding}`
+    );
+    expect(getByText("Settings")).toHaveStyle(
+      `font-size: ${light.exui.components.dialog.title.fontSize}`
+    );
+    expect(getByRole("button", { name: "Close" })).toHaveStyle(
+      `border-radius: ${light.exui.components.button.icon.radius}`
     );
   });
 

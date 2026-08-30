@@ -162,6 +162,18 @@ export default createGlobalStyle<Props>`
     font-family: ${s("fontFamily")};
   }
 
+  #root {
+    font-family: ${(props) => props.theme.exui.typography.fontFamily};
+  }
+
+  #root button,
+  #root input,
+  #root optgroup,
+  #root select,
+  #root textarea {
+    font-family: inherit;
+  }
+
   body {
     font-size: var(--font-size-body);
     line-height: var(--line-height-body);
@@ -180,6 +192,12 @@ export default createGlobalStyle<Props>`
     html,
     body {
       min-height: ${(props) => (props.staticHTML ? "0" : "100vh")};
+    }
+  }
+
+  @media print {
+    #root {
+      font-family: ${s("fontFamily")};
     }
   }
 

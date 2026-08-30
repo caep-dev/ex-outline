@@ -1,10 +1,11 @@
 import { fireEvent } from "@testing-library/react";
+import { CloseIcon } from "outline-icons";
 import { light } from "@shared/styles/theme";
 import Input from "~/components/Input";
 import { renderWithTheme, toRgb } from "~/test/renderWithTheme";
 
 describe("Input", () => {
-  it("binds the default border to the input border token", () => {
+  it("binds the default control to the form-control recipe", () => {
     const { getByRole } = renderWithTheme(
       <Input label="Name" placeholder="Enter name" />
     );
@@ -12,9 +13,14 @@ describe("Input", () => {
     const outline = input.parentElement as HTMLElement;
 
     expect(outline).toHaveStyle(
-      `border-top-color: ${toRgb(light.exui.surface.borderInput)}`
+      `border-top-color: ${toRgb(light.exui.components.formControl.base.border)}`
     );
-    expect(input).toHaveStyle(`color: ${light.exui.surface.foreground}`);
+    expect(input).toHaveStyle(
+      `color: ${light.exui.components.formControl.base.foreground}`
+    );
+    expect(outline).toHaveStyle(
+      `background: ${light.exui.components.formControl.base.background}`
+    );
   });
 
   it("switches to the focused border token on focus", () => {
@@ -24,12 +30,12 @@ describe("Input", () => {
 
     fireEvent.focus(input);
     expect(outline).toHaveStyle(
-      `border-top-color: ${toRgb(light.exui.surface.borderFocused)}`
+      `border-top-color: ${toRgb(light.exui.components.formControl.focus.border)}`
     );
 
     fireEvent.blur(input);
     expect(outline).toHaveStyle(
-      `border-top-color: ${toRgb(light.exui.surface.borderInput)}`
+      `border-top-color: ${toRgb(light.exui.components.formControl.base.border)}`
     );
   });
 
@@ -41,32 +47,47 @@ describe("Input", () => {
     const outline = input.parentElement as HTMLElement;
 
     expect(outline).toHaveStyle(
-      `border-top-color: ${toRgb(light.exui.control.invalid)}`
+      `border-top-color: ${toRgb(light.exui.components.formControl.invalid.border)}`
     );
     expect(getByText("Name is required")).toBeInTheDocument();
   });
 
-  it("binds the disabled and placeholder colors to the placeholder token", () => {
+  it("binds the disabled state to the form-control recipe", () => {
     const { getByRole } = renderWithTheme(
       <Input label="Name" disabled placeholder="Enter name" />
     );
     const input = getByRole("textbox", { name: "Name" });
 
     expect(input).toBeDisabled();
-    expect(input).toHaveStyle(`color: ${light.exui.surface.placeholder}`);
+    expect(input).toHaveStyle(
+      `color: ${light.exui.components.formControl.disabled.foreground}`
+    );
   });
 
-  it("uses the standard control height and radius metrics", () => {
+  it("uses the form-control geometry", () => {
     const { getByRole } = renderWithTheme(<Input label="Name" />);
     const input = getByRole("textbox", { name: "Name" });
     const outline = input.parentElement as HTMLElement;
 
     expect(input).toHaveStyle(
-      `height: ${light.exui.density.standard.controlHeight}`
+      `height: ${light.exui.components.formControl.base.height}`
     );
     expect(outline).toHaveStyle(
-      `border-radius: ${light.exui.density.standard.controlRadius}`
+      `border-radius: ${light.exui.components.formControl.base.radius}`
     );
+  });
+
+  it("keeps recipe padding before leading content", () => {
+    const { getByRole } = renderWithTheme(
+      <Input label="Search" icon={<CloseIcon />} />
+    );
+    const input = getByRole("textbox", { name: "Search" });
+    const outline = input.parentElement as HTMLElement;
+
+    expect(outline).toHaveStyle(
+      `padding-inline-start: ${light.exui.components.formControl.base.paddingInline}`
+    );
+    expect(input).toHaveStyle("padding-inline-start: 0");
   });
 
   it("falls back to the placeholder as an accessible name when unlabeled", () => {

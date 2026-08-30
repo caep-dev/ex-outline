@@ -2,6 +2,7 @@ import type { LocationDescriptor } from "history";
 import { DisclosureIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
+import type { DefaultTheme, ThemeProps } from "styled-components";
 import type { Props as ActionButtonProps } from "~/components/ActionButton";
 import ActionButton from "~/components/ActionButton";
 import { undraggableOnDesktop } from "~/styles";
@@ -11,28 +12,56 @@ type RealProps = {
   $borderOnHover?: boolean;
   $neutral?: boolean;
   $danger?: boolean;
+  $iconOnly?: boolean;
+};
+
+const getButtonVariant = (props: RealProps & ThemeProps<DefaultTheme>) => {
+  if (props.$danger) {
+    return props.theme.exui.components.button.danger;
+  }
+  if (props.$neutral && props.$borderOnHover) {
+    return props.theme.exui.components.button.ghost;
+  }
+  if (props.$neutral) {
+    return props.theme.exui.components.button.outline;
+  }
+  return props.theme.exui.components.button.primary;
 };
 
 const RealButton = styled(ActionButton)<RealProps>`
-  display: ${(props) => (props.$fullwidth ? "block" : "inline-block")};
-  width: ${(props) => (props.$fullwidth ? "100%" : "auto")};
+  display: ${(props) => (props.$fullwidth ? "block" : "inline-flex")};
+  width: ${(props) =>
+    props.$fullwidth
+      ? "100%"
+      : props.$iconOnly
+        ? props.theme.exui.components.button.icon.height
+        : "auto"};
   margin: 0;
   padding: 0;
-  border: 0;
-  background: ${(props) => props.theme.exui.control.primary};
-  color: ${(props) => props.theme.exui.control.primaryForeground};
-  box-shadow: ${(props) => props.theme.exui.shadow.small};
-  border-radius: ${(props) => props.theme.exui.density.standard.controlRadius};
-  font-family: ${(props) => props.theme.exui.typography.fontFamily};
-  font-size: ${(props) => props.theme.exui.typography.smallFontSize};
-  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
-  height: ${(props) => props.theme.exui.density.standard.controlHeight};
+  border: 1px solid ${(props) => getButtonVariant(props).default.border};
+  background: ${(props) => getButtonVariant(props).default.background};
+  color: ${(props) => getButtonVariant(props).default.foreground};
+  box-shadow: ${(props) => getButtonVariant(props).default.shadow};
+  opacity: ${(props) => getButtonVariant(props).default.opacity};
+  border-radius: ${(props) =>
+    props.theme.exui.components.button.default.radius};
+  font-family: ${(props) =>
+    props.theme.exui.components.button.default.fontFamily};
+  font-size: ${(props) => props.theme.exui.components.button.default.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.button.default.fontWeight};
+  line-height: ${(props) =>
+    props.theme.exui.components.button.default.lineHeight};
+  height: ${(props) => props.theme.exui.components.button.default.height};
   text-decoration: none;
   flex-shrink: 0;
   cursor: var(--pointer);
   user-select: none;
   appearance: none !important;
-  transition: background 200ms ease-out;
+  transition:
+    background 200ms ease-out,
+    border-color 200ms ease-out,
+    color 200ms ease-out;
   ${undraggableOnDesktop()}
 
   &::-moz-focus-inner {
@@ -42,85 +71,50 @@ const RealButton = styled(ActionButton)<RealProps>`
 
   &:hover:not(:disabled),
   &[aria-expanded="true"] {
-    background: ${(props) => props.theme.exui.control.primaryHover};
+    background: ${(props) => getButtonVariant(props).hover.background};
+    color: ${(props) => getButtonVariant(props).hover.foreground};
+    border-color: ${(props) => getButtonVariant(props).hover.border};
+    box-shadow: ${(props) => getButtonVariant(props).hover.shadow};
+    opacity: ${(props) => getButtonVariant(props).hover.opacity};
     transition: background 0s;
+  }
+
+  &:active:not(:disabled) {
+    background: ${(props) => getButtonVariant(props).active.background};
+    color: ${(props) => getButtonVariant(props).active.foreground};
+    border-color: ${(props) => getButtonVariant(props).active.border};
+    box-shadow: ${(props) => getButtonVariant(props).active.shadow};
+    opacity: ${(props) => getButtonVariant(props).active.opacity};
+  }
+
+  &:focus-visible {
+    outline: none;
+    background: ${(props) => getButtonVariant(props).focus.background};
+    color: ${(props) => getButtonVariant(props).focus.foreground};
+    border-color: ${(props) => getButtonVariant(props).focus.border};
+    box-shadow: ${(props) => getButtonVariant(props).focus.shadow};
+    opacity: ${(props) => getButtonVariant(props).focus.opacity};
   }
 
   &:disabled {
     cursor: default;
     pointer-events: none;
-    color: ${(props) => props.theme.exui.control.primaryForeground};
-    background: ${(props) => props.theme.exui.control.primaryDisabled};
+    color: ${(props) => getButtonVariant(props).disabled.foreground};
+    background: ${(props) => getButtonVariant(props).disabled.background};
+    border-color: ${(props) => getButtonVariant(props).disabled.border};
+    box-shadow: ${(props) => getButtonVariant(props).disabled.shadow};
+    opacity: ${(props) => getButtonVariant(props).disabled.opacity};
 
     svg {
       fill: currentColor;
     }
   }
-
-  ${(props) =>
-    props.$neutral &&
-    `
-    background: inherit;
-    color: ${props.theme.exui.control.neutralForeground};
-    box-shadow: ${
-      props.$borderOnHover
-        ? "none"
-        : `${props.theme.exui.shadow.small}, ${props.theme.exui.surface.border} 0 0 0 1px inset`
-    };
-
-    &:hover:not(:disabled),
-    &[aria-expanded="true"] {
-      background: ${
-        props.$borderOnHover
-          ? props.theme.exui.control.neutral
-          : props.theme.exui.control.neutralHover
-      };
-      box-shadow: ${`${props.theme.exui.shadow.small}, ${props.theme.exui.surface.border} 0 0 0 1px inset`};
-      transition: background 0s;
-    }
-
-    &:focus-visible {
-      box-shadow: ${`${props.theme.exui.shadow.small}, ${props.theme.exui.control.focusRing} 0 0 0 1px inset`};
-    }
-
-    &:disabled {
-      color: ${props.theme.exui.surface.foregroundTertiary};
-      background: none;
-
-      svg {
-        fill: currentColor;
-      }
-    }
-  `}
-
-  ${(props) =>
-    props.$danger &&
-    `
-      background: ${props.theme.exui.control.danger};
-      color: ${props.theme.exui.control.dangerForeground};
-
-      &:hover:not(:disabled),
-      &[aria-expanded="true"] {
-        background: ${props.theme.exui.control.dangerHover};
-        transition: background 0s;
-      }
-
-      &:disabled {
-        background: ${props.theme.exui.control.disabled};
-      }
-
-      &:focus-visible {
-        outline-color: ${props.theme.exui.control.dangerActive} !important;
-      }
-  `};
 `;
 
-const Label = styled.span<{ hasIcon?: boolean }>`
+const Label = styled.span`
   overflow: hidden;
   white-space: nowrap;
   text-overflow: ellipsis;
-
-  ${(props) => props.hasIcon && "padding-inline-start: 4px;"};
 `;
 
 export const Inner = styled.span<{
@@ -129,19 +123,25 @@ export const Inner = styled.span<{
   hasText?: boolean;
 }>`
   display: flex;
-  padding: 0
-    ${(props) => props.theme.exui.density.standard.controlPaddingInline};
-  padding-inline-end: ${(props) =>
-    props.disclosure
-      ? "2px"
-      : props.theme.exui.density.standard.controlPaddingInline};
-  line-height: 24px;
+  width: ${(props) => (props.hasIcon && !props.hasText ? "100%" : "auto")};
+  height: 100%;
+  padding-inline: ${(props) =>
+    props.hasIcon && !props.hasText
+      ? props.theme.exui.components.button.icon.paddingInline
+      : props.theme.exui.components.button.default.paddingInline};
+  gap: ${(props) =>
+    props.hasIcon && !props.hasText
+      ? props.theme.exui.components.button.icon.gap
+      : props.theme.exui.components.button.default.gap};
   justify-content: center;
   align-items: center;
-  min-height: ${(props) => props.theme.exui.density.standard.controlHeight};
+  min-height: ${(props) => props.theme.exui.components.button.default.height};
 
-  ${(props) => props.hasIcon && props.hasText && "padding-inline-start: 4px;"};
-  ${(props) => props.hasIcon && !props.hasText && "padding: 0 4px;"};
+  > svg {
+    width: ${(props) => props.theme.exui.components.button.default.iconSize};
+    height: ${(props) => props.theme.exui.components.button.default.iconSize};
+    flex-shrink: 0;
+  }
 `;
 
 export type Props<T> = ActionButtonProps & {
@@ -192,11 +192,12 @@ const Button = <T extends React.ElementType = "button">(
       $danger={danger}
       $fullwidth={fullwidth}
       $borderOnHover={borderOnHover}
+      $iconOnly={hasIcon && !hasText}
       {...rest}
     >
       <Inner hasIcon={hasIcon} hasText={hasText} disclosure={disclosure}>
         {hasIcon && ic}
-        {hasText && <Label hasIcon={hasIcon}>{children || value}</Label>}
+        {hasText && <Label>{children || value}</Label>}
         {disclosure && <StyledDisclosureIcon />}
       </Inner>
     </RealButton>

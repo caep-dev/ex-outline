@@ -10,7 +10,7 @@ vi.mock("~/hooks/useWindowSize", () => ({
 }));
 
 describe("Tab button mode", () => {
-  it("binds the active tab to the tab active foreground token", () => {
+  it("binds the active tab to the selected trigger recipe", () => {
     const onClick = vi.fn();
     const { getByRole } = renderWithTheme(
       <Tab active onClick={onClick}>
@@ -19,11 +19,14 @@ describe("Tab button mode", () => {
     );
 
     expect(getByRole("button", { name: "Documents" })).toHaveStyle(
-      `color: ${light.exui.overlay.tab.foregroundActive}`
+      `color: ${light.exui.components.tabs.trigger.selected.foreground}`
+    );
+    expect(getByRole("button", { name: "Documents" })).toHaveStyle(
+      `background: ${light.exui.components.tabs.trigger.selected.background}`
     );
   });
 
-  it("binds the inactive tab to the tab foreground token", () => {
+  it("binds the inactive tab to the default trigger recipe", () => {
     const onClick = vi.fn();
     const { getByRole } = renderWithTheme(
       <Tab active={false} onClick={onClick}>
@@ -32,7 +35,7 @@ describe("Tab button mode", () => {
     );
 
     expect(getByRole("button", { name: "Documents" })).toHaveStyle(
-      `color: ${light.exui.overlay.tab.foreground}`
+      `color: ${light.exui.components.tabs.trigger.default.foreground}`
     );
   });
 
@@ -46,7 +49,9 @@ describe("Tab button mode", () => {
 
     expect(
       getByRole("button", { name: "Documents" }).firstElementChild
-    ).toHaveStyle(`background: ${light.exui.overlay.tab.indicator}`);
+    ).toHaveStyle(
+      `background: ${light.exui.components.tabs.indicator.background}`
+    );
   });
 
   it("hides the indicator for the inactive tab", () => {
@@ -84,7 +89,7 @@ describe("Tab link mode", () => {
     );
 
     expect(getByRole("link", { name: "Settings" })).toHaveStyle(
-      `color: ${light.exui.overlay.tab.foregroundActive}`
+      `color: ${light.exui.components.tabs.trigger.selected.foreground}`
     );
   });
 
@@ -96,13 +101,13 @@ describe("Tab link mode", () => {
     );
 
     expect(getByRole("link", { name: "Settings" })).toHaveStyle(
-      `color: ${light.exui.overlay.tab.foreground}`
+      `color: ${light.exui.components.tabs.trigger.default.foreground}`
     );
   });
 });
 
 describe("Tabs", () => {
-  it("binds the divider and sticky surface to the surface tokens", () => {
+  it("binds the list and sticky surface to the tabs recipe", () => {
     const { container } = renderWithTheme(
       <Tabs>
         <Tab active onClick={vi.fn()}>
@@ -113,7 +118,13 @@ describe("Tabs", () => {
     const nav = container.querySelector("nav") as HTMLElement;
 
     expect(nav).toHaveStyle(
-      `border-bottom: 1px solid ${light.exui.surface.divider}`
+      `height: ${light.exui.components.tabs.list.height}`
+    );
+    expect(nav).toHaveStyle(
+      `border-radius: ${light.exui.components.tabs.list.radius}`
+    );
+    expect(nav).toHaveStyle(
+      `background: ${light.exui.components.tabs.default.listBackground}`
     );
     expect(nav.parentElement).toHaveStyle(
       `background: ${light.exui.surface.background}`

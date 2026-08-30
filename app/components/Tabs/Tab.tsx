@@ -4,7 +4,6 @@ import { isEqual } from "es-toolkit/compat";
 import queryString from "query-string";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { hover } from "@shared/styles";
 import NavLink from "~/components/NavLink";
 
@@ -52,23 +51,58 @@ const tabStyles = css`
   position: relative;
   display: inline-flex;
   align-items: center;
-  font-weight: 500;
-  font-size: 14px;
+  justify-content: center;
+  gap: ${(props) => props.theme.exui.components.tabs.trigger.gap};
+  padding-block: ${(props) =>
+    props.theme.exui.components.tabs.trigger.paddingBlock};
+  padding-inline: ${(props) =>
+    props.theme.exui.components.tabs.trigger.paddingInline};
+  border: 1px solid
+    ${(props) => props.theme.exui.components.tabs.trigger.default.border};
+  border-radius: ${(props) => props.theme.exui.components.tabs.trigger.radius};
+  background: ${(props) =>
+    props.theme.exui.components.tabs.trigger.default.background};
+  color: ${(props) =>
+    props.theme.exui.components.tabs.trigger.default.foreground};
+  box-shadow: ${(props) =>
+    props.theme.exui.components.tabs.trigger.default.shadow};
+  opacity: ${(props) =>
+    props.theme.exui.components.tabs.trigger.default.opacity};
+  font-weight: ${(props) =>
+    props.theme.exui.components.tabs.trigger.fontWeight};
+  font-size: ${(props) => props.theme.exui.components.tabs.trigger.fontSize};
   cursor: var(--pointer);
   user-select: none;
-  padding: 12px 0;
+  text-decoration: none;
 
-  ${breakpoint("tablet")`
-    padding: 6px 0;
-  `};
+  &:focus-visible {
+    outline: none;
+    color: ${(props) =>
+      props.theme.exui.components.tabs.trigger.focus.foreground};
+    background: ${(props) =>
+      props.theme.exui.components.tabs.trigger.focus.background};
+    border-color: ${(props) =>
+      props.theme.exui.components.tabs.trigger.focus.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.tabs.trigger.focus.shadow};
+    opacity: ${(props) =>
+      props.theme.exui.components.tabs.trigger.focus.opacity};
+  }
 `;
 
 const TabLink = styled(NavLink)`
   ${tabStyles}
-  color: ${(props) => props.theme.exui.overlay.tab.foreground};
-
   &: ${hover} {
-    color: ${(props) => props.theme.exui.overlay.tab.foregroundHover};
+    color: ${(props) =>
+      props.theme.exui.components.tabs.trigger.hover.foreground};
+    background: ${(props) =>
+      props.theme.exui.components.tabs.trigger.hover.background};
+    border-color: ${(props) =>
+      props.theme.exui.components.tabs.trigger.hover.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.tabs.trigger.hover.shadow};
+    opacity: ${(props) =>
+      props.theme.exui.components.tabs.trigger.hover.opacity};
   }
 `;
 
@@ -76,25 +110,75 @@ const TabButton = styled.button<{ $active: boolean }>`
   ${tabStyles}
   color: ${({ $active, theme }) =>
     $active
-      ? theme.exui.overlay.tab.foregroundActive
-      : theme.exui.overlay.tab.foreground};
-  background: none;
-  border: none;
+      ? theme.exui.components.tabs.trigger.selected.foreground
+      : theme.exui.components.tabs.trigger.default.foreground};
+  background: ${({ $active, theme }) =>
+    $active
+      ? theme.exui.components.tabs.trigger.selected.background
+      : theme.exui.components.tabs.trigger.default.background};
+  border-color: ${({ $active, theme }) =>
+    $active
+      ? theme.exui.components.tabs.trigger.selected.border
+      : theme.exui.components.tabs.trigger.default.border};
+  box-shadow: ${({ $active, theme }) =>
+    $active
+      ? theme.exui.components.tabs.trigger.selected.shadow
+      : theme.exui.components.tabs.trigger.default.shadow};
+  opacity: ${({ $active, theme }) =>
+    $active
+      ? theme.exui.components.tabs.trigger.selected.opacity
+      : theme.exui.components.tabs.trigger.default.opacity};
 
   &: ${hover} {
-    color: ${(props) => props.theme.exui.overlay.tab.foregroundHover};
+    color: ${({ $active, theme }) =>
+      $active
+        ? theme.exui.components.tabs.trigger.selected.foreground
+        : theme.exui.components.tabs.trigger.hover.foreground};
+    background: ${({ $active, theme }) =>
+      $active
+        ? theme.exui.components.tabs.trigger.selected.background
+        : theme.exui.components.tabs.trigger.hover.background};
+    border-color: ${({ $active, theme }) =>
+      $active
+        ? theme.exui.components.tabs.trigger.selected.border
+        : theme.exui.components.tabs.trigger.hover.border};
+    box-shadow: ${({ $active, theme }) =>
+      $active
+        ? theme.exui.components.tabs.trigger.selected.shadow
+        : theme.exui.components.tabs.trigger.hover.shadow};
+    opacity: ${({ $active, theme }) =>
+      $active
+        ? theme.exui.components.tabs.trigger.selected.opacity
+        : theme.exui.components.tabs.trigger.hover.opacity};
+  }
+
+  &:disabled {
+    color: ${(props) =>
+      props.theme.exui.components.tabs.trigger.disabled.foreground};
+    background: ${(props) =>
+      props.theme.exui.components.tabs.trigger.disabled.background};
+    border-color: ${(props) =>
+      props.theme.exui.components.tabs.trigger.disabled.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.tabs.trigger.disabled.shadow};
+    opacity: ${(props) =>
+      props.theme.exui.components.tabs.trigger.disabled.opacity};
   }
 `;
 
 const Active = styled(m.div)`
   position: absolute;
-  bottom: 0;
+  bottom: ${(props) => props.theme.exui.components.tabs.indicator.offset};
   left: 0;
   right: 0;
-  height: 3px;
+  height: ${(props) => props.theme.exui.components.tabs.indicator.thickness};
   width: 100%;
-  border-radius: 3px;
-  background: ${(props) => props.theme.exui.overlay.tab.indicator};
+  border-radius: ${(props) => props.theme.exui.components.tabs.trigger.radius};
+  background: ${(props) =>
+    props.theme.exui.components.tabs.indicator.background};
+  opacity: ${(props) =>
+    props.theme.exui.components.tabs.default.indicatorOpacity};
+  pointer-events: none;
 `;
 
 const transition = {
@@ -122,7 +206,11 @@ export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
   const { children, exact, exactQueryString } = props;
   const theme = useTheme();
   const activeStyle = {
-    color: theme.exui.overlay.tab.foregroundActive,
+    color: theme.exui.components.tabs.trigger.selected.foreground,
+    background: theme.exui.components.tabs.trigger.selected.background,
+    borderColor: theme.exui.components.tabs.trigger.selected.border,
+    boxShadow: theme.exui.components.tabs.trigger.selected.shadow,
+    opacity: theme.exui.components.tabs.trigger.selected.opacity,
   };
 
   // Button mode - controlled by onClick and active props (no `to` prop)

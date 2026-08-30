@@ -34,16 +34,21 @@ describe("ActionButton", () => {
 const normalize = (value: string) => value.replace(/\s+/g, "");
 
 describe("Button", () => {
-  it("binds the primary variant to the primary control token", () => {
+  it("binds the primary variant to the primary button recipe", () => {
     const { getByRole } = renderWithTheme(<Button>Save</Button>);
     const button = getByRole("button", { name: "Save" });
 
-    expect(button).toHaveStyle(`background: ${light.exui.control.primary}`);
     expect(button).toHaveStyle(
-      `color: ${light.exui.control.primaryForeground}`
+      `background: ${light.exui.components.button.primary.default.background}`
     );
     expect(button).toHaveStyle(
-      `height: ${light.exui.density.standard.controlHeight}`
+      `color: ${light.exui.components.button.primary.default.foreground}`
+    );
+    expect(button).toHaveStyle(
+      `height: ${light.exui.components.button.default.height}`
+    );
+    expect(button).toHaveStyle(
+      `border-radius: ${light.exui.components.button.default.radius}`
     );
   });
 
@@ -51,15 +56,19 @@ describe("Button", () => {
     renderWithTheme(<Button>Save</Button>);
     const css = normalize(getInjectedCss());
 
-    expect(css).toContain(normalize(light.exui.control.primaryHover));
-    expect(css).toContain(normalize(light.exui.control.primaryDisabled));
+    expect(css).toContain(
+      normalize(light.exui.components.button.primary.hover.background)
+    );
+    expect(css).toContain(
+      normalize(light.exui.components.button.primary.disabled.background)
+    );
   });
 
   it("binds the neutral variant to the neutral control tokens", () => {
     const { getByRole } = renderWithTheme(<Button neutral>Cancel</Button>);
 
     expect(getByRole("button", { name: "Cancel" })).toHaveStyle(
-      `color: ${light.exui.control.neutralForeground}`
+      `color: ${light.exui.components.button.outline.default.foreground}`
     );
   });
 
@@ -67,8 +76,30 @@ describe("Button", () => {
     const { getByRole } = renderWithTheme(<Button danger>Delete</Button>);
     const button = getByRole("button", { name: "Delete" });
 
-    expect(button).toHaveStyle(`background: ${light.exui.control.danger}`);
-    expect(button).toHaveStyle(`color: ${light.exui.control.dangerForeground}`);
+    expect(button).toHaveStyle(
+      `background: ${light.exui.components.button.danger.default.background}`
+    );
+    expect(button).toHaveStyle(
+      `color: ${light.exui.components.button.danger.default.foreground}`
+    );
+  });
+
+  it("renders an icon-only button as a recipe-sized circle", () => {
+    const { getByRole } = renderWithTheme(
+      <Button icon={<svg aria-hidden />} aria-label="Add" />
+    );
+    const button = getByRole("button", { name: "Add" });
+
+    expect(button).toHaveStyle(
+      `width: ${light.exui.components.button.icon.height}`
+    );
+    expect(button).toHaveStyle(
+      `height: ${light.exui.components.button.default.height}`
+    );
+    expect(button).toHaveStyle(
+      `border-radius: ${light.exui.components.button.icon.radius}`
+    );
+    expect(button.firstElementChild).toHaveStyle("width: 100%");
   });
 
   it("disables pointer interaction when disabled", () => {
@@ -87,19 +118,19 @@ describe("Button", () => {
 });
 
 describe("ButtonLarge and ButtonSmall", () => {
-  it("keeps the explicit large height while sourcing padding from the standard scale", () => {
+  it("uses the large button recipe", () => {
     const { getByRole } = renderWithTheme(<ButtonLarge>Continue</ButtonLarge>);
 
     expect(getByRole("button", { name: "Continue" })).toHaveStyle(
-      "height: 40px"
+      `height: ${light.exui.components.button.large.height}`
     );
   });
 
-  it("uses the compact density metrics", () => {
+  it("uses the small button recipe", () => {
     const { getByRole } = renderWithTheme(<ButtonSmall>Close</ButtonSmall>);
 
     expect(getByRole("button", { name: "Close" })).toHaveStyle(
-      `height: ${light.exui.density.compact.controlHeight}`
+      `height: ${light.exui.components.button.small.height}`
     );
   });
 });

@@ -13,13 +13,16 @@ import {
 import { renderWithTheme } from "~/test/renderWithTheme";
 
 describe("menu item visual tokens", () => {
-  it("binds the resting item to the menu foreground token", () => {
+  it("binds the resting item to the menu item recipe", () => {
     const { getByRole } = renderWithTheme(
       <StyledMenuButton>Documents</StyledMenuButton>
     );
 
     expect(getByRole("button", { name: "Documents" })).toHaveStyle(
-      `color: ${light.exui.overlay.menu.foreground}`
+      `color: ${light.exui.components.menu.item.default.foreground}`
+    );
+    expect(getByRole("button", { name: "Documents" })).toHaveStyle(
+      `border-radius: ${light.exui.components.menu.item.radius}`
     );
   });
 
@@ -29,10 +32,10 @@ describe("menu item visual tokens", () => {
     );
 
     expect(getByRole("button", { name: "Documents" })).toHaveStyle(
-      `background: ${light.exui.overlay.menu.itemBackgroundHover}`
+      `background: ${light.exui.components.menu.item.hover.background}`
     );
     expect(getByRole("button", { name: "Documents" })).toHaveStyle(
-      `color: ${light.exui.overlay.menu.itemForegroundHover}`
+      `color: ${light.exui.components.menu.item.hover.foreground}`
     );
   });
 
@@ -42,7 +45,37 @@ describe("menu item visual tokens", () => {
     );
 
     expect(getByRole("button", { name: "Documents" })).toHaveStyle(
-      `background: ${light.exui.overlay.menu.itemBackgroundSelected}`
+      `background: ${light.exui.components.menu.checkedItem.background}`
+    );
+  });
+
+  it("keeps selected chrome when the selected item is highlighted", () => {
+    const { getByRole } = renderWithTheme(
+      <StyledMenuButton $active data-highlighted="">
+        Documents
+      </StyledMenuButton>
+    );
+
+    expect(getByRole("button", { name: "Documents" })).toHaveStyle(
+      `background: ${light.exui.components.menu.checkedItem.background}`
+    );
+    expect(getByRole("button", { name: "Documents" })).toHaveStyle(
+      `color: ${light.exui.components.menu.checkedItem.foreground}`
+    );
+  });
+
+  it("keeps destructive chrome above selected and highlighted states", () => {
+    const { getByRole } = renderWithTheme(
+      <StyledMenuButton $active $dangerous data-highlighted="">
+        Delete
+      </StyledMenuButton>
+    );
+
+    expect(getByRole("button", { name: "Delete" })).toHaveStyle(
+      `background: ${light.exui.components.menu.item.destructive.background}`
+    );
+    expect(getByRole("button", { name: "Delete" })).toHaveStyle(
+      `color: ${light.exui.components.menu.item.destructive.foreground}`
     );
   });
 
@@ -54,10 +87,10 @@ describe("menu item visual tokens", () => {
     );
 
     expect(getByRole("button", { name: "Delete" })).toHaveStyle(
-      `color: ${light.exui.overlay.menu.itemForegroundDanger}`
+      `color: ${light.exui.components.menu.item.destructive.foreground}`
     );
     expect(getByRole("button", { name: "Delete" })).toHaveStyle(
-      `background: ${light.exui.overlay.menu.itemBackgroundDanger}`
+      `background: ${light.exui.components.menu.item.destructive.background}`
     );
   });
 
@@ -68,7 +101,7 @@ describe("menu item visual tokens", () => {
 
     expect(getByRole("button", { name: "Documents" })).toBeDisabled();
     expect(getByRole("button", { name: "Documents" })).toHaveStyle(
-      `color: ${light.exui.overlay.menu.foregroundDisabled}`
+      `color: ${light.exui.components.menu.item.disabled.foreground}`
     );
   });
 
@@ -77,7 +110,7 @@ describe("menu item visual tokens", () => {
     const separator = container.firstElementChild as HTMLElement;
 
     expect(separator).toHaveStyle(
-      `background: ${light.exui.overlay.menu.separator}`
+      `background: ${light.exui.components.menu.separator.color}`
     );
   });
 });
@@ -101,6 +134,24 @@ describe("menu interaction", () => {
     );
     fireEvent.click(item);
     expect(onClick).toHaveBeenCalled();
+  });
+
+  it("binds a selected real menu item to the checked recipe", async () => {
+    const { getByRole } = renderWithTheme(
+      <Menu open onOpenChange={vi.fn()}>
+        <MenuTrigger asChild>
+          <button>Open menu</button>
+        </MenuTrigger>
+        <MenuContent>
+          <MenuButton label="Pinned" selected onClick={vi.fn()} />
+        </MenuContent>
+      </Menu>
+    );
+
+    const item = await waitFor(() => getByRole("menuitem", { name: "Pinned" }));
+    expect(item).toHaveStyle(
+      `background: ${light.exui.components.menu.checkedItem.background}`
+    );
   });
 
   it("keeps disabled items non-selectable", async () => {

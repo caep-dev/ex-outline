@@ -5,17 +5,23 @@ import styled from "styled-components";
 import useWindowSize from "~/hooks/useWindowSize";
 
 const Nav = styled.nav<{ $shadowVisible?: boolean }>`
-  border-bottom: 1px solid ${(props) => props.theme.exui.surface.divider};
+  display: flex;
+  align-items: center;
+  height: ${(props) => props.theme.exui.components.tabs.list.height};
+  padding: ${(props) => props.theme.exui.components.tabs.list.padding};
+  gap: ${(props) => props.theme.exui.components.tabs.list.gap};
+  border: 0;
+  border-radius: ${(props) => props.theme.exui.components.tabs.list.radius};
+  background: ${(props) =>
+    props.theme.exui.components.tabs.default.listBackground};
+  color: ${(props) => props.theme.exui.components.tabs.list.foreground};
   margin: 12px 0;
-  overflow-y: auto;
+  overflow-x: auto;
+  overflow-y: hidden;
   white-space: nowrap;
 
   -ms-overflow-style: none;
   scrollbar-width: none;
-
-  & > * + * {
-    margin-inline-start: 24px;
-  }
 
   &::-webkit-scrollbar {
     display: none;

@@ -2,13 +2,26 @@ import styled from "styled-components";
 import Button, { Inner } from "./Button";
 
 const ButtonLarge = styled(Button)`
-  /* The ExUI density scale only defines standard and compact, so the large
-     button keeps its own height while sourcing padding from the scale. */
-  height: 40px;
+  height: ${(props) => props.theme.exui.components.button.large.height};
+  border-radius: ${(props) => props.theme.exui.components.button.large.radius};
+  font-family: ${(props) =>
+    props.theme.exui.components.button.large.fontFamily};
+  font-size: ${(props) => props.theme.exui.components.button.large.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.button.large.fontWeight};
+  line-height: ${(props) =>
+    props.theme.exui.components.button.large.lineHeight};
 
   ${Inner} {
-    padding: 4px
-      ${(props) => props.theme.exui.density.standard.controlPaddingInline};
+    padding-inline: ${(props) =>
+      props.theme.exui.components.button.large.paddingInline};
+    gap: ${(props) => props.theme.exui.components.button.large.gap};
+    min-height: ${(props) => props.theme.exui.components.button.large.height};
+
+    > svg {
+      width: ${(props) => props.theme.exui.components.button.large.iconSize};
+      height: ${(props) => props.theme.exui.components.button.large.iconSize};
+    }
   }
 `;
 

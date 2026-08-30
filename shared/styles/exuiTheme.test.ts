@@ -1,4 +1,4 @@
-import { exuiTokens } from "@exre/exui-tokens";
+import { componentRecipes, exuiTokens } from "@exre/exui-tokens";
 import { buildDarkTheme, buildLightTheme, buildPitchBlackTheme } from "./theme";
 import {
   buildExuiSemanticTheme,
@@ -45,6 +45,43 @@ describe("#buildExuiSemanticTheme", () => {
       dark.typography.fontFamilyMono
     );
   });
+
+  it("resolves every initial component recipe for every theme mode", () => {
+    for (const mode of ["light", "dark", "pitchBlack"] as const) {
+      const components = buildExuiSemanticTheme(mode).components;
+
+      expect(Object.keys(components)).toEqual([
+        "button",
+        "formControl",
+        "sidebarItem",
+        "menu",
+        "dialog",
+        "tabs",
+      ]);
+      expect(components.button.default.height).toBe(
+        componentRecipes.button.default.height
+      );
+      expect(components.formControl.base.radius).toBe("14px");
+      expect(components.sidebarItem.default.radius).toBe("14px");
+      expect(components.menu.surface.radius).toBe("22px");
+      expect(components.dialog.surface.radius).toBe("26px");
+      expect(components.tabs.trigger.radius).toBe("14px");
+    }
+  });
+
+  it("keeps full radius exclusive to button recipes", () => {
+    const components = buildExuiSemanticTheme("light").components;
+
+    expect(components.button.default.radius).toBe(exuiTokens.radii.full);
+    expect(components.button.small.radius).toBe(exuiTokens.radii.full);
+    expect(components.button.large.radius).toBe(exuiTokens.radii.full);
+    expect(components.formControl.base.radius).not.toBe(exuiTokens.radii.full);
+    expect(components.sidebarItem.default.radius).not.toBe(
+      exuiTokens.radii.full
+    );
+    expect(components.menu.item.radius).not.toBe(exuiTokens.radii.full);
+    expect(components.tabs.trigger.radius).not.toBe(exuiTokens.radii.full);
+  });
 });
 
 describe("#resolveAccent", () => {
@@ -90,6 +127,25 @@ describe("#resolveAccent", () => {
     expect(resolved.primaryDisabled).toBeDefined();
     expect(resolved.focusRing).toBeDefined();
     expect(resolved.primaryHover).not.toBe(resolved.primaryActive);
+  });
+
+  it("applies workspace branding only to the primary button recipe", () => {
+    const theme = buildExuiSemanticTheme("light", {
+      accent: "#ff0000",
+      accentText: "#ffffff",
+    });
+
+    expect(theme.components.button.primary.default.background).toBe("#ff0000");
+    expect(theme.components.button.primary.default.foreground).toBe("#ffffff");
+    expect(theme.components.button.primary.hover.background).toBe(
+      theme.control.primaryHover
+    );
+    expect(theme.components.button.secondary.disabled.background).toBe(
+      exuiTokens.themes.light.control.disabled
+    );
+    expect(theme.components.button.danger.default.background).toBe(
+      exuiTokens.themes.light.control.danger
+    );
   });
 });
 
@@ -147,6 +203,8 @@ describe("theme builders", () => {
 
     expect(theme.isDark).toBe(false);
     expect(theme.exui.mode).toBe("light");
+    expect(theme.fontFamily).not.toBe(theme.exui.typography.fontFamily);
+    expect(theme.fontFamily).toContain("BlinkMacSystemFont");
   });
 
   it("builds the dark theme", () => {

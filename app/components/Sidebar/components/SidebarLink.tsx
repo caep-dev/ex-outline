@@ -1,6 +1,7 @@
 import type { LocationDescriptor } from "history";
 import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
+import type { DefaultTheme, ThemeProps } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";
 import { ellipsis, hover, s } from "@shared/styles";
@@ -102,12 +103,15 @@ function SidebarLink(
   const { t } = useTranslation();
   const theme = useTheme();
   const { handleMouseEnter, handleMouseLeave } = useClickIntent(onClickIntent);
+  const geometry = depth
+    ? theme.exui.components.sidebarItem.nested
+    : theme.exui.components.sidebarItem.default;
   const style = React.useMemo(
     () => ({
-      paddingInlineStart: `${(depth || 0) * 16 + (icon ? -8 : 12)}px`,
+      paddingInlineStart: `calc(${(depth || 0) * 16}px + ${geometry.paddingInline})`,
       paddingInlineEnd: unreadBadge ? "32px" : undefined,
     }),
-    [depth, icon, unreadBadge]
+    [depth, geometry.paddingInline, unreadBadge]
   );
 
   const unreadStyle = React.useMemo(
@@ -119,11 +123,14 @@ function SidebarLink(
 
   const activeStyle = React.useMemo(
     () => ({
-      color: theme.text,
-      background: theme.sidebarActiveBackground,
+      color: theme.exui.components.sidebarItem.active.foreground,
+      background: theme.exui.components.sidebarItem.active.background,
+      borderColor: theme.exui.components.sidebarItem.active.border,
+      boxShadow: theme.exui.components.sidebarItem.active.shadow,
+      opacity: theme.exui.components.sidebarItem.active.opacity,
       ...style,
     }),
-    [theme.text, theme.sidebarActiveBackground, style]
+    [theme.exui.components.sidebarItem.active, style]
   );
 
   const handleClick = React.useCallback(
@@ -177,6 +184,7 @@ function SidebarLink(
         $isActiveDrop={isActiveDrop}
         $isDraft={isDraft}
         $disabled={disabled}
+        $nested={Boolean(depth)}
         style={active ? activeStyle : style}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
@@ -197,6 +205,7 @@ function SidebarLink(
       $isActiveDrop={isActiveDrop}
       $isDraft={isDraft}
       $disabled={disabled}
+      $nested={Boolean(depth)}
       style={active ? activeStyle : style}
       activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
       onClick={handleClick}
@@ -205,7 +214,7 @@ function SidebarLink(
       onMouseLeave={handleMouseLeave}
       onDragEnter={handleMouseEnter}
       exact={exact !== false}
-      to={to!}
+      to={to}
       href={href}
       className={className}
       // @ts-expect-error spread props cause overload mismatch with styled NavLink
@@ -217,18 +226,27 @@ function SidebarLink(
   );
 }
 
-// accounts for whitespace around icon
 export const IconWrapper = styled.span`
-  margin-inline-start: -4px;
-  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: ${(props) => props.theme.exui.components.sidebarItem.default.iconSize};
+  height: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.iconSize};
   overflow: hidden;
   flex-shrink: 0;
   transition: opacity 200ms ease-in-out;
+
+  > svg {
+    width: inherit;
+    height: inherit;
+  }
 `;
 
 const Content = styled.span`
   display: flex;
-  align-items: start;
+  align-items: center;
+  gap: ${(props) => props.theme.exui.components.sidebarItem.default.gap};
   position: relative;
   width: 100%;
   min-width: 0;
@@ -274,19 +292,43 @@ const HiddenDisclosure = styled(Disclosure)`
   margin-inline-end: 6px;
 `;
 
-const Link = styled(NavLink)<{
+interface LinkStyleProps {
   $isActiveDrop?: boolean;
   $isDraft?: boolean;
   $disabled?: boolean;
-}>`
+  $nested?: boolean;
+}
+
+const Link = styled(NavLink)<LinkStyleProps>`
+  --background: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.background};
+  --foreground: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.foreground};
+
   &:hover,
-  &:active,
   &:has([data-state="open"]) {
-    --background: ${s("sidebarHoverBackground")};
+    --background: ${(props) =>
+      props.theme.exui.components.sidebarItem.hover.background};
+    --foreground: ${(props) =>
+      props.theme.exui.components.sidebarItem.hover.foreground};
+    border-color: ${(props) =>
+      props.theme.exui.components.sidebarItem.hover.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.sidebarItem.hover.shadow};
+    opacity: ${(props) =>
+      props.theme.exui.components.sidebarItem.hover.opacity};
+  }
+
+  &:active {
+    --background: ${(props) =>
+      props.theme.exui.components.sidebarItem.active.background};
+    --foreground: ${(props) =>
+      props.theme.exui.components.sidebarItem.active.foreground};
   }
 
   &[aria-current="page"] ${Actions} {
-    --background: ${s("sidebarActiveBackground")};
+    --background: ${(props) =>
+      props.theme.exui.components.sidebarItem.active.background};
   }
 
   ${(props) => props.$isActiveDrop && `--background: ${props.theme.slateDark};`}
@@ -294,28 +336,72 @@ const Link = styled(NavLink)<{
   display: flex;
   position: relative;
   text-overflow: ellipsis;
-  font-weight: 475;
-  padding: ${isMobile() ? 12 : 6}px 16px;
-  border-radius: 4px;
-  min-height: 30px;
+  font-weight: ${(props) =>
+    props.$nested
+      ? props.theme.exui.components.sidebarItem.nested.fontWeight
+      : props.theme.exui.components.sidebarItem.default.fontWeight};
+  padding-block: ${(props) =>
+    isMobile()
+      ? "12px"
+      : props.theme.exui.components.sidebarItem.default.paddingBlock};
+  padding-inline: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.paddingInline};
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
+  min-height: ${(props) =>
+    props.$nested
+      ? props.theme.exui.components.sidebarItem.nested.minHeight
+      : props.theme.exui.components.sidebarItem.default.minHeight};
   user-select: none;
   white-space: nowrap;
   background: var(--background);
   color: ${(props) =>
-    props.$isActiveDrop ? props.theme.white : props.theme.sidebarText};
-  font-size: 16px;
+    props.$isActiveDrop ? props.theme.white : "var(--foreground)"};
+  font-size: ${(props) =>
+    props.$nested
+      ? props.theme.exui.components.sidebarItem.nested.fontSize
+      : props.theme.exui.components.sidebarItem.default.fontSize};
   cursor: var(--pointer);
   overflow: hidden;
-  border: 0;
+  border: 1px solid
+    ${(props) => props.theme.exui.components.sidebarItem.default.border};
+  box-shadow: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.shadow};
+  opacity: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.opacity};
   width: 100%;
   ${undraggableOnDesktop()}
 
-  ${(props) =>
-    props.$disabled &&
-    css`
-      pointer-events: none;
-      opacity: 0.75;
-    `}
+  &:focus-visible {
+    outline: none;
+    color: ${(props) =>
+      props.theme.exui.components.sidebarItem.focus.foreground};
+    border-color: ${(props) =>
+      props.theme.exui.components.sidebarItem.focus.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.sidebarItem.focus.shadow};
+    background: ${(props) =>
+      props.theme.exui.components.sidebarItem.focus.background};
+    opacity: ${(props) =>
+      props.theme.exui.components.sidebarItem.focus.opacity};
+  }
+
+  &:active {
+    color: ${(props) =>
+      props.$isActiveDrop
+        ? props.theme.white
+        : props.theme.exui.components.sidebarItem.active.foreground};
+    background: ${(props) =>
+      props.$isActiveDrop
+        ? props.theme.slateDark
+        : props.theme.exui.components.sidebarItem.active.background};
+    border-color: ${(props) =>
+      props.theme.exui.components.sidebarItem.active.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.sidebarItem.active.shadow};
+    opacity: ${(props) =>
+      props.theme.exui.components.sidebarItem.active.opacity};
+  }
 
   ${(props) =>
     props.$isDraft &&
@@ -325,7 +411,8 @@ const Link = styled(NavLink)<{
         position: absolute;
         inset: 0;
         pointer-events: none;
-        border-radius: 4px;
+        border-radius: ${props.theme.exui.components.sidebarItem.default
+          .radius};
         border: 1.5px dashed ${props.theme.sidebarDraftBorder};
       }
     `}
@@ -348,9 +435,10 @@ const Link = styled(NavLink)<{
   }
 
   ${breakpoint("tablet")`
-    padding-block: 3px;
-    padding-inline: 12px 8px;
-    font-size: 14px;
+    padding-block: ${(props: ThemeProps<DefaultTheme> & LinkStyleProps) =>
+      props.theme.exui.components.sidebarItem.default.paddingBlock};
+    padding-inline-end: ${(props: ThemeProps<DefaultTheme> & LinkStyleProps) =>
+      props.theme.exui.components.sidebarItem.default.paddingInline};
   `}
 
   @media (hover: hover) {
@@ -364,12 +452,20 @@ const Link = styled(NavLink)<{
       }
     }
 
-    &:hover,
-    &:has([data-state="open"]) {
-      color: ${(props) =>
-        props.$isActiveDrop ? props.theme.white : props.theme.text};
-    }
   }
+
+  ${(props) =>
+    props.$disabled &&
+    css`
+      pointer-events: none;
+      cursor: default;
+      color: ${props.theme.exui.components.sidebarItem.disabled.foreground};
+      background: ${props.theme.exui.components.sidebarItem.disabled
+        .background};
+      border-color: ${props.theme.exui.components.sidebarItem.disabled.border};
+      box-shadow: ${props.theme.exui.components.sidebarItem.disabled.shadow};
+      opacity: ${props.theme.exui.components.sidebarItem.disabled.opacity};
+    `}
 
   & ${Actions} {
     ${NudeButton} {

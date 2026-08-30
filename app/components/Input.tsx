@@ -18,26 +18,40 @@ export const NativeTextarea = styled.textarea<{
 }>`
   border: 0;
   flex: 1;
-  padding: 8px
-    ${(props) => props.theme.exui.density.standard.controlPaddingInline} 8px
-    ${(props) =>
-      props.hasPrefix
-        ? 0
-        : props.hasIcon
-          ? "8px"
-          : props.theme.exui.density.standard.controlPaddingInline};
+  min-height: ${(props) => props.theme.exui.components.formControl.base.height};
+  padding-block: ${(props) =>
+    props.theme.exui.components.formControl.base.paddingBlock};
+  padding-inline-end: ${(props) =>
+    props.theme.exui.components.formControl.base.paddingInline};
+  padding-inline-start: ${(props) =>
+    props.hasPrefix || props.hasIcon
+      ? 0
+      : props.theme.exui.components.formControl.base.paddingInline};
   outline: none;
   background: none;
-  color: ${(props) => props.theme.exui.surface.foreground};
+  color: inherit;
+  font-family: ${(props) =>
+    props.theme.exui.components.formControl.base.fontFamily};
+  font-size: ${(props) =>
+    props.theme.exui.components.formControl.base.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.formControl.base.fontWeight};
+  line-height: ${(props) =>
+    props.theme.exui.components.formControl.base.lineHeight};
 
   ${(props) => props.$autoSize && `field-sizing: content;`}
   ${(props) => props.$minHeight && `min-height: ${props.$minHeight};`}
   ${(props) => props.$maxHeight && `max-height: ${props.$maxHeight};`}
 
-  &:disabled,
   &::placeholder {
-    color: ${(props) => props.theme.exui.surface.placeholder};
+    color: ${(props) =>
+      props.theme.exui.components.formControl.base.placeholder};
     opacity: 1;
+  }
+
+  &:disabled {
+    color: ${(props) =>
+      props.theme.exui.components.formControl.disabled.foreground};
   }
 `;
 
@@ -47,20 +61,27 @@ export const NativeInput = styled.input<{
 }>`
   border: 0;
   flex: 1;
-  padding: 8px
-    ${(props) => props.theme.exui.density.standard.controlPaddingInline} 8px
-    ${(props) =>
-      props.hasPrefix
-        ? 0
-        : props.hasIcon
-          ? "8px"
-          : props.theme.exui.density.standard.controlPaddingInline};
+  padding-block: ${(props) =>
+    props.theme.exui.components.formControl.base.paddingBlock};
+  padding-inline-end: ${(props) =>
+    props.theme.exui.components.formControl.base.paddingInline};
+  padding-inline-start: ${(props) =>
+    props.hasPrefix || props.hasIcon
+      ? 0
+      : props.theme.exui.components.formControl.base.paddingInline};
   outline: none;
   background: none;
-  color: ${(props) => props.theme.exui.surface.foreground};
-  height: ${(props) => props.theme.exui.density.standard.controlHeight};
+  color: inherit;
+  height: ${(props) => props.theme.exui.components.formControl.base.height};
   min-width: 0;
-  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
+  font-family: ${(props) =>
+    props.theme.exui.components.formControl.base.fontFamily};
+  font-size: ${(props) =>
+    props.theme.exui.components.formControl.base.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.formControl.base.fontWeight};
+  line-height: ${(props) =>
+    props.theme.exui.components.formControl.base.lineHeight};
 
   ${ellipsis()}
   ${undraggableOnDesktop()}
@@ -69,17 +90,23 @@ export const NativeInput = styled.input<{
     color: ${(props) => props.theme.exui.surface.foregroundSecondary};
   }
 
-  &:disabled,
   &::placeholder {
-    color: ${(props) => props.theme.exui.surface.placeholder};
+    color: ${(props) =>
+      props.theme.exui.components.formControl.base.placeholder};
     opacity: 1;
+  }
+
+  &:disabled {
+    color: ${(props) =>
+      props.theme.exui.components.formControl.disabled.foreground};
   }
 
   &:-webkit-autofill,
   &:-webkit-autofill:hover,
   &:-webkit-autofill:focus {
     -webkit-box-shadow: 0 0 0px 1000px
-      ${(props) => props.theme.exui.surface.background} inset;
+      ${(props) => props.theme.exui.components.formControl.base.background}
+      inset;
   }
 
   &::-webkit-search-cancel-button {
@@ -108,7 +135,6 @@ export const Wrapper = styled.div<{
 
 const IconWrapper = styled.span`
   position: relative;
-  inset-inline-start: 4px;
   width: 24px;
   height: 24px;
 `;
@@ -118,26 +144,92 @@ export const Outline = styled(Flex)<{
   $hasError?: boolean;
   $focused?: boolean;
   $round?: boolean;
+  $disabled?: boolean;
+  $hasLeadingContent?: boolean;
 }>`
   position: relative;
   flex: 1;
   margin: ${(props) =>
     props.margin !== undefined ? props.margin : "0 0 16px"};
-  color: inherit;
+  color: ${(props) =>
+    props.$hasError
+      ? props.theme.exui.components.formControl.invalid.foreground
+      : props.$disabled
+        ? props.theme.exui.components.formControl.disabled.foreground
+        : props.$focused
+          ? props.theme.exui.components.formControl.focus.foreground
+          : props.theme.exui.components.formControl.base.foreground};
   border-width: 1px;
   border-style: solid;
   border-color: ${(props) =>
     props.$hasError
-      ? props.theme.exui.control.invalid
-      : props.$focused
-        ? props.theme.exui.surface.borderFocused
-        : props.theme.exui.surface.borderInput};
+      ? props.theme.exui.components.formControl.invalid.border
+      : props.$disabled
+        ? props.theme.exui.components.formControl.disabled.border
+        : props.$focused
+          ? props.theme.exui.components.formControl.focus.border
+          : props.theme.exui.components.formControl.base.border};
   border-radius: ${(props) =>
-    props.$round ? "16px" : props.theme.exui.density.standard.controlRadius};
-  font-weight: normal;
+    props.theme.exui.components.formControl.base.radius};
+  box-shadow: ${(props) =>
+    props.$hasError
+      ? props.theme.exui.components.formControl.invalid.shadow
+      : props.$disabled
+        ? props.theme.exui.components.formControl.disabled.shadow
+        : props.$focused
+          ? props.theme.exui.components.formControl.focus.shadow
+          : props.theme.exui.components.formControl.base.shadow};
+  min-height: ${(props) => props.theme.exui.components.formControl.base.height};
+  padding-inline-start: ${(props) =>
+    props.$hasLeadingContent
+      ? props.theme.exui.components.formControl.base.paddingInline
+      : 0};
+  gap: ${(props) => props.theme.exui.components.formControl.base.gap};
+  font-family: ${(props) =>
+    props.theme.exui.components.formControl.base.fontFamily};
+  font-weight: ${(props) =>
+    props.theme.exui.components.formControl.base.fontWeight};
   align-items: center;
   overflow: hidden;
-  background: ${(props) => props.theme.exui.surface.background};
+  background: ${(props) =>
+    props.$hasError
+      ? props.theme.exui.components.formControl.invalid.background
+      : props.$disabled
+        ? props.theme.exui.components.formControl.disabled.background
+        : props.$focused
+          ? props.theme.exui.components.formControl.focus.background
+          : props.theme.exui.components.formControl.base.background};
+  opacity: ${(props) =>
+    props.$hasError
+      ? props.theme.exui.components.formControl.invalid.opacity
+      : props.$disabled
+        ? props.theme.exui.components.formControl.disabled.opacity
+        : props.$focused
+          ? props.theme.exui.components.formControl.focus.opacity
+          : 1};
+
+  &:hover {
+    color: ${(props) =>
+      props.$hasError || props.$focused || props.$disabled
+        ? undefined
+        : props.theme.exui.components.formControl.hover.foreground};
+    background: ${(props) =>
+      props.$hasError || props.$focused || props.$disabled
+        ? undefined
+        : props.theme.exui.components.formControl.hover.background};
+    border-color: ${(props) =>
+      props.$hasError || props.$focused || props.$disabled
+        ? undefined
+        : props.theme.exui.components.formControl.hover.border};
+    box-shadow: ${(props) =>
+      props.$hasError || props.$focused || props.$disabled
+        ? undefined
+        : props.theme.exui.components.formControl.hover.shadow};
+    opacity: ${(props) =>
+      props.$hasError || props.$focused || props.$disabled
+        ? undefined
+        : props.theme.exui.components.formControl.hover.opacity};
+  }
 
   /* Prevents an issue where input placeholder appears in a selected style when double clicking title bar */
   user-select: none;
@@ -197,7 +289,7 @@ export interface Props extends Omit<
   minHeight?: string;
   /** Maximum height of the textarea as a CSS length value (e.g. "20lh", "400px"). */
   maxHeight?: string;
-  /** Whether to use a round border-radius (16px) instead of the default (4px). */
+  /** Legacy round-style flag; the EXUI form-control recipe owns final radius. */
   round?: boolean;
   /** Like autoFocus, but also select any text in the input */
   autoSelect?: boolean;
@@ -336,6 +428,8 @@ function Input(
         <Outline
           $focused={focused}
           $round={round}
+          $disabled={rest.disabled}
+          $hasLeadingContent={Boolean(prefix || icon)}
           margin={margin}
           $hasError={!!error}
         >

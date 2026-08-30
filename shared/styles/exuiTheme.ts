@@ -1,7 +1,32 @@
 import { darken, getLuminance, lighten, transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
-import { exuiTokens } from "@exre/exui-tokens";
-import type { ThemeTokens } from "@exre/exui-tokens";
+import { componentRecipes, exuiTokens } from "@exre/exui-tokens";
+import type {
+  ButtonRecipe,
+  ButtonSizeRecipe,
+  ButtonVariantRecipe,
+  ColorSemanticTokenReference,
+  DialogRecipe,
+  FoundationReference,
+  FormControlRecipe,
+  InteractiveStateRecipe,
+  MenuItemRecipe,
+  MenuRecipe,
+  MenuSubmenuTriggerRecipe,
+  RecipeColor,
+  RecipeFontSize,
+  RecipeFontWeight,
+  RecipeLineHeight,
+  RecipeRadius,
+  RecipeShadow,
+  SemanticReference,
+  ShadowFoundationReference,
+  ShadowSemanticTokenReference,
+  SidebarItemGeometryRecipe,
+  SidebarItemRecipe,
+  TabsRecipe,
+  ThemeTokens,
+} from "@exre/exui-tokens";
 import type { CustomTheme } from "../types";
 
 /**
@@ -197,6 +222,38 @@ export interface ExuiShadowTheme {
   readonly focus: string;
 }
 
+type FontWeightFoundationPath =
+  | "typography.fontWeightRegular"
+  | "typography.fontWeightMedium"
+  | "typography.fontWeightBold";
+
+type ResolvedRecipeValue<TValue> = TValue extends {
+  readonly kind: "foundation";
+  readonly path: infer TPath;
+}
+  ? TPath extends FontWeightFoundationPath
+    ? number
+    : string
+  : TValue extends { readonly kind: "semantic" }
+    ? string
+    : TValue extends object
+      ? { readonly [TKey in keyof TValue]: ResolvedRecipeValue<TValue[TKey]> }
+      : TValue;
+
+type ResolvedRecipe<TRecipe> = {
+  readonly [TKey in keyof TRecipe]: ResolvedRecipeValue<TRecipe[TKey]>;
+};
+
+/** Resolved component recipes exposed to Outline styled-components. */
+export interface ExuiComponentTheme {
+  readonly button: ResolvedRecipe<ButtonRecipe>;
+  readonly formControl: ResolvedRecipe<FormControlRecipe>;
+  readonly sidebarItem: ResolvedRecipe<SidebarItemRecipe>;
+  readonly menu: ResolvedRecipe<MenuRecipe>;
+  readonly dialog: ResolvedRecipe<DialogRecipe>;
+  readonly tabs: ResolvedRecipe<TabsRecipe>;
+}
+
 /**
  * The namespaced ExUI semantics exposed on `DefaultTheme`. Migrated components
  * read these instead of deriving their own colors, and legacy fields remain
@@ -212,6 +269,543 @@ export interface ExuiSemanticTheme {
   readonly overlay: ExuiOverlayTheme;
   readonly radii: ExuiRadiiTheme;
   readonly shadow: ExuiShadowTheme;
+  readonly components: ExuiComponentTheme;
+}
+
+function unreachable(_value: never): never {
+  throw new Error("Unsupported ExUI recipe reference");
+}
+
+function resolveRadius(value: RecipeRadius): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  switch (value.path) {
+    case "radii.none":
+      return exuiTokens.radii.none;
+    case "radii.small":
+      return exuiTokens.radii.small;
+    case "radii.medium":
+      return exuiTokens.radii.medium;
+    case "radii.large":
+      return exuiTokens.radii.large;
+    case "radii.extraLarge":
+      return exuiTokens.radii.extraLarge;
+    case "radii.full":
+      return exuiTokens.radii.full;
+    default:
+      return unreachable(value.path);
+  }
+}
+
+function resolveFontSize(value: RecipeFontSize): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  switch (value.path) {
+    case "typography.bodyFontSize":
+      return exuiTokens.typography.bodyFontSize;
+    case "typography.smallFontSize":
+      return exuiTokens.typography.smallFontSize;
+    default:
+      return unreachable(value.path);
+  }
+}
+
+function resolveLineHeight(value: RecipeLineHeight): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  switch (value.path) {
+    case "typography.bodyLineHeight":
+      return exuiTokens.typography.bodyLineHeight;
+    case "typography.smallLineHeight":
+      return exuiTokens.typography.smallLineHeight;
+    default:
+      return unreachable(value.path);
+  }
+}
+
+function resolveFontWeight(value: RecipeFontWeight): number {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  switch (value.path) {
+    case "typography.fontWeightRegular":
+      return exuiTokens.typography.fontWeightRegular;
+    case "typography.fontWeightMedium":
+      return exuiTokens.typography.fontWeightMedium;
+    case "typography.fontWeightBold":
+      return exuiTokens.typography.fontWeightBold;
+    default:
+      return unreachable(value.path);
+  }
+}
+
+function resolveSemanticColor(
+  reference: SemanticReference<ColorSemanticTokenReference>,
+  tokens: ThemeTokens
+): string {
+  switch (reference.path) {
+    case "surface.background":
+      return tokens.surface.background;
+    case "surface.secondary":
+      return tokens.surface.secondary;
+    case "surface.tertiary":
+      return tokens.surface.tertiary;
+    case "surface.accent":
+      return tokens.surface.accent;
+    case "surface.accentForeground":
+      return tokens.surface.accentForeground;
+    case "surface.popover":
+      return tokens.surface.popover;
+    case "surface.popoverForeground":
+      return tokens.surface.popoverForeground;
+    case "surface.modal":
+      return tokens.surface.modal;
+    case "surface.menu":
+      return tokens.surface.menu;
+    case "surface.sidebar":
+      return tokens.surface.sidebar;
+    case "surface.input":
+      return tokens.surface.input;
+    case "surface.overlay":
+      return tokens.surface.overlay;
+    case "text.primary":
+      return tokens.text.primary;
+    case "text.secondary":
+      return tokens.text.secondary;
+    case "text.placeholder":
+      return tokens.text.placeholder;
+    case "text.link":
+      return tokens.text.link;
+    case "text.inverse":
+      return tokens.text.inverse;
+    case "control.primary":
+      return tokens.control.primary;
+    case "control.primaryForeground":
+      return tokens.control.primaryForeground;
+    case "control.hover":
+      return tokens.control.hover;
+    case "control.active":
+      return tokens.control.active;
+    case "control.disabled":
+      return tokens.control.disabled;
+    case "control.neutral":
+      return tokens.control.neutral;
+    case "control.neutralForeground":
+      return tokens.control.neutralForeground;
+    case "control.danger":
+      return tokens.control.danger;
+    case "control.dangerForeground":
+      return tokens.control.dangerForeground;
+    case "control.invalid":
+      return tokens.control.invalid;
+    case "control.selected":
+      return tokens.control.selected;
+    case "control.focusRing":
+      return tokens.control.focusRing;
+    case "border.default":
+      return tokens.border.default;
+    case "border.strong":
+      return tokens.border.strong;
+    case "border.input":
+      return tokens.border.input;
+    case "border.focused":
+      return tokens.border.focused;
+    case "border.divider":
+      return tokens.border.divider;
+    case "feedback.danger":
+      return tokens.feedback.danger;
+    case "feedback.dangerForeground":
+      return tokens.feedback.dangerForeground;
+    case "sidebar.background":
+      return tokens.sidebar.background;
+    case "sidebar.foreground":
+      return tokens.sidebar.foreground;
+    case "sidebar.primary":
+      return tokens.sidebar.primary;
+    case "sidebar.primaryForeground":
+      return tokens.sidebar.primaryForeground;
+    case "sidebar.accent":
+      return tokens.sidebar.accent;
+    case "sidebar.accentForeground":
+      return tokens.sidebar.accentForeground;
+    case "sidebar.border":
+      return tokens.sidebar.border;
+    case "sidebar.ring":
+      return tokens.sidebar.ring;
+    default:
+      return unreachable(reference.path);
+  }
+}
+
+function resolveColor(value: RecipeColor, tokens: ThemeTokens): string {
+  if (typeof value === "string") {
+    return value;
+  }
+  return resolveSemanticColor(value, tokens);
+}
+
+function resolveShadow(value: RecipeShadow, tokens: ThemeTokens): string {
+  if (typeof value === "string") {
+    return value;
+  }
+
+  if (value.kind === "foundation") {
+    return resolveFoundationShadow(value);
+  }
+
+  return resolveSemanticShadow(value, tokens);
+}
+
+function resolveFoundationShadow(
+  reference: FoundationReference<ShadowFoundationReference>
+): string {
+  switch (reference.path) {
+    case "shadows.small":
+      return exuiTokens.shadows.small;
+    case "shadows.medium":
+      return exuiTokens.shadows.medium;
+    case "shadows.large":
+      return exuiTokens.shadows.large;
+    case "shadows.focus":
+      return exuiTokens.shadows.focus;
+  }
+}
+
+function resolveSemanticShadow(
+  reference: SemanticReference<ShadowSemanticTokenReference>,
+  tokens: ThemeTokens
+): string {
+  switch (reference.path) {
+    case "shadow.card":
+      return tokens.shadow.card;
+    case "shadow.modal":
+      return tokens.shadow.modal;
+    case "shadow.menu":
+      return tokens.shadow.menu;
+    default:
+      return unreachable(reference.path);
+  }
+}
+
+function resolveState(
+  recipe: InteractiveStateRecipe,
+  tokens: ThemeTokens
+): ResolvedRecipe<InteractiveStateRecipe> {
+  return {
+    background: resolveColor(recipe.background, tokens),
+    foreground: resolveColor(recipe.foreground, tokens),
+    border: resolveColor(recipe.border, tokens),
+    shadow: resolveShadow(recipe.shadow, tokens),
+    opacity: recipe.opacity,
+  };
+}
+
+function resolveButtonSize(
+  recipe: ButtonSizeRecipe
+): ResolvedRecipe<ButtonSizeRecipe> {
+  return {
+    height: recipe.height,
+    paddingInline: recipe.paddingInline,
+    gap: recipe.gap,
+    radius: resolveRadius(recipe.radius),
+    iconSize: recipe.iconSize,
+    fontFamily: exuiTokens.typography.fontFamily,
+    fontSize: resolveFontSize(recipe.fontSize),
+    fontWeight: resolveFontWeight(recipe.fontWeight),
+    lineHeight: resolveLineHeight(recipe.lineHeight),
+  };
+}
+
+function resolveButtonVariant(
+  recipe: ButtonVariantRecipe,
+  tokens: ThemeTokens
+): ResolvedRecipe<ButtonVariantRecipe> {
+  return {
+    default: resolveState(recipe.default, tokens),
+    hover: resolveState(recipe.hover, tokens),
+    active: resolveState(recipe.active, tokens),
+    focus: resolveState(recipe.focus, tokens),
+    disabled: resolveState(recipe.disabled, tokens),
+  };
+}
+
+function resolvePrimaryButtonVariant(
+  recipe: ButtonVariantRecipe,
+  tokens: ThemeTokens,
+  accent: ExuiAccentTheme
+): ResolvedRecipe<ButtonVariantRecipe> {
+  const resolved = resolveButtonVariant(recipe, tokens);
+  return {
+    default: {
+      ...resolved.default,
+      background: accent.primary,
+      foreground: accent.primaryForeground,
+      border: accent.primary,
+    },
+    hover: {
+      ...resolved.hover,
+      background: accent.primaryHover,
+      foreground: accent.primaryForeground,
+      border: accent.primaryHover,
+    },
+    active: {
+      ...resolved.active,
+      background: accent.primaryActive,
+      foreground: accent.primaryForeground,
+      border: accent.primaryActive,
+    },
+    focus: {
+      ...resolved.focus,
+      background: accent.primary,
+      foreground: accent.primaryForeground,
+      border: accent.focusRing,
+    },
+    disabled: {
+      ...resolved.disabled,
+      background: accent.primaryDisabled,
+      border: accent.primaryDisabled,
+    },
+  };
+}
+
+function resolveSidebarGeometry(
+  recipe: SidebarItemGeometryRecipe
+): ResolvedRecipe<SidebarItemGeometryRecipe> {
+  return {
+    minHeight: recipe.minHeight,
+    paddingInline: recipe.paddingInline,
+    paddingBlock: recipe.paddingBlock,
+    gap: recipe.gap,
+    radius: resolveRadius(recipe.radius),
+    iconSize: recipe.iconSize,
+    fontSize: resolveFontSize(recipe.fontSize),
+    fontWeight: resolveFontWeight(recipe.fontWeight),
+  };
+}
+
+function resolveMenuItem(
+  recipe: MenuItemRecipe,
+  tokens: ThemeTokens
+): ResolvedRecipe<MenuItemRecipe> {
+  return {
+    paddingInline: recipe.paddingInline,
+    paddingBlock: recipe.paddingBlock,
+    gap: recipe.gap,
+    radius: resolveRadius(recipe.radius),
+    fontSize: resolveFontSize(recipe.fontSize),
+    fontWeight: resolveFontWeight(recipe.fontWeight),
+    default: resolveState(recipe.default, tokens),
+    hover: resolveState(recipe.hover, tokens),
+    active: resolveState(recipe.active, tokens),
+    focus: resolveState(recipe.focus, tokens),
+    disabled: resolveState(recipe.disabled, tokens),
+    destructive: resolveState(recipe.destructive, tokens),
+  };
+}
+
+function resolveMenuSubmenuTrigger(
+  recipe: MenuSubmenuTriggerRecipe,
+  tokens: ThemeTokens
+): ResolvedRecipe<MenuSubmenuTriggerRecipe> {
+  return {
+    paddingInline: recipe.paddingInline,
+    paddingBlock: recipe.paddingBlock,
+    gap: recipe.gap,
+    radius: resolveRadius(recipe.radius),
+    fontSize: resolveFontSize(recipe.fontSize),
+    fontWeight: resolveFontWeight(recipe.fontWeight),
+    default: resolveState(recipe.default, tokens),
+    hover: resolveState(recipe.hover, tokens),
+    active: resolveState(recipe.active, tokens),
+    focus: resolveState(recipe.focus, tokens),
+    disabled: resolveState(recipe.disabled, tokens),
+  };
+}
+
+/**
+ * Resolves the framework-neutral EXUI recipes into values styled-components
+ * can consume without runtime string-path traversal.
+ *
+ * @param tokens the selected EXUI theme tokens.
+ * @param accent the validated workspace primary override.
+ * @returns the complete resolved component recipe collection.
+ */
+export function resolveComponentRecipes(
+  tokens: ThemeTokens,
+  accent: ExuiAccentTheme
+): ExuiComponentTheme {
+  const recipes = componentRecipes;
+  return {
+    button: {
+      defaultVariant: recipes.button.defaultVariant,
+      defaultSize: recipes.button.defaultSize,
+      primary: resolvePrimaryButtonVariant(
+        recipes.button.primary,
+        tokens,
+        accent
+      ),
+      secondary: resolveButtonVariant(recipes.button.secondary, tokens),
+      outline: resolveButtonVariant(recipes.button.outline, tokens),
+      ghost: resolveButtonVariant(recipes.button.ghost, tokens),
+      danger: resolveButtonVariant(recipes.button.danger, tokens),
+      link: resolveButtonVariant(recipes.button.link, tokens),
+      default: resolveButtonSize(recipes.button.default),
+      small: resolveButtonSize(recipes.button.small),
+      large: resolveButtonSize(recipes.button.large),
+      icon: resolveButtonSize(recipes.button.icon),
+    },
+    formControl: {
+      base: {
+        height: recipes.formControl.base.height,
+        paddingInline: recipes.formControl.base.paddingInline,
+        paddingBlock: recipes.formControl.base.paddingBlock,
+        gap: recipes.formControl.base.gap,
+        radius: resolveRadius(recipes.formControl.base.radius),
+        fontFamily: exuiTokens.typography.fontFamily,
+        fontSize: resolveFontSize(recipes.formControl.base.fontSize),
+        fontWeight: resolveFontWeight(recipes.formControl.base.fontWeight),
+        lineHeight: resolveLineHeight(recipes.formControl.base.lineHeight),
+        background: resolveColor(recipes.formControl.base.background, tokens),
+        foreground: resolveColor(recipes.formControl.base.foreground, tokens),
+        border: resolveColor(recipes.formControl.base.border, tokens),
+        placeholder: resolveColor(recipes.formControl.base.placeholder, tokens),
+        shadow: resolveShadow(recipes.formControl.base.shadow, tokens),
+      },
+      hover: resolveState(recipes.formControl.hover, tokens),
+      focus: resolveState(recipes.formControl.focus, tokens),
+      disabled: resolveState(recipes.formControl.disabled, tokens),
+      invalid: resolveState(recipes.formControl.invalid, tokens),
+    },
+    sidebarItem: {
+      default: {
+        ...resolveSidebarGeometry(recipes.sidebarItem.default),
+        ...resolveState(recipes.sidebarItem.default, tokens),
+      },
+      hover: resolveState(recipes.sidebarItem.hover, tokens),
+      active: resolveState(recipes.sidebarItem.active, tokens),
+      focus: resolveState(recipes.sidebarItem.focus, tokens),
+      disabled: resolveState(recipes.sidebarItem.disabled, tokens),
+      nested: resolveSidebarGeometry(recipes.sidebarItem.nested),
+      iconOnly: resolveSidebarGeometry(recipes.sidebarItem.iconOnly),
+    },
+    menu: {
+      surface: {
+        padding: recipes.menu.surface.padding,
+        radius: resolveRadius(recipes.menu.surface.radius),
+        background: resolveColor(recipes.menu.surface.background, tokens),
+        foreground: resolveColor(recipes.menu.surface.foreground, tokens),
+        border: resolveColor(recipes.menu.surface.border, tokens),
+        shadow: resolveShadow(recipes.menu.surface.shadow, tokens),
+      },
+      item: resolveMenuItem(recipes.menu.item, tokens),
+      checkedItem: {
+        background: resolveColor(recipes.menu.checkedItem.background, tokens),
+        foreground: resolveColor(recipes.menu.checkedItem.foreground, tokens),
+        indicator: resolveColor(recipes.menu.checkedItem.indicator, tokens),
+      },
+      submenuTrigger: resolveMenuSubmenuTrigger(
+        recipes.menu.submenuTrigger,
+        tokens
+      ),
+      separator: {
+        thickness: recipes.menu.separator.thickness,
+        marginBlock: recipes.menu.separator.marginBlock,
+        color: resolveColor(recipes.menu.separator.color, tokens),
+      },
+      shortcut: {
+        marginInlineStart: recipes.menu.shortcut.marginInlineStart,
+        fontSize: resolveFontSize(recipes.menu.shortcut.fontSize),
+        letterSpacing: recipes.menu.shortcut.letterSpacing,
+        foreground: resolveColor(recipes.menu.shortcut.foreground, tokens),
+      },
+    },
+    dialog: {
+      overlay: {
+        background: resolveColor(recipes.dialog.overlay.background, tokens),
+        backdropBlur: recipes.dialog.overlay.backdropBlur,
+        duration: recipes.dialog.overlay.duration,
+      },
+      surface: {
+        padding: recipes.dialog.surface.padding,
+        gap: recipes.dialog.surface.gap,
+        radius: resolveRadius(recipes.dialog.surface.radius),
+        background: resolveColor(recipes.dialog.surface.background, tokens),
+        foreground: resolveColor(recipes.dialog.surface.foreground, tokens),
+        border: resolveColor(recipes.dialog.surface.border, tokens),
+        shadow: resolveShadow(recipes.dialog.surface.shadow, tokens),
+      },
+      title: {
+        fontFamily: exuiTokens.typography.fontFamily,
+        fontSize: resolveFontSize(recipes.dialog.title.fontSize),
+        fontWeight: resolveFontWeight(recipes.dialog.title.fontWeight),
+        lineHeight: resolveLineHeight(recipes.dialog.title.lineHeight),
+        foreground: resolveColor(recipes.dialog.title.foreground, tokens),
+      },
+      description: {
+        fontFamily: exuiTokens.typography.fontFamily,
+        fontSize: resolveFontSize(recipes.dialog.description.fontSize),
+        fontWeight: resolveFontWeight(recipes.dialog.description.fontWeight),
+        lineHeight: resolveLineHeight(recipes.dialog.description.lineHeight),
+        foreground: resolveColor(recipes.dialog.description.foreground, tokens),
+      },
+      body: { gap: recipes.dialog.body.gap },
+      footer: { gap: recipes.dialog.footer.gap },
+      closeButtonPlacement: {
+        top: recipes.dialog.closeButtonPlacement.top,
+        right: recipes.dialog.closeButtonPlacement.right,
+      },
+    },
+    tabs: {
+      defaultVariant: recipes.tabs.defaultVariant,
+      list: {
+        height: recipes.tabs.list.height,
+        padding: recipes.tabs.list.padding,
+        gap: recipes.tabs.list.gap,
+        radius: resolveRadius(recipes.tabs.list.radius),
+        foreground: resolveColor(recipes.tabs.list.foreground, tokens),
+      },
+      trigger: {
+        paddingInline: recipes.tabs.trigger.paddingInline,
+        paddingBlock: recipes.tabs.trigger.paddingBlock,
+        gap: recipes.tabs.trigger.gap,
+        radius: resolveRadius(recipes.tabs.trigger.radius),
+        fontSize: resolveFontSize(recipes.tabs.trigger.fontSize),
+        fontWeight: resolveFontWeight(recipes.tabs.trigger.fontWeight),
+        default: resolveState(recipes.tabs.trigger.default, tokens),
+        hover: resolveState(recipes.tabs.trigger.hover, tokens),
+        selected: resolveState(recipes.tabs.trigger.selected, tokens),
+        focus: resolveState(recipes.tabs.trigger.focus, tokens),
+        disabled: resolveState(recipes.tabs.trigger.disabled, tokens),
+      },
+      indicator: {
+        thickness: recipes.tabs.indicator.thickness,
+        offset: recipes.tabs.indicator.offset,
+        background: resolveColor(recipes.tabs.indicator.background, tokens),
+      },
+      default: {
+        listBackground: resolveColor(
+          recipes.tabs.default.listBackground,
+          tokens
+        ),
+        indicatorOpacity: recipes.tabs.default.indicatorOpacity,
+      },
+      line: {
+        listBackground: resolveColor(recipes.tabs.line.listBackground, tokens),
+        triggerSelectedBackground: resolveColor(
+          recipes.tabs.line.triggerSelectedBackground,
+          tokens
+        ),
+        indicatorOpacity: recipes.tabs.line.indicatorOpacity,
+      },
+    },
+  };
 }
 
 /**
@@ -450,6 +1044,7 @@ export function buildExuiSemanticTheme(
       large: shadows.large,
       focus: shadows.focus,
     },
+    components: resolveComponentRecipes(tokens, accent),
   };
 }
 
@@ -475,7 +1070,6 @@ export function buildExuiLegacyOverrides(
   const { typography } = exuiTokens;
 
   return {
-    fontFamily: typography.fontFamily,
     fontFamilyMono: typography.fontFamilyMono,
     fontFamilyEmoji: typography.fontFamilyEmoji,
     fontWeightRegular: typography.fontWeightRegular,

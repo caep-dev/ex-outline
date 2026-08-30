@@ -100,12 +100,15 @@ const Modal: React.FC<Props> = ({
                 </DesktopContent>
                 <Header>
                   <Dialog.Title asChild>
-                    <Text size="large">{resolvedTitle}</Text>
+                    <DesktopTitle>{resolvedTitle}</DesktopTitle>
                   </Dialog.Title>
                   <Tooltip content={t("Close")} shortcut="Esc">
-                    <NudeButton onClick={onClose} aria-label={t("Close")}>
+                    <DesktopCloseButton
+                      onClick={onClose}
+                      aria-label={t("Close")}
+                    >
                       <CloseIcon />
-                    </NudeButton>
+                    </DesktopCloseButton>
                   </Tooltip>
                 </Header>
               </Centered>
@@ -124,9 +127,13 @@ const StyledOverlay = styled(Dialog.Overlay)`
   right: 0;
   bottom: 0;
   background-color: ${(props) =>
-    props.theme.exui.overlay.dialog.overlay} !important;
+    props.theme.exui.components.dialog.overlay.background} !important;
+  backdrop-filter: blur(
+    ${(props) => props.theme.exui.components.dialog.overlay.backdropBlur}
+  );
   z-index: ${depths.overlay};
-  animation: ${fadeIn} 200ms ease;
+  animation: ${fadeIn}
+    ${(props) => props.theme.exui.components.dialog.overlay.duration} ease;
 `;
 
 const StyledContent = styled(Dialog.Content)`
@@ -168,7 +175,8 @@ const MobileContent = styled(Scrollable)`
 `;
 
 const DesktopContent = styled(Scrollable)`
-  padding: 8px 24px 24px;
+  padding: 0;
+  color: ${(props) => props.theme.exui.components.dialog.surface.foreground};
 `;
 
 const Centered = styled(Flex)`
@@ -176,6 +184,7 @@ const Centered = styled(Flex)`
   max-width: 100%;
   position: relative;
   margin: 0 auto;
+  gap: ${(props) => props.theme.exui.components.dialog.surface.gap};
 `;
 
 const Close = styled(NudeButton)`
@@ -220,13 +229,19 @@ const Back = styled(NudeButton)`
 `;
 
 const Header = styled(Flex)`
-  color: ${(props) => props.theme.exui.overlay.dialog.foregroundMuted};
+  color: ${(props) => props.theme.exui.components.dialog.title.foreground};
   align-items: center;
   justify-content: space-between;
-  font-weight: ${(props) => props.theme.exui.typography.fontWeightBold};
-  padding: 24px 24px 12px;
+  font-family: ${(props) =>
+    props.theme.exui.components.dialog.title.fontFamily};
+  font-size: ${(props) => props.theme.exui.components.dialog.title.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.dialog.title.fontWeight};
+  line-height: ${(props) =>
+    props.theme.exui.components.dialog.title.lineHeight};
+  padding: 0;
   flex-shrink: 0;
-  gap: 8px;
+  gap: ${(props) => props.theme.exui.components.dialog.body.gap};
 
   // Allows a long title to wrap or truncate instead of pushing out the close
   // button
@@ -236,6 +251,81 @@ const Header = styled(Flex)`
 
   > :last-child {
     flex-shrink: 0;
+  }
+`;
+
+const DesktopTitle = styled(Text)`
+  color: ${(props) => props.theme.exui.components.dialog.title.foreground};
+  font-family: ${(props) =>
+    props.theme.exui.components.dialog.title.fontFamily};
+  font-size: ${(props) => props.theme.exui.components.dialog.title.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.dialog.title.fontWeight};
+  line-height: ${(props) =>
+    props.theme.exui.components.dialog.title.lineHeight};
+`;
+
+const DesktopCloseButton = styled(NudeButton)`
+  width: ${(props) => props.theme.exui.components.button.icon.height};
+  height: ${(props) => props.theme.exui.components.button.icon.height};
+  padding: ${(props) =>
+    `0 ${props.theme.exui.components.button.icon.paddingInline}`};
+  color: ${(props) =>
+    props.theme.exui.components.button.ghost.default.foreground};
+  background: ${(props) =>
+    props.theme.exui.components.button.ghost.default.background};
+  border: 1px solid
+    ${(props) => props.theme.exui.components.button.ghost.default.border};
+  border-radius: ${(props) => props.theme.exui.components.button.icon.radius};
+  box-shadow: ${(props) =>
+    props.theme.exui.components.button.ghost.default.shadow};
+  opacity: ${(props) =>
+    props.theme.exui.components.button.ghost.default.opacity};
+  vertical-align: middle;
+
+  > svg {
+    width: ${(props) => props.theme.exui.components.button.icon.iconSize};
+    height: ${(props) => props.theme.exui.components.button.icon.iconSize};
+  }
+
+  &:hover {
+    color: ${(props) =>
+      props.theme.exui.components.button.ghost.hover.foreground};
+    background: ${(props) =>
+      props.theme.exui.components.button.ghost.hover.background};
+    border-color: ${(props) =>
+      props.theme.exui.components.button.ghost.hover.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.button.ghost.hover.shadow};
+    opacity: ${(props) =>
+      props.theme.exui.components.button.ghost.hover.opacity};
+  }
+
+  &:active {
+    color: ${(props) =>
+      props.theme.exui.components.button.ghost.active.foreground};
+    background: ${(props) =>
+      props.theme.exui.components.button.ghost.active.background};
+    border-color: ${(props) =>
+      props.theme.exui.components.button.ghost.active.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.button.ghost.active.shadow};
+    opacity: ${(props) =>
+      props.theme.exui.components.button.ghost.active.opacity};
+  }
+
+  &:focus-visible {
+    outline: none;
+    color: ${(props) =>
+      props.theme.exui.components.button.ghost.focus.foreground};
+    background: ${(props) =>
+      props.theme.exui.components.button.ghost.focus.background};
+    border-color: ${(props) =>
+      props.theme.exui.components.button.ghost.focus.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.button.ghost.focus.shadow};
+    opacity: ${(props) =>
+      props.theme.exui.components.button.ghost.focus.opacity};
   }
 `;
 
@@ -254,18 +344,17 @@ const Wrapper = styled.div<{
   display: flex;
   justify-content: center;
   align-items: flex-start;
-  background: ${(props) => props.theme.exui.overlay.dialog.background};
-  box-shadow: ${(props) => props.theme.exui.overlay.dialog.shadow};
-  border-radius: ${(props) => props.theme.exui.overlay.dialog.radius};
+  padding: ${(props) => props.theme.exui.components.dialog.surface.padding};
+  background: ${(props) =>
+    props.theme.exui.components.dialog.surface.background};
+  color: ${(props) => props.theme.exui.components.dialog.surface.foreground};
+  box-shadow: ${(props) => props.theme.exui.components.dialog.surface.shadow};
+  border: 1px solid
+    ${(props) => props.theme.exui.components.dialog.surface.border};
+  border-radius: ${(props) =>
+    props.theme.exui.components.dialog.surface.radius};
+  font-family: ${(props) => props.theme.exui.typography.fontFamily};
   outline: none;
-
-  ${NudeButton} {
-    &:hover,
-    &[aria-expanded="true"] {
-      background: ${(props) => props.theme.exui.control.neutralHover};
-    }
-    vertical-align: middle;
-  }
 
   ${Header} {
     align-items: start;

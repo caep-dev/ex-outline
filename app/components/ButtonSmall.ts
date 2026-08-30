@@ -2,16 +2,26 @@ import styled from "styled-components";
 import Button, { Inner } from "./Button";
 
 const ButtonSmall = styled(Button)`
-  /* The token contract has no typography step below smallFontSize, so the small
-     button keeps its own font size to stay visually distinct from Button. */
-  font-size: 13px;
-  height: ${(props) => props.theme.exui.density.compact.controlHeight};
+  height: ${(props) => props.theme.exui.components.button.small.height};
+  border-radius: ${(props) => props.theme.exui.components.button.small.radius};
+  font-family: ${(props) =>
+    props.theme.exui.components.button.small.fontFamily};
+  font-size: ${(props) => props.theme.exui.components.button.small.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.button.small.fontWeight};
+  line-height: ${(props) =>
+    props.theme.exui.components.button.small.lineHeight};
 
   ${Inner} {
-    padding: 0
-      ${(props) => props.theme.exui.density.compact.controlPaddingInline};
-    line-height: ${(props) => props.theme.exui.density.compact.controlHeight};
-    min-height: ${(props) => props.theme.exui.density.compact.controlHeight};
+    padding-inline: ${(props) =>
+      props.theme.exui.components.button.small.paddingInline};
+    gap: ${(props) => props.theme.exui.components.button.small.gap};
+    min-height: ${(props) => props.theme.exui.components.button.small.height};
+
+    > svg {
+      width: ${(props) => props.theme.exui.components.button.small.iconSize};
+      height: ${(props) => props.theme.exui.components.button.small.iconSize};
+    }
   }
 `;
 
