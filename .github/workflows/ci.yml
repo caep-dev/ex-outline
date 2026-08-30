@@ -137,6 +137,24 @@ jobs:
       - name: Run server tests
         run: yarn test:server --maxWorkers=2 --shard=${{ matrix.shard }}/4
 
+  visual:
+    needs: changes
+    if: ${{ needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true' }}
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - uses: ./.github/actions/install
+      - name: Cache Playwright Chromium
+        uses: actions/cache@v4
+        with:
+          path: ~/AppData/Local/ms-playwright
+          key: ${{ runner.os }}-playwright-${{ hashFiles('yarn.lock') }}
+      - name: Install Playwright Chromium
+        run: yarn playwright install chromium
+      - name: Run visual tests
+        run: yarn test:visual
+
   bundle-size:
     needs: changes
     if: ${{ (needs.changes.outputs.app == 'true' || needs.changes.outputs.config == 'true') && github.repository == 'outline/outline' }}
@@ -162,7 +180,8 @@ jobs:
   # Audit is intentionally excluded, it reports advisories that can have no
   # fix available or affect dev only and should not block merging.
   ci:
-    needs: [changes, lint, actionlint, types, test, test-server, bundle-size]
+    needs:
+      [changes, lint, actionlint, types, test, test-server, visual, bundle-size]
     if: always()
     runs-on: ubuntu-latest
     steps:

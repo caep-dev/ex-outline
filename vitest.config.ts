@@ -1,4 +1,5 @@
 import path from "node:path";
+import { playwright } from "@vitest/browser-playwright";
 import swc from "unplugin-swc";
 import { defineConfig } from "vitest/config";
 
@@ -89,11 +90,69 @@ export default defineConfig({
             jsdom: { url: "http://localhost" },
           },
           include: ["app/**/*.test.{ts,tsx}"],
+          exclude: ["app/**/*.vrt.test.{ts,tsx}"],
           setupFiles: ["./__mocks__/window.js", "./app/test/setup.ts"],
           server: {
             deps: {
               inline: ["@radix-ui"],
             },
+          },
+        },
+      },
+      {
+        ...sharedConfig,
+        resolve: { alias: [fileMockAlias, ...aliasesAsArray] },
+        server: {
+          fs: {
+            allow: [
+              path.resolve(__dirname),
+              path.resolve(__dirname, "../../exui"),
+            ],
+          },
+        },
+        test: {
+          name: "visual",
+          globals: true,
+          include: ["app/**/*.vrt.test.{ts,tsx}"],
+          setupFiles: ["./app/test/visualEnv.ts", "./app/test/visualSetup.ts"],
+          fileParallelism: false,
+          api: { allowWrite: true },
+          browser: {
+            enabled: true,
+            headless: true,
+            screenshotDirectory: "./app/test",
+            screenshotFailures: false,
+            api: { allowWrite: true },
+            expect: {
+              toMatchScreenshot: {
+                resolveScreenshotPath: ({
+                  arg,
+                  ext,
+                  root,
+                  screenshotDirectory,
+                }) => path.resolve(root, screenshotDirectory, `${arg}${ext}`),
+              },
+            },
+            provider: playwright({
+              contextOptions: {
+                deviceScaleFactor: 1,
+                locale: "en-US",
+                reducedMotion: "reduce",
+                timezoneId: "UTC",
+              },
+            }),
+            instances: [
+              {
+                browser: "chromium",
+                name: "chromium-desktop",
+                viewport: { width: 1280, height: 900 },
+              },
+              {
+                browser: "chromium",
+                name: "chromium-mobile",
+                viewport: { width: 390, height: 844 },
+              },
+            ],
           },
         },
       },
