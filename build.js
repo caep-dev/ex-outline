@@ -3,6 +3,8 @@
 /* oxlint-disable no-undef */
 const { exec } = require("child_process");
 const { readdirSync, existsSync } = require("fs");
+const { copyFile, mkdir, rm } = require("fs/promises");
+const path = require("path");
 
 const getDirectories = (source) =>
   readdirSync(source, { withFileTypes: true })
@@ -26,13 +28,28 @@ function execAsync(cmd) {
   });
 }
 
+/**
+ * Copies a file when it exists, creating its destination directory first.
+ * @param source {string}
+ * @param destination {string}
+ * @return {Promise<void>}
+ */
+async function copyFileIfExists(source, destination) {
+  if (!existsSync(source)) {
+    return;
+  }
+
+  await mkdir(path.dirname(destination), { recursive: true });
+  await copyFile(source, destination);
+}
+
 async function build() {
   // Clean previous build
   console.log("Clean previous build…");
 
   await Promise.all([
-    execAsync("rm -rf ./build/server"),
-    execAsync("rm -rf ./build/plugins"),
+    rm("./build/server", { recursive: true, force: true }),
+    rm("./build/plugins", { recursive: true, force: true }),
   ]);
 
   const d = getDirectories("./plugins");
@@ -69,19 +86,23 @@ async function build() {
   // Copy static files
   console.log("Copying static files…");
   await Promise.all([
-    execAsync(
-      "cp ./server/collaboration/Procfile ./build/server/collaboration/Procfile"
+    copyFileIfExists(
+      "./server/collaboration/Procfile",
+      "./build/server/collaboration/Procfile"
     ),
-    execAsync(
-      "cp ./server/static/error.dev.html ./build/server/error.dev.html"
+    copyFileIfExists(
+      "./server/static/error.dev.html",
+      "./build/server/error.dev.html"
     ),
-    execAsync(
-      "cp ./server/static/error.prod.html ./build/server/error.prod.html"
+    copyFileIfExists(
+      "./server/static/error.prod.html",
+      "./build/server/error.prod.html"
     ),
-    execAsync("cp package.json ./build"),
+    copyFileIfExists("./package.json", "./build/package.json"),
     ...d.map(async (plugin) =>
-      execAsync(
-        `mkdir -p ./build/plugins/${plugin} && cp ./plugins/${plugin}/plugin.json ./build/plugins/${plugin}/plugin.json 2>/dev/null || :`
+      copyFileIfExists(
+        `./plugins/${plugin}/plugin.json`,
+        `./build/plugins/${plugin}/plugin.json`
       )
     ),
   ]);
