@@ -1,0 +1,4 @@
+interface:
+  display_name: "ExUI Usage"
+  short_description: "Use ExUI components, themes, Tokens, and glass surfaces."
+  default_prompt: "Use $exui-usage to integrate ExUI through its public entries, choose components, and apply theme, Token, glass, and scaling guidance for the installed version."
