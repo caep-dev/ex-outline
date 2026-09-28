@@ -40,9 +40,11 @@ export default ({ mode }: ConfigEnv) =>
     publicDir: "./server/static",
     base: (environment.CDN_URL ?? "") + "/static/",
     server: {
-      port: 3001,
+      port: 3101,
+      strictPort: true,
       host: true,
       https: httpsConfig,
+      origin: `${httpsConfig ? "https" : "http"}://${host ?? "localhost"}:3101`,
       allowedHosts: host ? [host] : undefined,
       cors: true,
       fs:
