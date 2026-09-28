@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
 import { CheckmarkIcon, ExpandedIcon } from "outline-icons";
 import { transparentize } from "polished";
@@ -126,24 +127,27 @@ export function SplitButton({
 const accentStyles = css`
   background: ${s("accent")};
   color: ${s("accentText")};
-  box-shadow: rgba(0, 0, 0, 0.2) 0px 1px 2px;
+  box-shadow: ${(props) =>
+    props.theme.exui.components.button.primary.default.shadow};
 `;
 
 const neutralStyles = css`
-  background: inherit;
+  background: ${(props) =>
+    props.theme.exui.components.button.outline.default.background};
   color: ${(props) => props.theme.buttonNeutralText};
-  box-shadow:
-    rgba(0, 0, 0, 0.07) 0px 1px 2px,
-    ${(props) => props.theme.buttonNeutralBorder} 0 0 0 1px inset;
+  box-shadow: inset 0 0 0 1px
+    ${(props) => props.theme.exui.components.button.outline.default.border};
 `;
 
 const Container = styled.span<{ $neutral?: boolean; $disabled?: boolean }>`
   display: inline-flex;
   align-items: stretch;
-  border-radius: 6px;
-  height: 32px;
-  font-size: 14px;
-  font-weight: 500;
+  border-radius: ${(props) =>
+    props.theme.exui.components.button.default.radius};
+  height: ${(props) => props.theme.exui.components.button.default.height};
+  font-size: ${(props) => props.theme.exui.components.button.default.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.button.default.fontWeight};
   flex-shrink: 0;
   ${undraggableOnDesktop()}
   ${(props) => (props.$neutral ? neutralStyles : accentStyles)}
@@ -167,6 +171,12 @@ const buttonReset = css`
   cursor: var(--pointer);
   appearance: none;
 
+  &:focus-visible {
+    outline: none;
+    box-shadow: ${(props) =>
+      props.theme.exui.components.button.primary.focus.shadow};
+  }
+
   &:disabled {
     cursor: default;
     pointer-events: none;
@@ -177,8 +187,10 @@ const MainButton = styled.button<{ $neutral?: boolean }>`
   ${buttonReset}
   display: flex;
   align-items: center;
-  padding: 0 8px;
-  border-radius: 6px 0 0 6px;
+  padding: 0
+    ${(props) => props.theme.exui.components.button.default.paddingInline};
+  border-radius: ${(props) => props.theme.exui.radii.full} 0 0
+    ${(props) => props.theme.exui.radii.full};
   white-space: nowrap;
   transition: background 200ms ease-out;
 
@@ -186,7 +198,7 @@ const MainButton = styled.button<{ $neutral?: boolean }>`
     background: ${(props) =>
       props.$neutral
         ? props.theme.buttonNeutralHoverBackground
-        : "rgba(0, 0, 0, 0.1)"};
+        : props.theme.exui.components.button.primary.hover.background};
     transition: background 0s;
   }
 `;
@@ -197,7 +209,8 @@ const DisclosureButton = styled.button<{ $neutral?: boolean }>`
   align-items: center;
   justify-content: center;
   padding: 0 4px;
-  border-radius: 0 6px 6px 0;
+  border-radius: 0 ${(props) => props.theme.exui.radii.full}
+    ${(props) => props.theme.exui.radii.full} 0;
   transition: background 200ms ease-out;
 
   &:hover:not(:disabled),
@@ -205,7 +218,7 @@ const DisclosureButton = styled.button<{ $neutral?: boolean }>`
     background: ${(props) =>
       props.$neutral
         ? props.theme.buttonNeutralHoverBackground
-        : "rgba(0, 0, 0, 0.1)"};
+        : props.theme.exui.components.button.primary.hover.background};
     transition: background 0s;
   }
 `;
@@ -230,8 +243,8 @@ const MenuContent = styled.div`
   max-width: 276px;
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 6px;
-  padding: 6px;
+  border-radius: ${(props) => props.theme.exui.components.menu.surface.radius};
+  padding: ${(props) => props.theme.exui.components.menu.surface.padding};
   outline: none;
 
   transform-origin: var(--radix-dropdown-menu-content-transform-origin);
@@ -247,16 +260,18 @@ const MenuItem = styled.button`
   align-items: center;
   width: 100%;
   min-height: 32px;
-  font-size: 14px;
+  font-size: ${(props) => props.theme.exui.components.menu.item.fontSize};
   color: ${s("textSecondary")};
-  border-radius: 4px;
-  padding: 4px 12px;
-  gap: 8px;
+  border-radius: ${(props) => props.theme.exui.components.menu.item.radius};
+  padding: ${(props) => props.theme.exui.components.menu.item.paddingBlock}
+    ${(props) => props.theme.exui.components.menu.item.paddingInline};
+  gap: ${(props) => props.theme.exui.components.menu.item.gap};
   user-select: none;
 
   &[data-highlighted] {
-    color: ${s("accentText")};
-    background: ${s("accent")};
+    color: ${(props) => props.theme.exui.components.menu.item.focus.foreground};
+    background: ${(props) =>
+      props.theme.exui.components.menu.item.focus.background};
     outline: none;
   }
 `;
@@ -273,7 +288,7 @@ const MenuItemLabel = styled.span`
 `;
 
 const MenuItemDescription = styled.span`
-  font-size: 12px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   opacity: 0.75;
   margin-top: 1px;
 `;

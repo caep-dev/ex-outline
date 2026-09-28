@@ -64,10 +64,10 @@ const Navigation = observer(function Navigation({
           <Tab {...tabProps(CollectionTab.Published)}>
             {t("Recently published")}
           </Tab>
-          <Tab {...tabProps(CollectionTab.Old)}>
+          {/* <Tab {...tabProps(CollectionTab.Old)}>
             {t("Least recently updated")}
           </Tab>
-          <Tab {...tabProps(CollectionTab.Alphabetical)}>{t("A–Z")}</Tab>
+          <Tab {...tabProps(CollectionTab.Alphabetical)}>{t("A–Z")}</Tab> */}
         </>
       )}
     </Tabs>

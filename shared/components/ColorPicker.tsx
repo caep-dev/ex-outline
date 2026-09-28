@@ -103,7 +103,8 @@ const colorPickerStyles = css`
     width: auto;
 
     & > .react-colorful__saturation {
-      border-radius: 4px 4px 0 0;
+      border-radius: ${(props) => props.theme.exui.radii.extraLarge}
+        ${(props) => props.theme.exui.radii.extraLarge} 0 0;
     }
 
     & .react-colorful__pointer {
@@ -117,7 +118,8 @@ const colorPickerStyles = css`
 
     & > .react-colorful__hue {
       height: 8px;
-      border-radius: 0 0 4px 4px;
+      border-radius: 0 0 ${(props) => props.theme.exui.radii.extraLarge}
+        ${(props) => props.theme.exui.radii.extraLarge};
       margin-bottom: 8px;
     }
   }
@@ -132,7 +134,7 @@ const StyledHexAlphaColorPicker = styled(HexAlphaColorPicker)`
 
   &.react-colorful > .react-colorful__alpha {
     height: 8px;
-    border-radius: 4px;
+    border-radius: ${(props) => props.theme.exui.radii.small};
     margin-top: 8px;
     margin-bottom: 8px;
   }
@@ -149,14 +151,18 @@ const StyledHexColorInput = styled(HexColorInput)`
   flex: 1;
   padding: 4px 6px;
   border: 1px solid ${s("inputBorder")};
-  border-radius: 4px;
-  font-size: 12px;
-  background: ${s("background")};
+  border-radius: ${(props) =>
+    props.theme.exui.components.formControl.base.radius};
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
+  min-height: ${(props) => props.theme.exui.components.formControl.base.height};
+  background: ${s("inputBackground")};
   color: ${s("text")};
 
   &:focus {
     outline: none;
-    border-color: ${s("accent")};
+    border-color: transparent;
+    box-shadow: ${(props) =>
+      props.theme.exui.components.formControl.focus.shadow};
   }
 `;
 
@@ -166,7 +172,7 @@ const CopyButton = styled.button`
   justify-content: center;
   padding: 4px;
   border: 1px solid ${s("inputBorder")};
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
   background: ${s("background")};
   color: ${s("textSecondary")};
   cursor: pointer;

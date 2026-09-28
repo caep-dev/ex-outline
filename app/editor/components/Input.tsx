@@ -1,12 +1,14 @@
-import { transparentize } from "polished";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 
 const Input = styled.input`
-  font-size: 15px;
-  background: ${s("inputBorder")};
+  font-size: ${(props) =>
+    props.theme.exui.components.formControl.base.fontSize};
+  background: ${(props) =>
+    props.theme.exui.components.formControl.base.background};
   color: ${s("text")};
-  border-radius: 2px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.formControl.base.radius};
   padding: 3px 8px;
   border: 0;
   margin: 0;
@@ -14,8 +16,14 @@ const Input = styled.input`
   flex-grow: 1;
   min-width: 0;
 
+  &:focus-visible {
+    box-shadow: ${(props) =>
+      props.theme.exui.components.formControl.focus.shadow};
+  }
+
   &::placeholder {
-    color: ${(props) => transparentize(0.5, props.theme.text)};
+    color: ${(props) =>
+      props.theme.exui.components.formControl.base.placeholder};
   }
 
   @media (hover: none) and (pointer: coarse) {

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { ExpandedIcon } from "outline-icons";
 import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
@@ -238,7 +239,7 @@ export const MenuLabel = styled.div`
 `;
 
 export const MenuHeader = styled.h3`
-  font-size: 11px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: ${(props) => props.theme.exui.typography.fontWeightBold};
   text-transform: uppercase;
   color: ${(props) => props.theme.exui.surface.foregroundTertiary};

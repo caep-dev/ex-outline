@@ -177,16 +177,20 @@ const Text = styled.div`
 
 const Input = styled.input`
   color: ${s("text")};
-  background: ${s("background")};
+  background: ${(props) =>
+    props.theme.exui.components.formControl.base.background};
   width: calc(100% + 12px);
-  border-radius: 3px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.formControl.base.radius};
   border: 0;
   padding: 5px 6px;
   margin: -4px;
   height: 30px;
 
   &:focus {
-    outline-color: ${s("accent")};
+    outline: none;
+    box-shadow: ${(props) =>
+      props.theme.exui.components.formControl.focus.shadow};
   }
 `;
 

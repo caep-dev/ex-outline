@@ -331,7 +331,7 @@ const Link = styled(NavLink)<LinkStyleProps>`
       props.theme.exui.components.sidebarItem.active.background};
   }
 
-  ${(props) => props.$isActiveDrop && `--background: ${props.theme.slateDark};`}
+  ${(props) => props.$isActiveDrop && `--background: ${props.theme.exui.control.primary};`}
 
   display: flex;
   position: relative;
@@ -356,7 +356,9 @@ const Link = styled(NavLink)<LinkStyleProps>`
   white-space: nowrap;
   background: var(--background);
   color: ${(props) =>
-    props.$isActiveDrop ? props.theme.white : "var(--foreground)"};
+    props.$isActiveDrop
+      ? props.theme.exui.control.primaryForeground
+      : "var(--foreground)"};
   font-size: ${(props) =>
     props.$nested
       ? props.theme.exui.components.sidebarItem.nested.fontSize
@@ -389,11 +391,11 @@ const Link = styled(NavLink)<LinkStyleProps>`
   &:active {
     color: ${(props) =>
       props.$isActiveDrop
-        ? props.theme.white
+        ? props.theme.exui.control.primaryForeground
         : props.theme.exui.components.sidebarItem.active.foreground};
     background: ${(props) =>
       props.$isActiveDrop
-        ? props.theme.slateDark
+        ? props.theme.exui.control.primary
         : props.theme.exui.components.sidebarItem.active.background};
     border-color: ${(props) =>
       props.theme.exui.components.sidebarItem.active.border};
@@ -418,7 +420,10 @@ const Link = styled(NavLink)<LinkStyleProps>`
     `}
 
   svg {
-    ${(props) => (props.$isActiveDrop ? `fill: ${props.theme.white};` : "")}
+    ${(props) =>
+      props.$isActiveDrop
+        ? `fill: ${props.theme.exui.control.primaryForeground};`
+        : ""}
     transition: fill 50ms;
   }
 

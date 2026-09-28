@@ -43,33 +43,32 @@ export const Card = styled.div`
   display: flex;
   flex-direction: column;
   flex-grow: 1;
-  padding: 20px;
-  width: 300px;
-  background: ${s("background")};
-  border: 1px solid ${s("inputBorder")};
-  color: ${s("text")};
-  border-radius: 8px;
+  padding: 1.5rem;
+  width: 18.75rem;
+  background: ${(props) => props.theme.exui.tokens.surface.card};
+  border: 1px solid ${(props) => props.theme.exui.surface.border};
+  color: ${(props) => props.theme.exui.tokens.surface.cardForeground};
+  border-radius: 2rem;
+  box-shadow: ${(props) => props.theme.exui.shadow.medium};
   transition: box-shadow 200ms ease;
   cursor: var(--pointer);
 
   &: ${hover} {
-    box-shadow:
-      rgba(0, 0, 0, 0.08) 0px 2px 4px,
-      rgba(0, 0, 0, 0.06) 0px 4px 8px;
+    box-shadow: ${(props) => props.theme.exui.shadow.large};
   }
 `;
 
 const Name = styled(Text)`
   margin: 0 0 -4px;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   color: ${s("text")};
   ${ellipsis()}
 `;
 
 const Description = styled(Text)`
   margin: 12px 0 0;
-  font-size: 15px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
   max-width: 100%;
   color: ${s("textTertiary")};
 `;

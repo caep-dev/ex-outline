@@ -314,7 +314,7 @@ const StyledHeader = styled(Header)<{ $hidden: boolean }>`
 `;
 
 const TocButton = styled(Button)`
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
 
   &&:hover:not(:disabled),
   &&[aria-expanded="true"] {
@@ -333,7 +333,8 @@ const StarAction = styled.span`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: ${(props) =>
+      props.theme.exui.components.button.action.radius};
     transition: background 100ms ease-in-out;
 
     &:hover {

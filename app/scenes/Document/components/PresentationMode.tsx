@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -481,7 +482,7 @@ const TopBar = styled.div<{ $idle: boolean }>`
 const SlideCounter = styled(Text)`
   font-variant-numeric: tabular-nums;
   color: ${s("textTertiary")};
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   min-width: 60px;
   text-align: center;
 `;

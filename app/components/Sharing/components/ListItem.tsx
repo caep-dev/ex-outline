@@ -13,7 +13,7 @@ export const ListItem = styled(BaseListItem).attrs({
 })`
   margin: 0 -16px;
   padding: 6px 16px;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.components.sidebarItem.default.radius};
 
   &: ${hover} ${InviteIcon},
   &:focus ${InviteIcon},

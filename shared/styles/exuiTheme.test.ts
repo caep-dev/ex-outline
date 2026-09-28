@@ -1,4 +1,4 @@
-import { componentRecipes, exuiTokens } from "@exre/exui-tokens";
+import { componentRecipes, exuiTokens } from "@exre/exui/tokens";
 import { buildDarkTheme, buildLightTheme, buildPitchBlackTheme } from "./theme";
 import {
   buildExuiSemanticTheme,
@@ -8,6 +8,80 @@ import {
 } from "./exuiTheme";
 
 describe("#buildExuiSemanticTheme", () => {
+  it("maps legacy sidebar and editor notice surfaces in every mode", () => {
+    for (const [theme, tokens] of [
+      [buildLightTheme(), exuiTokens.themes.light],
+      [buildDarkTheme(), exuiTokens.themes.dark],
+      [buildPitchBlackTheme(), exuiTokens.themes.pitchBlack],
+    ] as const) {
+      expect(theme.exui.tokens).toBe(tokens);
+      expect(theme.exui.surface.muted).toBe(tokens.surface.tertiary);
+      expect(theme.exui.control.neutralHover).toBe(
+        theme.exui.components.button.secondary.hover.background
+      );
+      expect(theme.exui.control.dangerHover).toBe(
+        theme.exui.components.button.danger.hover.background
+      );
+      expect(theme.exui.control.dangerActive).toBe(
+        theme.exui.components.button.danger.active.background
+      );
+      expect(theme.exui.shadow.invalid).toBe(exuiTokens.shadows.invalid);
+      expect(theme.sidebarBackground).toBe(tokens.sidebar.background);
+      expect(theme.sidebarText).toBe(tokens.sidebar.foreground);
+      expect(theme.sidebarHoverBackground).toBe(tokens.sidebar.accent);
+      expect(theme.sidebarDraftBorder).toBe(tokens.sidebar.border);
+      expect(theme.noticeWarningBackground).toBe(tokens.feedback.danger);
+      expect(theme.noticeInfoBackground).toBe(tokens.feedback.info);
+      expect(theme.noticeSuccessBackground).toBe(tokens.feedback.success);
+      expect(theme.noticeTipBackground).toBe(tokens.feedback.warning);
+      expect(theme.noticeInfoText).toBe(tokens.text.primary);
+      expect(theme.progressBarBackground).toBe(tokens.surface.tertiary);
+    }
+  });
+
+  it("keeps overlay aliases aligned with their ExUI recipes", () => {
+    for (const mode of ["light", "dark", "pitchBlack"] as const) {
+      const { overlay, components } = buildExuiSemanticTheme(mode);
+
+      expect(overlay.menu.background).toBe(components.menu.surface.background);
+      expect(overlay.menu.foreground).toBe(components.menu.surface.foreground);
+      expect(overlay.menu.radius).toBe(components.menu.surface.radius);
+      expect(overlay.menu.itemBackgroundHover).toBe(
+        components.menu.item.hover.background
+      );
+      expect(overlay.menu.itemForegroundHover).toBe(
+        components.menu.item.hover.foreground
+      );
+      expect(overlay.menu.itemForegroundDanger).toBe(
+        components.menu.item.destructive.foreground
+      );
+      expect(overlay.dialog.radius).toBe(components.dialog.surface.radius);
+      expect(overlay.tooltip.radius).toBe(exuiTokens.radii.extraLarge);
+      expect(overlay.tooltip.border).toBe("transparent");
+      expect(overlay.tooltip.shadow).toBe("none");
+      expect(overlay.tab.foreground).toBe(
+        components.tabs.trigger.default.foreground
+      );
+      expect(overlay.tab.foregroundHover).toBe(
+        components.tabs.trigger.hover.foreground
+      );
+      expect(overlay.tab.foregroundActive).toBe(
+        components.tabs.trigger.selected.foreground
+      );
+    }
+  });
+
+  it("preserves ExUI interaction colors when only the brand foreground changes", () => {
+    const tokens = exuiTokens.themes.light;
+    const theme = buildLightTheme({ accentText: "#000000" });
+
+    expect(theme.exui.control.primaryForeground).toBe("#000000");
+    expect(theme.exui.control.primaryHover).toBe(tokens.control.hover);
+    expect(theme.exui.control.primaryActive).toBe(tokens.control.active);
+    expect(theme.exui.control.primaryDisabled).toBe(tokens.control.disabled);
+    expect(theme.exui.control.focusRing).toBe(tokens.control.focusRing);
+  });
+
   it("selects the light token group for light mode", () => {
     const theme = buildExuiSemanticTheme("light");
 
@@ -46,6 +120,14 @@ describe("#buildExuiSemanticTheme", () => {
     );
   });
 
+  it("keeps the primary button focus border from the ExUI recipe", () => {
+    for (const mode of ["light", "dark", "pitchBlack"] as const) {
+      expect(
+        buildExuiSemanticTheme(mode).components.button.primary.focus.border
+      ).toBe(componentRecipes.button.primary.focus.border);
+    }
+  });
+
   it("resolves every initial component recipe for every theme mode", () => {
     for (const mode of ["light", "dark", "pitchBlack"] as const) {
       const components = buildExuiSemanticTheme(mode).components;
@@ -61,11 +143,19 @@ describe("#buildExuiSemanticTheme", () => {
       expect(components.button.default.height).toBe(
         componentRecipes.button.default.height
       );
-      expect(components.formControl.base.radius).toBe("14px");
-      expect(components.sidebarItem.default.radius).toBe("14px");
-      expect(components.menu.surface.radius).toBe("22px");
-      expect(components.dialog.surface.radius).toBe("26px");
-      expect(components.tabs.trigger.radius).toBe("14px");
+      expect(components.formControl.base.radius).toBe(
+        exuiTokens.radii.extraLarge
+      );
+      expect(components.sidebarItem.default.radius).toBe(
+        exuiTokens.radii.extraLarge
+      );
+      expect(components.menu.surface.radius).toBe("1.375rem");
+      expect(components.dialog.surface.radius).toBe("1.625rem");
+      expect(components.tabs.trigger.radius).toBe(exuiTokens.radii.extraLarge);
+      expect(components.button.action.radius).toBe("0.75rem");
+      expect(components.tabs.primary.selected.background).toBe(
+        exuiTokens.themes[mode].control.primary
+      );
     }
   });
 
@@ -203,8 +293,7 @@ describe("theme builders", () => {
 
     expect(theme.isDark).toBe(false);
     expect(theme.exui.mode).toBe("light");
-    expect(theme.fontFamily).not.toBe(theme.exui.typography.fontFamily);
-    expect(theme.fontFamily).toContain("BlinkMacSystemFont");
+    expect(theme.fontFamily).toBe(theme.exui.typography.fontFamily);
   });
 
   it("builds the dark theme", () => {

@@ -93,7 +93,7 @@ const DocumentLink = styled(Link)<{ $menuOpen?: boolean }>`
   align-items: center;
   margin: 2px -8px;
   padding: 6px 8px;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.components.sidebarItem.default.radius};
   max-height: 50vh;
   min-width: 100%;
   overflow: hidden;
@@ -135,12 +135,12 @@ const Content = styled(Flex)`
 
 const Title = styled.div`
   ${ellipsis()}
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   line-height: 1.25;
   padding-top: 3px;
   color: ${s("text")};
-  font-family: ${s("fontFamily")};
+  font-family: ${(props) => props.theme.exui.typography.fontFamily};
 `;
 
 const SecondaryTitle = styled(Title)`

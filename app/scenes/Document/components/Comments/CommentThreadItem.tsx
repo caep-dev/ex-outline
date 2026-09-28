@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { differenceInMilliseconds } from "date-fns";
 import { runInAction } from "mobx";
 import { observer } from "mobx-react";
@@ -336,8 +337,8 @@ const StyledCommentEditor = styled(CommentEditor)`
   ${(props) =>
     !props.readOnly &&
     css`
-      box-shadow: 0 0 0 2px ${props.theme.accent};
-      border-radius: 2px;
+      box-shadow: ${props.theme.exui.components.formControl.focus.shadow};
+      border-radius: ${props.theme.exui.components.formControl.base.radius};
       padding: 2px;
       margin: 2px;
       margin-bottom: 8px;
@@ -359,7 +360,8 @@ const AvatarSpacer = styled(Flex)`
 `;
 
 const Body = styled.form`
-  border-radius: 2px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.formControl.base.radius};
 `;
 
 const Action = styled.span<{ $rounded?: boolean }>`
@@ -454,7 +456,7 @@ export const Bubble = styled(Flex)<{
   }
 
   ${breakpoint("tablet")`
-    font-size: 15px;
+    font-size: ${exuiTokens.typography.bodyFontSize};
   `}
 `;
 

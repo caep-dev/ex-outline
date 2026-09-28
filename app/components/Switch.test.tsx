@@ -4,11 +4,11 @@ import Switch from "~/components/Switch";
 import { renderWithTheme } from "~/test/renderWithTheme";
 
 describe("Switch", () => {
-  it("binds the unchecked track to the tertiary surface token", () => {
+  it("binds the unchecked track to the input surface token", () => {
     const { getByRole } = renderWithTheme(<Switch aria-label="Enable" />);
 
     expect(getByRole("switch", { name: "Enable" })).toHaveStyle(
-      `background-color: ${light.exui.surface.surfaceTertiary}`
+      `background-color: ${light.inputBackground}`
     );
   });
 
@@ -32,7 +32,7 @@ describe("Switch", () => {
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
-  it("binds the disabled state to the disabled control token", () => {
+  it("dims the disabled state and prevents interaction", () => {
     const onChange = vi.fn();
     const { getByRole } = renderWithTheme(
       <Switch aria-label="Enable" disabled onChange={onChange} />
@@ -40,9 +40,7 @@ describe("Switch", () => {
     const switchControl = getByRole("switch", { name: "Enable" });
 
     expect(switchControl).toBeDisabled();
-    expect(switchControl).toHaveStyle(
-      `background-color: ${light.exui.control.disabled}`
-    );
+    expect(switchControl).toHaveStyle("opacity: 0.5");
 
     fireEvent.click(switchControl);
     expect(onChange).not.toHaveBeenCalled();

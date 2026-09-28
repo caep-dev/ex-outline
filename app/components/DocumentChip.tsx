@@ -85,8 +85,8 @@ export const DocumentChip = observer(function DocumentChip_({
 
 const Title = styled.span`
   ${ellipsis()}
-  font-size: 14px;
-  font-weight: 500;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   color: ${s("text")};
 `;
 
@@ -109,9 +109,9 @@ const Chip = styled(Link)`
   align-items: center;
   gap: 4px;
   flex-shrink: 0;
-  height: 24px;
+  min-height: 1.5rem;
   padding: 0px 4px 0px 2px;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   border: 1px solid ${s("inputBorder")};
   color: ${s("textSecondary")};
   cursor: var(--pointer);

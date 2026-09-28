@@ -5,7 +5,7 @@ import { s } from "../styles";
 const BacktickSpan = styled.span`
   font-family: ${s("fontFamilyMono")};
   background: ${s("codeBackground")};
-  border-radius: 3px;
+  border-radius: ${(props) => props.theme.exui.radii.small};
   padding: 2px 4px;
   font-size: 90%;
 `;

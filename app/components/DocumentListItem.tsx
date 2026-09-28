@@ -285,7 +285,7 @@ const SelectButton = styled(NudeButton)<{
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.radii.small};
   border: 2px solid ${s("inputBorder")};
   color: ${(props) => props.theme.accentText};
   opacity: ${(props) => (props.$visible ? 1 : 0)};
@@ -336,7 +336,7 @@ const DocumentLink = styled(Link)<{
   align-items: center;
   margin: 10px -8px;
   padding: 6px 8px;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.components.sidebarItem.default.radius};
   max-height: 50vh;
   width: calc(100vw - 8px);
   cursor: var(--pointer);
@@ -345,6 +345,7 @@ const DocumentLink = styled(Link)<{
 
   &:focus-visible {
     outline: none;
+    box-shadow: ${(props) => props.theme.exui.shadow.focus};
   }
 
   ${breakpoint("tablet")`
@@ -423,9 +424,9 @@ const Heading = styled.span<{ rtl?: boolean }>`
   margin-bottom: 0.1em;
   white-space: nowrap;
   color: ${s("text")};
-  font-family: ${s("fontFamily")};
-  font-weight: 500;
-  font-size: 18px;
+  font-family: ${(props) => props.theme.exui.typography.fontFamily};
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
+  font-size: 1.125rem;
   line-height: 1.2;
   gap: 4px;
 `;
@@ -439,7 +440,7 @@ const Title = styled(Highlight)`
 const ResultContext = styled(Highlight)`
   display: block;
   color: ${s("textSecondary")};
-  font-size: 15px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
   margin-top: -0.25em;
   margin-bottom: 0.25em;
   max-height: 90px;

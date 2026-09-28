@@ -33,30 +33,30 @@ const Text = styled.span<Props>`
       : props.type === "tertiary"
         ? props.theme.textTertiary
         : props.type === "danger"
-          ? props.theme.brand.red
+          ? props.theme.exui.feedback.danger
           : props.theme.text};
   font-size: ${(props) =>
     props.size === "xlarge"
-      ? "26px"
+      ? "1.625rem"
       : props.size === "large"
-        ? "18px"
+        ? "1.125rem"
         : props.size === "medium"
-          ? "16px"
+          ? "1rem"
           : props.size === "small"
-            ? "14px"
+            ? props.theme.exui.typography.bodyFontSize
             : props.size === "xsmall"
-              ? "13px"
+              ? props.theme.exui.typography.smallFontSize
               : "inherit"};
 
   ${(props) =>
     props.weight &&
     css`
       font-weight: ${props.weight === "xbold"
-        ? 600
+        ? props.theme.exui.typography.fontWeightBold
         : props.weight === "bold"
-          ? 500
+          ? props.theme.exui.typography.fontWeightMedium
           : props.weight === "normal"
-            ? 400
+            ? props.theme.exui.typography.fontWeightRegular
             : "inherit"};
     `}
 

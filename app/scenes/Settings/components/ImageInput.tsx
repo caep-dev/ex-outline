@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { EditIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -67,7 +68,7 @@ const avatarStyles = `
 const ImageBox = styled(Flex)`
   ${avatarStyles};
   position: relative;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   border-radius: 50%;
   box-shadow: 0 0 0 1px ${s("backgroundSecondary")};
   background: ${s("background")};

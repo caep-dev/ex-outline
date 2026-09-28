@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import copy from "copy-to-clipboard";
 import { darken } from "polished";
 import type { MouseEvent } from "react";
@@ -77,7 +78,7 @@ export function ColorPreview({ color, onNotice }: Props) {
 const Preview = styled.div`
   height: 64px;
   overflow: hidden;
-  border-radius: 6px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   border: 1px solid transparent;
 
   /* Checkerboard so that translucent colors read as translucent. */
@@ -111,7 +112,7 @@ const Formats = styled.div`
 const Label = styled.span`
   flex-shrink: 0;
   width: 32px;
-  font-size: 11px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: 500;
   letter-spacing: 0.04em;
   color: ${s("textTertiary")};
@@ -120,7 +121,7 @@ const Label = styled.span`
 
 const Value = styled.span`
   font-family: ${s("fontFamilyMono")};
-  font-size: 12px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   color: ${s("textSecondary")};
   white-space: nowrap;
   user-select: all;

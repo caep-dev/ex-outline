@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -298,7 +299,7 @@ function DocumentEditor(props: Props, ref: React.ForwardedRef<SharedEditor>) {
 
 const SharedMeta = styled(Text)`
   margin: -12px 0 2em 0;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
 `;
 
 export default observer(React.forwardRef(DocumentEditor));

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -121,11 +122,11 @@ const TabActionsWrapper = styled(Flex)`
 const StyledTab = styled(Tabs.Trigger)<{ $active: boolean }>`
   position: relative;
   font-weight: 500;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   cursor: var(--pointer);
   background: none;
   border: 0;
-  border-radius: 4px 4px 0 0;
+  border-radius: ${(props) => props.theme.exui.components.tabs.trigger.radius};
   user-select: none;
   transition: background-color 100ms ease;
   vertical-align: bottom;

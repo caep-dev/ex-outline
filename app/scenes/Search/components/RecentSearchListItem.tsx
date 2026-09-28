@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import {
   useFocusEffect,
   useRovingTabIndex,
@@ -64,13 +65,15 @@ const RecentSearch = styled(Link)`
   color: ${s("textSecondary")};
   cursor: var(--pointer);
   padding: 1px 8px;
-  border-radius: 4px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
   line-height: 24px;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   margin: 0 -8px;
 
   &:focus-visible {
     outline: none;
+    box-shadow: ${(props) => props.theme.exui.shadow.focus};
   }
 
   &:focus,

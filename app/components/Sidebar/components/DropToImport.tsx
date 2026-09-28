@@ -90,18 +90,19 @@ function DropToImport({ disabled, children, collectionId, documentId }: Props) {
 }
 
 const DropzoneContainer = styled.div<{ $isDragActive: boolean }>`
-  border-radius: 4px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
 
   ${({ $isDragActive, theme }) =>
     $isDragActive &&
     css`
       a,
       a + * {
-        background: ${theme.slateDark} !important;
-        color: ${theme.white} !important;
+        background: ${theme.exui.control.primary} !important;
+        color: ${theme.exui.control.primaryForeground} !important;
       }
       svg {
-        fill: ${theme.white};
+        fill: ${theme.exui.control.primaryForeground};
       }
     `}
 `;

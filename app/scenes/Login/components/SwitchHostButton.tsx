@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { GlobeIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -64,6 +65,6 @@ const Button = styled(NudeButton)`
 `;
 
 const Host = styled.span`
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   font-weight: 500;
 `;

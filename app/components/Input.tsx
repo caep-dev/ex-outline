@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import * as React from "react";
 import { mergeRefs } from "react-merge-refs";
@@ -170,7 +171,9 @@ export const Outline = styled(Flex)<{
           ? props.theme.exui.components.formControl.focus.border
           : props.theme.exui.components.formControl.base.border};
   border-radius: ${(props) =>
-    props.theme.exui.components.formControl.base.radius};
+    props.$round
+      ? "9999px"
+      : props.theme.exui.components.formControl.base.radius};
   box-shadow: ${(props) =>
     props.$hasError
       ? props.theme.exui.components.formControl.invalid.shadow
@@ -239,7 +242,7 @@ const CharacterCount = styled.span<{ $warning?: boolean }>`
   position: absolute;
   top: 0;
   inset-inline-end: 0;
-  font-size: 11px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   line-height: 1;
   padding: 2px 4px;
   border-start-start-radius: 0;
@@ -289,7 +292,7 @@ export interface Props extends Omit<
   minHeight?: string;
   /** Maximum height of the textarea as a CSS length value (e.g. "20lh", "400px"). */
   maxHeight?: string;
-  /** Legacy round-style flag; the EXUI form-control recipe owns final radius. */
+  /** Whether the input has pill-shaped corners. */
   round?: boolean;
   /** Like autoFocus, but also select any text in the input */
   autoSelect?: boolean;

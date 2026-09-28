@@ -6,7 +6,7 @@ import { light } from "@shared/styles/theme";
 const normalize = (value: string) => value.replace(/\s+/g, "");
 
 describe("GlobalStyles typography", () => {
-  it("scopes Outfit to the application root and restores document typography for print", () => {
+  it("uses ExUI typography throughout the application and print styles", () => {
     const sheet = new ServerStyleSheet();
     renderToString(
       sheet.collectStyles(
@@ -25,6 +25,6 @@ describe("GlobalStyles typography", () => {
     expect(css).toContain("OutfitVariable");
     expect(css).toContain("@mediaprint");
     expect(css).toContain(normalize(light.fontFamily));
-    expect(light.fontFamily).not.toBe(light.exui.typography.fontFamily);
+    expect(light.fontFamily).toBe(light.exui.typography.fontFamily);
   });
 });

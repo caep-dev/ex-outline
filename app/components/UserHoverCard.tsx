@@ -1,10 +1,11 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import * as HoverCardPrimitive from "@radix-ui/react-hover-card";
 import { observer } from "mobx-react";
 import { ClockIcon } from "outline-icons";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
-import { depths, s, borderRadius } from "@shared/styles";
+import { depths, s } from "@shared/styles";
 import Avatar, { AvatarSize } from "~/components/Avatar/Avatar";
 import Badge from "~/components/Badge";
 import Flex from "~/components/Flex";
@@ -119,16 +120,16 @@ const Name = styled(Text).attrs({
 })`
   margin: 0;
   min-width: 0;
-  font-size: 15px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
 `;
 
-// Scaled down from the default badge to sit comfortably beside the name.
+// Compact spacing keeps the role beside the name without shrinking its text.
 const RoleBadge = styled(Badge)`
   flex-shrink: 0;
   margin: 0;
   padding: 1px 4.5px;
-  border-radius: 6px;
-  font-size: 10px;
+  border-radius: ${(props) => props.theme.exui.radii.small};
+  font-size: ${exuiTokens.typography.smallFontSize};
 `;
 
 const Info = styled(Text).attrs({
@@ -148,7 +149,7 @@ const Divider = styled.div`
 
 const Row = styled(Flex).attrs({ align: "center", gap: 8 })`
   color: ${s("textSecondary")};
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   white-space: nowrap;
 
   svg {
@@ -162,7 +163,7 @@ const Content = styled(HoverCardPrimitive.Content)`
   transform-origin: var(--radix-hover-card-content-transform-origin);
   background: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  ${borderRadius(8)}
+  border-radius: ${(props) => props.theme.exui.components.menu.surface.radius};
   padding: 12px;
   min-width: 180px;
   max-width: 320px;

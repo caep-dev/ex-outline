@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 /* oxlint-disable no-irregular-whitespace */
 import { lighten, transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
@@ -63,12 +64,12 @@ const mathStyle = (props: Props) => css`
   .math-node.empty-math .math-render::before {
     content: "Empty math";
     color: ${props.theme.placeholder};
-    font-size: 14px;
+    font-size: ${exuiTokens.typography.bodyFontSize};
   }
 
   .math-node .math-render.parse-error::before {
     content: "(math error)";
-    color: ${props.theme.brand.red};
+    color: ${props.theme.exui.feedback.danger};
     cursor: help;
   }
 
@@ -119,7 +120,7 @@ const mathStyle = (props: Props) => css`
 
   math-block.ProseMirror-selectednode,
   math-block.empty-math {
-    border-radius: 4px;
+    border-radius: ${props.theme.exui.radii.small};
     border: 1px solid ${props.theme.codeBorder};
     background: ${props.theme.codeBackground};
     padding: 0.75em 1em;
@@ -146,7 +147,7 @@ const mathStyle = (props: Props) => css`
   }
 
   .math-node.math-select .math-render {
-    background-color: #c0c0c0ff;
+    background-color: ${props.theme.tableSelectedBackground};
   }
 
   math-inline.math-select .math-render {
@@ -368,26 +369,33 @@ const diffStyle = (props: Props) => css`
     .${EditorStyleHelper.diffModification}:not([class^="component-"]),
   .${EditorStyleHelper.diffModification} > * {
     color: ${props.theme.text};
-    background-color: ${transparentize(0.7, "#FFA500")};
+    background-color: ${transparentize(0.7, props.theme.exui.feedback.warning)};
     text-decoration: none;
 
     &.${EditorStyleHelper.diffCurrentChange} {
-      outline-color: ${lighten(0.1, "#FFA500")};
-      background-color: ${transparentize(0.5, "#FFA500")};
-      animation: ${pulse(transparentize(0.5, "#FFA500"))} 150ms 1;
+      outline-color: ${lighten(0.1, props.theme.exui.feedback.warning)};
+      background-color: ${transparentize(
+        0.5,
+        props.theme.exui.feedback.warning
+      )};
+      animation: ${pulse(
+          transparentize(0.5, props.theme.exui.feedback.warning)
+        )}
+        150ms 1;
     }
   }
 
   .${EditorStyleHelper.diffNodeModification} {
-    background-color: ${transparentize(0.7, "#FFA500")};
+    background-color: ${transparentize(0.7, props.theme.exui.feedback.warning)};
 
     &[class*="component-"] {
-      outline: 4px solid ${transparentize(0.5, "#FFA500")};
+      outline: 4px solid
+        ${transparentize(0.5, props.theme.exui.feedback.warning)};
     }
 
     td,
     th {
-      border-color: ${transparentize(0.5, "#FFA500")};
+      border-color: ${transparentize(0.5, props.theme.exui.feedback.warning)};
     }
   }
 
@@ -400,29 +408,29 @@ const diffStyle = (props: Props) => css`
 
   td.${EditorStyleHelper.diffNodeModification},
     th.${EditorStyleHelper.diffNodeModification} {
-    border-color: ${transparentize(0.5, "#FFA500")};
+    border-color: ${transparentize(0.5, props.theme.exui.feedback.warning)};
   }
 `;
 
 const findAndReplaceStyle = (props: Props) => css`
   & ::highlight(search-results) {
-    background-color: rgba(255, 213, 0, 0.25);
+    background-color: ${transparentize(0.5, props.theme.textHighlight)};
   }
 
   & ::highlight(search-results-current) {
-    background-color: rgba(255, 213, 0, 0.75);
+    background-color: ${props.theme.textHighlight};
     color: ${props.theme.textHighlightForeground};
   }
 
   .find-result:not(:has(.mention)),
   .find-result .mention {
-    background: rgba(255, 213, 0, 0.25);
+    background: ${transparentize(0.5, props.theme.textHighlight)};
   }
 
   .find-result.current-result:not(:has(.mention)),
   .find-result.current-result .mention {
-    background: rgba(255, 213, 0, 0.75);
-    animation: ${pulse("rgba(255, 213, 0, 0.75)")} 150ms 1;
+    background: ${props.theme.textHighlight};
+    animation: ${pulse(props.theme.textHighlight)} 150ms 1;
     color: ${props.theme.textHighlightForeground};
   }
 `;
@@ -433,7 +441,7 @@ const emailStyle = (props: Props) => css`
     color: ${props.theme.text} !important;
     box-shadow: 0 0 0 1px ${props.theme.divider};
     white-space: nowrap;
-    border-radius: 8px;
+    border-radius: ${props.theme.exui.radii.extraLarge};
     padding: 6px 8px;
   }
   .image:not(.image-icon) > img {
@@ -527,12 +535,12 @@ const textStyle = () => css`
 
 const style = (props: Props) => css`
 --font-size-p: var(--font-size-body);
---font-size-h1: 28px;
---font-size-h2: 22px;
---font-size-h3: 18px;
---font-size-h4: 16px;
---font-size-h5: 15px;
---font-size-h6: 15px;
+--font-size-h1: 1.75rem;
+--font-size-h2: 1.375rem;
+--font-size-h3: 1.125rem;
+--font-size-h4: 1rem;
+--font-size-h5: 0.9375rem;
+--font-size-h6: 0.9375rem;
 
 flex-grow: ${props.grow ? 1 : 0};
 justify-content: start;
@@ -545,7 +553,7 @@ width: 100%;
 
 .mention {
   background: ${props.theme.mentionBackground};
-  border-radius: 8px;
+  border-radius: ${props.theme.exui.radii.extraLarge};
   padding-top: 1px;
   padding-bottom: 1px;
   padding-left: 4px;
@@ -618,7 +626,7 @@ width: 100%;
 
 .${EditorStyleHelper.suggestionTrigger} {
   background: ${props.theme.mentionBackground};
-  border-radius: 4px;
+  border-radius: ${props.theme.exui.radii.small};
   box-shadow: 0 0 0 2px ${props.theme.mentionBackground};
   box-decoration-break: clone;
 }
@@ -682,7 +690,7 @@ width: 100%;
         display: none;
         font-family: ${props.theme.fontFamilyMono};
         color: ${props.theme.textSecondary};
-        font-size: 13px;
+        font-size: ${exuiTokens.typography.smallFontSize};
         font-weight: 500;
         line-height: 0;
         margin-left: -24px;
@@ -751,7 +759,7 @@ width: 100%;
       transition: opacity 100ms ease-in-out;
       position: absolute;
       top: -1.8em;
-      font-size: 13px;
+      font-size: ${exuiTokens.typography.smallFontSize};
       background-color: rgb(250, 129, 0);
       font-style: normal;
       line-height: normal;
@@ -760,7 +768,7 @@ width: 100%;
       color: white;
       padding: 2px 6px;
       font-weight: 500;
-      border-radius: 4px;
+      border-radius: ${props.theme.exui.radii.small};
       pointer-events: none;
       left: -1px;
     }
@@ -843,7 +851,7 @@ th .image .image-wrapper img {
   }
 
   video {
-    border-radius: 8px;
+    border-radius: ${props.theme.exui.radii.extraLarge};
   }
 }
 
@@ -853,7 +861,7 @@ th .image .image-wrapper img {
   background: ${props.theme.background};
   box-shadow: 0 0 0 1px ${props.theme.divider};
   white-space: nowrap;
-  border-radius: 8px;
+  border-radius: ${props.theme.exui.radii.extraLarge};
   padding: 6px 8px;
   max-width: 840px;
   cursor: default;
@@ -868,12 +876,12 @@ th .image .image-wrapper img {
 
   .title {
     font-weight: 600;
-    font-size: 14px;
+    font-size: ${exuiTokens.typography.bodyFontSize};
     color:  ${props.theme.text};
   }
 
   .subtitle {
-    font-size: 13px;
+    font-size: ${exuiTokens.typography.smallFontSize};
     color: ${props.theme.textTertiary};
     line-height: 0;
   }
@@ -1042,7 +1050,7 @@ img.ProseMirror-separator {
   display: block;
   font-style: italic;
   font-weight: normal;
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   color: ${props.theme.textSecondary};
   padding: 8px 0 4px;
   line-height: 16px;
@@ -1289,9 +1297,9 @@ ${
   background: ${transparentize(0.9, props.theme.noticeInfoBackground)};
   border-left: 4px solid ${props.theme.noticeInfoBackground};
   color: ${props.theme.noticeInfoText};
-  border-radius: 4px;
-  padding: 8px 10px 8px 8px;
-  margin: 8px 0;
+  border-radius: ${props.theme.exui.radii.extraLarge};
+  padding: 0.5rem 0.625rem 0.5rem 0.5rem;
+  margin: 0.5rem 0;
 
   a {
     color: ${props.theme.noticeInfoText};
@@ -1524,10 +1532,10 @@ li .${EditorStyleHelper.checklistWrapper} {
   top: -8px;
   right: 0;
   padding: 4px 8px;
-  font-size: 12px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   background: ${props.theme.background};
   border: 1px solid ${props.theme.buttonNeutralBorder};
-  border-radius: 6px;
+  border-radius: ${props.theme.exui.components.button.action.radius};
   color: ${props.theme.textSecondary};
   cursor: var(--pointer);
   user-select: none;
@@ -1772,7 +1780,7 @@ code {
   box-decoration-break: clone;
   -webkit-box-decoration-break: clone;
 
-  border-radius: 4px;
+  border-radius: ${props.theme.exui.radii.small};
   border: 1px solid ${props.theme.codeBorder};
   background: ${props.theme.codeBackground};
   padding: 3px 4px;
@@ -1984,12 +1992,12 @@ mark {
   margin: 0;
   padding: 0 8px;
   border: 0;
-  border-radius: 100px;
+  border-radius: ${props.theme.exui.components.button.small.radius};
   background: ${props.theme.background};
   color: ${props.theme.buttonNeutralText};
-  box-shadow: rgba(0, 0, 0, 0.07) 0px 1px 2px, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset;
-  font-size: 13px;
-  font-weight: 500;
+  box-shadow: ${props.theme.exui.shadow.small}, ${props.theme.buttonNeutralBorder} 0 0 0 1px inset;
+  font-size: ${props.theme.exui.components.button.small.fontSize};
+  font-weight: ${props.theme.exui.components.button.small.fontWeight};
   height: 24px;
   cursor: var(--pointer);
   user-select: none;
@@ -2026,14 +2034,14 @@ mark {
 
   &.empty {
     font-family: ${props.theme.fontFamilyMono};
-    font-size: 14px;
+    font-size: ${exuiTokens.typography.bodyFontSize};
     color: ${props.theme.placeholder};
   }
 
   &.parse-error {
     font-family: ${props.theme.fontFamilyMono};
-    font-size: 14px;
-    color: ${props.theme.brand.red};
+    font-size: ${exuiTokens.typography.bodyFontSize};
+    color: ${props.theme.exui.feedback.danger};
   }
 }
 
@@ -2044,7 +2052,7 @@ pre {
   line-height: 1.4em;
   position: relative;
   background: ${props.theme.codeBackground};
-  border-radius: 4px;
+  border-radius: ${props.theme.exui.radii.small};
   border: 1px solid ${props.theme.codeBorder};
   margin: .5em 0;
 
@@ -2631,7 +2639,7 @@ table {
   padding: 0;
   margin-top: 1px;
   margin-${props.$rtl ? "right" : "left"}: -28px;
-  border-radius: 4px;
+  border-radius: ${props.theme.exui.radii.small};
 
   &:hover,
   &:focus {
@@ -2676,7 +2684,7 @@ table {
 }
 
 del {
-  color: ${props.theme.slate};
+  color: ${props.theme.textTertiary};
   text-decoration: strikethrough;
 }
 

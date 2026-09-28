@@ -189,7 +189,7 @@ const Sticky = styled.div`
 const Background = styled.div`
   background-color: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.components.menu.surface.radius};
   height: 36px;
 `;
 

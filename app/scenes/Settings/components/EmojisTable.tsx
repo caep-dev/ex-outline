@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { compact } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import * as React from "react";
@@ -124,7 +125,7 @@ const EmojisTable = observer(function EmojisTable({
 
 export const EmojiPreview = styled(HStack)`
   font-family: monospace;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   color: ${s("textSecondary")};
 `;
 

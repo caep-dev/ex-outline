@@ -39,7 +39,7 @@ describe("Tab button mode", () => {
     );
   });
 
-  it("shows the indicator for the active tab", () => {
+  it("renders the selected tab without an inner indicator", () => {
     const onClick = vi.fn();
     const { getByRole } = renderWithTheme(
       <Tab active onClick={onClick}>
@@ -47,21 +47,9 @@ describe("Tab button mode", () => {
       </Tab>
     );
 
-    expect(
-      getByRole("button", { name: "Documents" }).firstElementChild
-    ).toHaveStyle(
-      `background: ${light.exui.components.tabs.indicator.background}`
+    expect(getByRole("button", { name: "Documents" })).toHaveStyle(
+      `border-radius: ${light.exui.radii.full}`
     );
-  });
-
-  it("hides the indicator for the inactive tab", () => {
-    const onClick = vi.fn();
-    const { getByRole } = renderWithTheme(
-      <Tab active={false} onClick={onClick}>
-        Documents
-      </Tab>
-    );
-
     expect(
       getByRole("button", { name: "Documents" }).firstElementChild
     ).toBeNull();
@@ -120,9 +108,7 @@ describe("Tabs", () => {
     expect(nav).toHaveStyle(
       `height: ${light.exui.components.tabs.list.height}`
     );
-    expect(nav).toHaveStyle(
-      `border-radius: ${light.exui.components.tabs.list.radius}`
-    );
+    expect(nav).toHaveStyle(`border-radius: ${light.exui.radii.full}`);
     expect(nav).toHaveStyle(
       `background: ${light.exui.components.tabs.default.listBackground}`
     );

@@ -660,7 +660,7 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
   display: inline-flex;
   height: 24px;
   user-select: none;
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   white-space: nowrap;
   margin: 0 -4px;
   padding: 0 4px;
@@ -672,8 +672,8 @@ const SortWrapper = styled(Flex)<{ $sortable: boolean }>`
   }
 
   &:focus-visible {
-    outline: 2px solid ${(props) => props.theme.accent};
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: ${(props) => props.theme.exui.shadow.focus};
   }
 `;
 
@@ -701,9 +701,9 @@ const THead = styled.div<{ $topPos: number }>`
   top: ${({ $topPos }) => `${$topPos}px`};
   height: ${HEADER_HEIGHT}px;
   z-index: 1;
-  font-size: 14px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
   color: ${s("text")};
-  font-weight: 500;
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
 
   border-bottom: 1px solid
     ${(props) => transparentize(0.3, props.theme.divider)};
@@ -741,7 +741,7 @@ const TR = styled.div<{ $columns: string }>`
     content: "";
     position: absolute;
     inset: 0 -8px;
-    border-radius: 8px;
+    border-radius: ${(props) => props.theme.exui.radii.extraLarge};
     background: ${(props) => transparentize(0.95, props.theme.accent)};
   }
 
@@ -774,7 +774,7 @@ const TD = styled.span`
   /* Positioned so cells paint above the row's selected highlight. */
   position: relative;
   padding: 10px 6px;
-  font-size: 14px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
   text-wrap: wrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -785,8 +785,8 @@ const TD = styled.span`
 
   &:first-child:not(.select),
   .select + & {
-    font-size: 15px;
-    font-weight: 500;
+    font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
+    font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   }
 
   &.select {

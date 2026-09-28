@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import { DisconnectedIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
@@ -82,7 +83,7 @@ const Button = styled(NudeButton)`
   display: none;
   background: ${(props) => props.theme.backgroundTertiary};
   color: ${(props) => props.theme.textSecondary};
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   font-weight: 500;
   padding-left: 6px;
   padding-right: 6px;

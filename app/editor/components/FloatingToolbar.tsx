@@ -1,4 +1,4 @@
-import { transparentize } from "polished";
+import { glassSurface } from "@shared/styles/glass";
 import { NodeSelection } from "prosemirror-state";
 import { selectedRect } from "prosemirror-tables";
 import * as React from "react";
@@ -412,23 +412,18 @@ const MobileBackground = styled.div`
   overflow: hidden;
   background-color: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 24px;
+  border-radius: ${(props) => props.theme.exui.components.menu.surface.radius};
   ${(props) => hairline(props.theme.divider)}
 
-  // The frosted glass of the iOS accessory bars.
-  @supports (backdrop-filter: blur(20px)) or
-    (-webkit-backdrop-filter: blur(20px)) {
-    backdrop-filter: blur(20px) saturate(180%);
-    background-color: ${(props) =>
-      transparentize(0.2, props.theme.menuBackground)};
-  }
+  --outline-glass-elevation: ${(props) => props.theme.exui.overlay.menu.shadow};
+  ${glassSurface}
 `;
 
 const Background = styled.div<{ align: Props["align"] }>`
   position: relative;
   background-color: ${s("menuBackground")};
   box-shadow: ${s("menuShadow")};
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.components.menu.surface.radius};
   height: 36px;
 
   ${(props) =>

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import * as Tabs from "@radix-ui/react-tabs";
 import { SmileyIcon } from "outline-icons";
 import * as React from "react";
@@ -299,7 +300,7 @@ const StyledSmileyIcon = styled(SmileyIcon)`
 const RemoveButton = styled(NudeButton)`
   width: auto;
   font-weight: 500;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   color: ${s("textTertiary")};
   padding: 8px 12px;
   transition: color 100ms ease-in-out;

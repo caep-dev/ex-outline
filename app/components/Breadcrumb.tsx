@@ -116,11 +116,13 @@ const Item = styled(Link)<{ $highlight: boolean }>`
   min-width: 0;
   cursor: var(--pointer);
   color: ${s("text")};
-  font-size: 15px;
-  height: 32px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
+  min-height: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.minHeight};
   font-weight: ${(props) => (props.$highlight ? "500" : "inherit")};
   padding-inline: 8px;
-  border-radius: 4px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
   margin-inline: -4px;
 
   &:first-child {

@@ -95,9 +95,11 @@ const Animator = styled(KBarAnimator)`
   width: 90vw;
   background: ${s("menuBackground")};
   color: ${s("text")};
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.components.menu.surface.radius};
   overflow: hidden;
-  box-shadow: rgb(0 0 0 / 40%) 0px 16px 60px;
+  box-shadow: ${(props) => props.theme.exui.components.menu.surface.shadow};
+  border: 1px solid
+    ${(props) => props.theme.exui.components.menu.surface.border};
   transition: max-width 0.2s ease-in-out;
 
   ${breakpoint("desktopLarge")`

@@ -123,7 +123,8 @@ const Container = styled(Flex)<{ $unread: boolean }>`
   position: relative;
   padding-block: 8px;
   padding-inline: 12px 40px;
-  border-radius: 4px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
 
   ${StyledLink}[data-state=open] &,
   &:has([data-state="open"]),

@@ -1,5 +1,6 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
-import { transparentize } from "polished";
+import { glassSurface } from "@shared/styles/glass";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
@@ -201,13 +202,10 @@ const StickyWrapper = styled.div`
 
   padding: 0 16px;
   overflow-y: auto;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   background: ${s("background")};
 
-  @supports (backdrop-filter: blur(20px)) {
-    backdrop-filter: blur(20px);
-    background: ${(props) => transparentize(0.2, props.theme.background)};
-  }
+  ${glassSurface}
 
   ${breakpoint("tablet")`
     display: block;
@@ -216,7 +214,7 @@ const StickyWrapper = styled.div`
 `;
 
 const Heading = styled.h3`
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: 600;
   color: ${s("textTertiary")};
   letter-spacing: 0.03em;
@@ -248,7 +246,7 @@ const ListItem = styled.li<{ level: number; active?: boolean }>`
 
 const Link = styled.a`
   color: ${s("text")};
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
 
   &:hover {
     color: ${s("accent")};

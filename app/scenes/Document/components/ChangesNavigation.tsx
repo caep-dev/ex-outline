@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
@@ -77,7 +78,7 @@ const NavigationButton = styled(Button).attrs({
 
 const NavigationLabel = styled.span`
   color: ${s("textSecondary")};
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   font-weight: 500;
   margin-right: 8px;
   user-select: none;

@@ -1,6 +1,5 @@
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "@shared/styles";
 import Flex from "./Flex";
 import Text from "./Text";
 
@@ -34,17 +33,18 @@ const Notice: React.FC<Props> = ({
 );
 
 const Title = styled.span`
-  font-weight: 500;
-  font-size: 16px;
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
 `;
 
 const Container = styled(Text)`
-  background: ${s("sidebarBackground")};
-  color: ${s("sidebarText")};
-  padding: 10px 12px;
-  border-radius: 4px;
+  background: ${(props) => props.theme.exui.surface.surfaceSecondary};
+  color: ${(props) => props.theme.exui.surface.foreground};
+  padding: 0.625rem 0.75rem;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   position: relative;
-  font-size: 14px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
+  line-height: ${(props) => props.theme.exui.typography.bodyLineHeight};
   margin: 1em 0;
 
   svg {

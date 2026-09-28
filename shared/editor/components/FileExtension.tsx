@@ -34,7 +34,7 @@ const Icon = styled.span<{ $size: number }>`
   text-transform: uppercase;
   color: white;
   text-align: center;
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.radii.small};
 
   min-width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;

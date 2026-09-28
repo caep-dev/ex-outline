@@ -238,7 +238,7 @@ const JumpToRecent = styled(ButtonSmall)`
   left: 50%;
   transform: translateX(-50%);
   opacity: 0.8;
-  border-radius: 12px;
+  border-radius: ${(props) => props.theme.exui.components.button.small.radius};
   padding: 0 4px;
 
   &:hover {

@@ -7,11 +7,14 @@ import useWindowSize from "~/hooks/useWindowSize";
 const Nav = styled.nav<{ $shadowVisible?: boolean }>`
   display: flex;
   align-items: center;
+  justify-content: center;
+  width: fit-content;
+  max-width: 100%;
   height: ${(props) => props.theme.exui.components.tabs.list.height};
   padding: ${(props) => props.theme.exui.components.tabs.list.padding};
   gap: ${(props) => props.theme.exui.components.tabs.list.gap};
   border: 0;
-  border-radius: ${(props) => props.theme.exui.components.tabs.list.radius};
+  border-radius: ${(props) => props.theme.exui.radii.full};
   background: ${(props) =>
     props.theme.exui.components.tabs.default.listBackground};
   color: ${(props) => props.theme.exui.components.tabs.list.foreground};
@@ -69,9 +72,7 @@ type Props = {
 };
 
 /**
- * Namespaces the shared layout animation of the tabs it contains, so that
- * multiple tab bars on screen at once don't share the "underline" layoutId and
- * animate between each other. Only needed when composing `Tab` outside of `Tabs`.
+ * Preserves an isolated layout context for tabs composed outside of `Tabs`.
  */
 export const TabsGroup: React.FC = ({ children }: Props) => {
   const layoutGroupId = React.useMemo(() => uniqueId("tabs-"), []);

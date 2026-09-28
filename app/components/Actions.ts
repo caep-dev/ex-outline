@@ -1,3 +1,5 @@
+import { exuiTokens } from "@exre/exui/tokens";
+import { glassSurface } from "@shared/styles/glass";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
@@ -7,7 +9,7 @@ export const Action = styled(Flex)`
   justify-content: center;
   align-items: center;
   height: 32px;
-  font-size: 15px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   flex-shrink: 0;
 
   &:empty {
@@ -27,10 +29,10 @@ const Actions = styled(Flex)`
   top: 0;
   right: 0;
   left: 0;
-  border-radius: 3px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   background: ${s("background")};
   padding: 12px;
-  backdrop-filter: blur(20px);
+  ${glassSurface}
   gap: 8px;
 
   @media print {

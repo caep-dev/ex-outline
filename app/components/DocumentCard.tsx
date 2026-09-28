@@ -10,7 +10,7 @@ import { Link } from "react-router-dom";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import Squircle from "@shared/components/Squircle";
-import { s, hover, ellipsis, borderRadius } from "@shared/styles";
+import { s, hover, ellipsis } from "@shared/styles";
 import { IconType } from "@shared/types";
 import { determineIconType } from "@shared/utils/icon";
 import type Document from "~/models/Document";
@@ -132,17 +132,6 @@ function DocumentCard(props: Props) {
             }}
           >
             <Content justify="space-between" column>
-              <Fold
-                width="20"
-                height="21"
-                viewBox="0 0 20 21"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path d="M19.5 20.5H6C2.96243 20.5 0.5 18.0376 0.5 15V0.5H0.792893L19.5 19.2071V20.5Z" />
-                <path d="M19.5 19.5H6C2.96243 19.5 0.5 17.0376 0.5 14V0.5H0.792893L19.5 19.2071V19.5Z" />
-              </Fold>
-
               {document.icon ? (
                 <DocumentSquircle
                   icon={document.icon}
@@ -235,16 +224,6 @@ const AnimatePresence = styled(m.div)`
   height: 100%;
 `;
 
-const Fold = styled.svg`
-  fill: ${s("background")};
-  stroke: ${s("inputBorder")};
-  background: ${s("background")};
-
-  position: absolute;
-  top: -1px;
-  right: -2px;
-`;
-
 const PinButton = styled(NudeButton)`
   color: ${s("textTertiary")};
 
@@ -270,8 +249,8 @@ const Reorderable = styled.div<{ $isDragging: boolean }>`
   position: relative;
   user-select: none;
   touch-action: none;
-  width: 170px;
-  height: 180px;
+  width: 10.625rem;
+  height: 11.25rem;
   transition: box-shadow 200ms ease;
 
   // move above other cards when dragging
@@ -302,16 +281,16 @@ const DocumentLink = styled(Link)<{
 }>`
   position: relative;
   display: block;
-  padding: 12px;
+  padding: 1rem;
   width: 100%;
   height: 100%;
-  ${borderRadius(8)}
+  border-radius: 2rem;
   cursor: var(--pointer);
-  background: ${s("background")};
+  background: ${(props) => props.theme.exui.surface.surface};
+  color: ${(props) => props.theme.exui.tokens.surface.cardForeground};
+  box-shadow: ${(props) => props.theme.exui.shadow.medium};
   transition: transform 50ms ease-in-out;
-  border: 1px solid ${s("inputBorder")};
-  border-bottom-width: 2px;
-  border-right-width: 2px;
+  border: 1px solid ${(props) => props.theme.exui.surface.border};
 
   ${Actions} {
     opacity: 0;
@@ -328,13 +307,9 @@ const DocumentLink = styled(Link)<{
       rotate(-2deg);
     box-shadow: ${(props) =>
       props.$isDragging
-        ? "0 0 20px rgba(0,0,0,0.2);"
-        : "0 0 10px rgba(0,0,0,0.1)"};
+        ? props.theme.exui.shadow.large
+        : props.theme.exui.shadow.medium};
     z-index: 1;
-
-    ${Fold} {
-      display: none;
-    }
 
     ${Actions} {
       opacity: 1;
@@ -345,13 +320,14 @@ const DocumentLink = styled(Link)<{
 const Heading = styled.h3`
   margin-top: 0;
   margin-bottom: 0.35em;
-  line-height: 22px;
-  max-height: 66px; // 3*line-height
+  font-size: 1rem;
+  line-height: 1.375rem;
+  max-height: 4.125rem; // 3*line-height
   overflow: hidden;
 
-  color: ${s("text")};
-  font-family: ${s("fontFamily")};
-  font-weight: 500;
+  color: ${(props) => props.theme.exui.tokens.surface.cardForeground};
+  font-family: ${(props) => props.theme.exui.typography.fontFamily};
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
 `;
 
 export default observer(DocumentCard);

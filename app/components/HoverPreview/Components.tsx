@@ -1,4 +1,5 @@
 import { transparentize } from "polished";
+import { glassSurface } from "@shared/styles/glass";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
 import { s } from "@shared/styles";
@@ -19,10 +20,8 @@ const StyledText = styled(Text)`
 export const Preview = styled(Link)`
   cursor: ${(props: { as?: string }) =>
     props.as === "div" ? "default" : "var(--pointer)"};
-  border-radius: 4px;
-  box-shadow:
-    0 30px 90px -20px rgba(0, 0, 0, 0.3),
-    0 0 1px 1px rgba(0, 0, 0, 0.05);
+  border-radius: ${(props) => props.theme.exui.components.menu.surface.radius};
+  box-shadow: ${(props) => props.theme.exui.components.menu.surface.shadow};
   overflow: hidden;
   position: absolute;
   width: 375px;
@@ -89,8 +88,7 @@ export const CardContent = styled.div`
 // &:after — gradient mask for overflow text
 export const Card = styled.div<{ fadeOut?: boolean; $borderRadius?: string }>`
   ${sharedVars}
-  backdrop-filter: blur(10px);
-  background: ${s("menuBackground")};
+  ${glassSurface}
   padding: 16px;
   font-size: 0.9em;
   position: relative;

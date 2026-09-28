@@ -95,7 +95,8 @@ function Starred() {
 }
 
 const Section = styled.div<{ $isActiveDrop?: boolean }>`
-  border-radius: 8px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
   transition: background 100ms ease-in-out;
 
   ${(props) =>

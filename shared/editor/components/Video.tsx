@@ -74,7 +74,7 @@ export const videoStyle = css`
   color: ${(props) => props.theme.text} !important;
   margin: -2px;
   padding: 2px;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   box-shadow: 0 0 0 1px ${(props) => props.theme.divider};
 `;
 
@@ -89,7 +89,7 @@ const VideoWrapper = styled.div<{ $dragging: boolean }>`
   margin-right: auto;
   white-space: nowrap;
   cursor: default;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   user-select: none;
   max-width: 100%;
   overflow: hidden;

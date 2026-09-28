@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -56,7 +57,7 @@ function RecentSearches(
 
 const Heading = styled.h2`
   font-weight: 500;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   line-height: 1.5;
   color: ${s("textSecondary")};
   margin: 12px 0 0;

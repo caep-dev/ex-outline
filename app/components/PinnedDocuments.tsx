@@ -172,7 +172,10 @@ function PinnedDocuments({
                   Array(placeholderCount)
                     .fill(undefined)
                     .map((_, index) => (
-                      <div key={index} style={{ width: 170, height: 180 }} />
+                      <div
+                        key={index}
+                        style={{ width: "10.625rem", height: "11.25rem" }}
+                      />
                     ))
                 ) : (
                   <AnimatePresence initial={false}>

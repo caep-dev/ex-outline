@@ -16,13 +16,17 @@ const NudeButton = styled(ActionButton).attrs((props: Props) => ({
   width: ${(props) =>
     typeof props.width === "string"
       ? props.width
-      : `${props.width || props.size || 24}px`};
+      : props.width || props.size
+        ? `${props.width || props.size}px`
+        : "1.5rem"};
   height: ${(props) =>
     typeof props.height === "string"
       ? props.height
-      : `${props.height || props.size || 24}px`};
+      : props.height || props.size
+        ? `${props.height || props.size}px`
+        : "1.5rem"};
   background: none;
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
   display: inline-block;
   line-height: 0;
   border: 0;
@@ -30,6 +34,11 @@ const NudeButton = styled(ActionButton).attrs((props: Props) => ({
   cursor: var(--pointer);
   user-select: none;
   color: inherit;
+  &:focus-visible {
+    outline: none;
+    box-shadow: ${(props) =>
+      props.theme.exui.components.button.ghost.focus.shadow};
+  }
   ${undraggableOnDesktop()}
 `;
 

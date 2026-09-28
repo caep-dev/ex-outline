@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useHistory } from "react-router-dom";
@@ -179,7 +180,7 @@ const ExampleItem = styled(ListItem)<{ $active: boolean }>`
   padding: 4px 8px;
   min-height: 0;
   margin: 1px 0 0 0;
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   background: ${(props) =>
     props.$active ? props.theme.sidebarActiveBackground : "transparent"};
 `;
@@ -189,8 +190,8 @@ const Pre = styled.pre`
   color: ${(props) => props.theme.code};
   padding: 16px;
   margin: 16px 0;
-  border-radius: 4px;
-  font-size: 12px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
+  font-size: ${exuiTokens.typography.smallFontSize};
   overflow: auto;
   white-space: pre-wrap;
   word-wrap: break-word;

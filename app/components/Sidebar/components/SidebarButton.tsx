@@ -90,9 +90,12 @@ const Button = styled(Flex)<{
   color: ${s("textTertiary")};
   align-items: center;
   padding: 12px;
-  font-size: 15px;
-  font-weight: 500;
-  border-radius: 4px;
+  font-size: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.fontWeight};
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
   border: 0;
   margin: 8px;
   background: none;

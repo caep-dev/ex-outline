@@ -40,7 +40,7 @@ const Cursor = styled.div<{
   ${(props) => (props.position === "top" ? "top: -7px;" : "bottom: -7px;")}
 
   ::after {
-    background: ${(props) => props.theme.slateDark};
+    background: ${(props) => props.theme.exui.control.primary};
     position: absolute;
     top: 6px;
     content: "";

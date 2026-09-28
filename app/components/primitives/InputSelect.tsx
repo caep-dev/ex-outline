@@ -144,10 +144,14 @@ const StyledContent = styled(InputSelectPrimitive.Content)`
   min-height: 44px;
   max-height: 350px;
 
-  padding: 4px;
-  border-radius: ${(props) => props.theme.exui.radii.small};
-  background: ${(props) => props.theme.exui.overlay.menu.background};
-  box-shadow: ${(props) => props.theme.exui.overlay.menu.shadow};
+  padding: ${(props) => props.theme.exui.components.menu.surface.padding};
+  border-radius: ${(props) => props.theme.exui.components.menu.surface.radius};
+  background: ${(props) => props.theme.exui.components.menu.surface.background};
+  color: ${(props) => props.theme.exui.components.menu.surface.foreground};
+  border: 1px solid
+    ${(props) => props.theme.exui.components.menu.surface.border};
+  box-shadow: ${(props) => props.theme.exui.components.menu.surface.shadow};
+  font-family: ${(props) => props.theme.exui.typography.fontFamily};
   transform-origin: 50% 0;
 
   &[data-side="bottom"] {

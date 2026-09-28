@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
 import * as React from "react";
@@ -97,7 +98,7 @@ function InputSearchPage({
       onKeyDown={handleKeyDown}
       icon={
         <SearchIcon
-          color={isFocused ? theme.inputBorderFocused : theme.inputBorder}
+          color={theme.exui.components.formControl.base.placeholder}
         />
       }
       label={label}
@@ -128,7 +129,7 @@ const InputMaxWidth = styled(Input).attrs({ round: true })`
 
 const Shortcut = styled.span<{ $visible: boolean }>`
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-feature-settings: "cv08", "zero";
   color: ${s("textTertiary")};
   padding-inline: 0 10px;

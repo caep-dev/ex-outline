@@ -110,6 +110,17 @@ export default defineConfig({
             ],
           },
         },
+        optimizeDeps: {
+          include: [
+            "react/jsx-runtime",
+            "react-portal",
+            "copy-to-clipboard",
+            "react-colorful",
+            "react-day-picker",
+            "@radix-ui/react-switch",
+            "@radix-ui/react-select",
+          ],
+        },
         test: {
           name: "visual",
           globals: true,

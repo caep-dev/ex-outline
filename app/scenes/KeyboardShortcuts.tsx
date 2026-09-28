@@ -456,17 +456,17 @@ const StickySearch = styled.div`
   padding: 16px;
   margin: -16px;
   background: ${s("background")};
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
 `;
 
 const Header = styled.h2`
-  font-size: 15px;
-  font-weight: 500;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   margin-top: 2em;
 `;
 
 const List = styled.dl`
-  font-size: 14px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
   width: 100%;
   overflow: hidden;
   padding: 0;
@@ -480,7 +480,7 @@ const Keys = styled.dt`
   margin: 0 0 10px;
   clear: inline-start;
   text-align: end;
-  font-size: 12px;
+  font-size: ${(props) => props.theme.exui.typography.smallFontSize};
   color: ${s("textSecondary")};
   display: flex;
   align-items: center;

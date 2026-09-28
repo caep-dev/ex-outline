@@ -33,7 +33,7 @@ describe("InputSelect", () => {
     );
   });
 
-  it("binds the open content to the menu overlay tokens", async () => {
+  it("binds the open content and highlighted item to the menu recipes", async () => {
     const { getByRole } = renderWithTheme(
       <InputSelectRoot open onOpenChange={vi.fn()}>
         <InputSelectTrigger placeholder="Choose one" />
@@ -49,7 +49,9 @@ describe("InputSelect", () => {
     expect(content).toHaveStyle(
       `background: ${light.exui.overlay.menu.background}`
     );
-    expect(option).toHaveStyle(`color: ${light.exui.overlay.menu.foreground}`);
+    expect(option).toHaveStyle(
+      `color: ${light.exui.components.menu.item.hover.foreground}`
+    );
   });
 
   it("selects an item on click and notifies the caller", async () => {

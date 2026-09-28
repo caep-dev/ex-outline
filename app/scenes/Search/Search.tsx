@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
 import queryString from "query-string";
@@ -498,7 +499,7 @@ const Filters = styled(HStack)`
 const SearchTitlesFilter = styled(Switch)`
   white-space: nowrap;
   margin-left: 8px;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   font-weight: 400;
   height: 28px;
 `;

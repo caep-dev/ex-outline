@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { differenceInMinutes } from "date-fns";
 import * as React from "react";
 import styled from "styled-components";
@@ -74,7 +75,7 @@ const StyledPaginatedList = styled(PaginatedList)`
 `;
 
 const Heading = styled("h3")`
-  font-size: 15px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   padding: 0 4px;
 `;
 

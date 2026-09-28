@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { useState, useRef, useEffect } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -307,7 +308,7 @@ const StyledHeading = styled(Heading).attrs({
 const Pre = styled.pre`
   background: ${s("backgroundSecondary")};
   padding: 16px;
-  border-radius: 4px;
-  font-size: 12px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
+  font-size: ${exuiTokens.typography.smallFontSize};
   white-space: pre-wrap;
 `;

@@ -18,7 +18,7 @@ export default styled.button.attrs((props) => ({
   height: 24px;
   cursor: var(--pointer);
   border: none;
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
   background: none;
   transition: opacity 100ms ease-in-out;
   padding: 0;
@@ -28,6 +28,11 @@ export default styled.button.attrs((props) => ({
   position: relative;
   transition: background 100ms ease-in-out;
   color: ${s("text")};
+
+  &:focus-visible {
+    box-shadow: ${(props) =>
+      props.theme.exui.components.button.ghost.focus.shadow};
+  }
 
   &:hover {
     opacity: 1;

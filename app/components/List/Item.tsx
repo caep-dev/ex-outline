@@ -176,7 +176,8 @@ const Wrapper = styled.a<{
 }>`
   display: flex;
   padding: ${(props) => (props.$border === false ? 0 : "8px 0")};
-  min-height: 32px;
+  min-height: ${(props) => props.theme.exui.components.sidebarItem.default.minHeight};
+  border-radius: ${(props) => props.theme.exui.components.sidebarItem.default.radius};
   margin: ${(props) =>
     props.$border === false ? (props.$small ? "8px 0" : "16px 0") : 0};
   border-bottom: 1px solid
@@ -189,6 +190,7 @@ const Wrapper = styled.a<{
 
   &:focus-visible {
     outline: none;
+    box-shadow: ${(props) => props.theme.exui.shadow.focus};
   }
 
   &:${hover},
@@ -213,8 +215,9 @@ const Image = styled(Flex)`
 `;
 
 const Heading = styled.p<{ $small?: boolean; $ellipsis?: boolean }>`
-  font-size: ${(props) => (props.$small ? 14 : 16)}px;
-  font-weight: 500;
+  font-size: ${(props) =>
+    props.$small ? props.theme.exui.typography.bodyFontSize : "1rem"};
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   ${(props) => (props.$ellipsis !== false ? ellipsis() : "")}
   line-height: ${(props) => (props.$small ? 1.3 : 1.2)};
   margin: 0;
@@ -228,7 +231,10 @@ const Content = styled(Flex)<{ $selected: boolean }>`
 
 const Subtitle = styled.p<{ $small?: boolean; $selected?: boolean }>`
   margin: 0;
-  font-size: ${(props) => (props.$small ? 13 : 14)}px;
+  font-size: ${(props) =>
+    props.$small
+      ? props.theme.exui.typography.smallFontSize
+      : props.theme.exui.typography.bodyFontSize};
   color: ${s("textTertiary")};
   margin-top: -2px;
   overflow-wrap: break-word;

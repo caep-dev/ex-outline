@@ -1,4 +1,4 @@
-import { transparentize } from "polished";
+import { glassSurface } from "@shared/styles/glass";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
@@ -18,10 +18,7 @@ export const ActionRow = styled(HStack).attrs({
 
   background: ${s("background")};
 
-  @supports (backdrop-filter: blur(20px)) {
-    backdrop-filter: blur(20px);
-    background: ${(props) => transparentize(0.2, props.theme.background)};
-  }
+  ${glassSurface}
 
   ${breakpoint("tablet")`
     width: auto;

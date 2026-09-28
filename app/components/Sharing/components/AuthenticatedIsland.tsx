@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import { EditIcon, SettingsIcon } from "outline-icons";
 import { useTranslation } from "react-i18next";
@@ -88,7 +89,7 @@ const Island = styled(Flex)`
   flex-shrink: 0;
   margin-inline-start: 4px;
   padding: 2px;
-  border-radius: 15px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   border: 1px solid ${s("divider")};
   background: ${s("backgroundSecondary")};
   pointer-events: auto;
@@ -103,11 +104,11 @@ const UserButton = styled.button`
   margin: 0;
   padding: 0 6px 0 2px;
   border: 0;
-  border-radius: 12px;
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
   background: none;
   color: ${s("text")};
   cursor: var(--pointer);
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: 500;
 
   &:hover,
@@ -120,7 +121,7 @@ const IconButton = styled(NudeButton)`
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 12px;
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
   color: ${s("textSecondary")};
 
   &:hover,

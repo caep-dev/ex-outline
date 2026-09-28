@@ -35,9 +35,9 @@ import { metaDisplay } from "@shared/utils/keyboard";
 import Desktop from "~/utils/Desktop";
 
 const Img = styled(Image)`
-  border-radius: 2px;
-  background: #fff;
-  box-shadow: 0 0 0 1px #fff;
+  border-radius: ${(props) => props.theme.exui.radii.small};
+  background: ${(props) => props.theme.exui.surface.surface};
+  box-shadow: 0 0 0 1px ${(props) => props.theme.exui.surface.border};
   margin: 4px;
   width: 18px;
   height: 18px;

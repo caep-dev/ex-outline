@@ -139,10 +139,12 @@ const Content = styled(HStack)`
 `;
 
 const Item = styled.div<{ active?: boolean }>`
-  font-size: 14px;
-  padding: 9px 12px;
-  margin: 0 8px;
-  border-radius: 4px;
+  font-size: ${(props) => props.theme.exui.components.menu.item.fontSize};
+  font-weight: ${(props) => props.theme.exui.components.menu.item.fontWeight};
+  padding: ${(props) => props.theme.exui.components.menu.item.paddingBlock}
+    ${(props) => props.theme.exui.components.menu.item.paddingInline};
+  margin: 0 0.5rem;
+  border-radius: ${(props) => props.theme.exui.components.menu.item.radius};
   background: ${(props) =>
     props.active ? props.theme.menuItemSelected : "none"};
   display: flex;

@@ -1,4 +1,3 @@
-import { transparentize } from "polished";
 import * as React from "react";
 import scrollIntoView from "scroll-into-view-if-needed";
 import styled from "styled-components";
@@ -90,14 +89,14 @@ function SuggestionsMenuItem({
 const Subtitle = styled.span<{ $active?: boolean }>`
   color: ${(props) =>
     props.$active
-      ? transparentize(0.35, props.theme.accentText)
+      ? props.theme.exui.components.menu.item.active.foreground
       : props.theme.textTertiary};
 `;
 
 const Shortcut = styled.span<{ $active?: boolean }>`
   color: ${(props) =>
     props.$active
-      ? transparentize(0.35, props.theme.accentText)
+      ? props.theme.exui.components.menu.item.active.foreground
       : props.theme.textTertiary};
   flex-grow: 1;
   text-align: right;

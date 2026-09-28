@@ -44,7 +44,11 @@ const Guide: React.FC<Props> = ({
 );
 
 const Header = styled(Dialog.Title)`
-  font-size: 18px;
+  font-size: ${(props) => props.theme.exui.components.dialog.title.fontSize};
+  font-weight: ${(props) =>
+    props.theme.exui.components.dialog.title.fontWeight};
+  line-height: ${(props) =>
+    props.theme.exui.components.dialog.title.lineHeight};
   margin-top: 0;
   margin-bottom: 1em;
 `;
@@ -77,9 +81,11 @@ const Scene = styled(Dialog.Content)`
   z-index: ${depths.modal};
   justify-content: center;
   align-items: flex-start;
-  width: 350px;
+  width: min(21.875rem, calc(100vw - 24px));
   background: ${s("background")};
-  border-radius: 8px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.dialog.surface.radius};
+  box-shadow: ${(props) => props.theme.exui.components.dialog.surface.shadow};
   outline: none;
 
   &[data-state="open"] {
@@ -93,7 +99,7 @@ const Scene = styled(Dialog.Content)`
 
 const Content = styled(Scrollable)`
   width: 100%;
-  padding: 16px;
+  padding: ${(props) => props.theme.exui.components.dialog.surface.padding};
 `;
 
 export default Guide;

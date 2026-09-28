@@ -58,8 +58,8 @@ const Wrapper = styled.div`
   }
 
   .rdp-caption_label {
-    font-size: 14px;
-    font-weight: 600;
+    font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
+    font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
     color: ${s("text")};
   }
 
@@ -72,12 +72,13 @@ const Wrapper = styled.div`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
+    width: 2rem;
+    height: 2rem;
     padding: 0;
     border: 0;
     background: none;
-    border-radius: 4px;
+    border-radius: ${(props) =>
+      props.theme.exui.components.button.action.radius};
     color: ${s("textSecondary")};
     cursor: var(--pointer);
     transition: background 100ms ease;
@@ -98,7 +99,7 @@ const Wrapper = styled.div`
   }
 
   .rdp-head_cell {
-    font-size: 12px;
+    font-size: ${(props) => props.theme.exui.typography.smallFontSize};
     font-weight: 500;
     text-transform: none;
     color: ${s("textTertiary")};
@@ -115,13 +116,13 @@ const Wrapper = styled.div`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 34px;
-    height: 34px;
+    width: 2rem;
+    height: 2rem;
     border: 0;
     background: none;
     border-radius: 50%;
     font-family: inherit;
-    font-size: 13px;
+    font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
     font-variant-numeric: tabular-nums;
     color: ${s("text")};
     cursor: var(--pointer);
@@ -132,8 +133,8 @@ const Wrapper = styled.div`
     }
 
     &:focus-visible:not([disabled]) {
-      outline: 2px solid ${s("accent")};
-      outline-offset: -2px;
+      outline: none;
+      box-shadow: ${(props) => props.theme.exui.shadow.focus};
     }
   }
 

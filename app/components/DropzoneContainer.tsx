@@ -13,11 +13,11 @@ export const DropzoneContainer = styled.div<{
     props.$isDragActive
       ? props.theme.backgroundSecondary
       : props.theme.background};
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   border: 1px dashed ${s("divider")};
-  padding: 44px 24px;
+  padding: 2.75rem 1.5rem;
   text-align: center;
-  font-size: 15px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
   cursor: var(--pointer);
   opacity: ${(props) => (props.$disabled ? 0.5 : 1)};
 
@@ -30,6 +30,6 @@ export const DropzoneContainer = styled.div<{
 export const dropzoneIcon = css`
   padding: 4px;
   border-radius: 50%;
-  background: ${(props) => props.theme.brand.blue};
-  color: white;
+  background: ${(props) => props.theme.exui.control.primary};
+  color: ${(props) => props.theme.exui.control.primaryForeground};
 `;

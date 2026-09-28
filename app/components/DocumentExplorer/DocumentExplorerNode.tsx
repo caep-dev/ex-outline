@@ -113,12 +113,13 @@ export const Node = styled.span<{
   display: flex;
   user-select: none;
   overflow: hidden;
-  font-size: 16px;
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
   width: ${(props) => props.style.width};
   color: ${s("text")};
   cursor: var(--pointer);
   padding: 12px;
-  border-radius: 6px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
   background: ${(props) =>
     !props.selected && props.active && props.theme.listItemHoverBackground};
 
@@ -133,18 +134,17 @@ export const Node = styled.span<{
   ${(props) =>
     props.selected &&
     `
-      background: ${props.theme.accent};
-      color: ${props.theme.white};
+      background: ${props.theme.exui.control.primary};
+      color: ${props.theme.exui.control.primaryForeground};
 
       svg {
-        color: ${props.theme.white};
-        fill: ${props.theme.white};
+        color: ${props.theme.exui.control.primaryForeground};
+        fill: ${props.theme.exui.control.primaryForeground};
       }
     `}
 
   ${breakpoint("tablet")`
     padding: 4px;
-    font-size: 15px;
   `}
 `;
 

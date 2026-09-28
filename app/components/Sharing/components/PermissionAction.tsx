@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "@shared/components/Flex";
@@ -36,7 +37,7 @@ export function PermissionAction({
 }
 
 const InputPermissionSelect = styled(InputMemberPermissionSelect)`
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   height: 26px;
 
   ${Inner} {

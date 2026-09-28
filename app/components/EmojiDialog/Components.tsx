@@ -141,7 +141,7 @@ export function EmojiImageDropZone({
 
 const DropZone = styled.div`
   border: 2px dashed ${s("inputBorder")};
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   padding: 24px;
   text-align: center;
   cursor: var(--pointer);
@@ -157,5 +157,5 @@ const PreviewImage = styled.img`
   width: 64px;
   height: 64px;
   object-fit: contain;
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.radii.small};
 `;

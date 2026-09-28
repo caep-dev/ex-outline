@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import fractionalIndex from "fractional-index";
 import { observer } from "mobx-react";
 import { useMemo } from "react";
@@ -107,7 +108,7 @@ function Collections() {
 }
 
 export const StyledError = styled(Error)`
-  font-size: 15px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   padding: 0 8px;
 `;
 

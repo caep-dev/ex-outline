@@ -15,8 +15,8 @@ const H3 = styled.h3`
 
 const Underline = styled.div`
   display: inline-block;
-  font-weight: 500;
-  font-size: 14px;
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
+  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
   line-height: 1.5;
   color: ${s("textSecondary")};
   padding-top: 6px;

@@ -71,8 +71,8 @@ const Button = styled.button`
   display: flex;
   align-items: center;
   width: 100%;
-  font-size: 13px;
-  font-weight: 600;
+  font-size: ${(props) => props.theme.exui.typography.smallFontSize};
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   user-select: none;
   color: ${s("sidebarText")};
   position: relative;
@@ -82,7 +82,8 @@ const Button = styled.button`
   padding-inline: 12px 2px;
   border: 0;
   background: none;
-  border-radius: 4px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
   -webkit-appearance: none;
   transition: all 100ms ease;
   ${undraggableOnDesktop()}

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import * as RadixCollapsible from "@radix-ui/react-collapsible";
 import { ExpandedIcon } from "outline-icons";
 import * as React from "react";
@@ -64,7 +65,7 @@ const StyledTrigger = styled(RadixCollapsible.Trigger)`
   padding: 0 0 8px 0;
   cursor: var(--pointer);
   color: ${s("textTertiary")};
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
 
   &:hover {
     color: ${s("textSecondary")};

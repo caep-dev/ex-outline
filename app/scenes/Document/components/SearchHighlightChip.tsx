@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { CloseIcon } from "outline-icons";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -51,11 +52,11 @@ const Chip = styled.button`
   height: 28px;
   padding: 0 6px 0 10px;
   margin: 0 4px;
-  background: rgba(255, 213, 0, 0.25);
+  background: ${(props) => props.theme.textHighlight};
   color: ${(props) => props.theme.text};
   border: 0;
-  border-radius: 14px;
-  font-size: 14px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
+  font-size: ${exuiTokens.typography.bodyFontSize};
   font-weight: 500;
   line-height: 1;
   cursor: var(--pointer);
@@ -63,7 +64,8 @@ const Chip = styled.button`
   max-width: 200px;
 
   &:hover {
-    background: rgba(255, 213, 0, 0.5);
+    background: ${(props) => props.theme.textHighlight};
+    box-shadow: ${(props) => props.theme.exui.shadow.focus};
   }
 
   & > svg {

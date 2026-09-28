@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import { transparentize } from "polished";
 import * as React from "react";
@@ -165,7 +166,7 @@ const EmojiButton = styled(NudeButton)<{
   width: auto;
   height: 28px;
   padding: 6px;
-  border-radius: 12px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   background: ${s("backgroundTertiary")};
   pointer-events: ${({ disabled }) => disabled && "none"};
 
@@ -185,7 +186,7 @@ const EmojiButton = styled(NudeButton)<{
 `;
 
 const Count = styled(Text)`
-  font-size: 11px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   color: ${s("buttonNeutralText")};
   padding-right: 1px;
   font-variant-numeric: tabular-nums;

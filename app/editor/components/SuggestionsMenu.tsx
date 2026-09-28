@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
 import commandScore from "command-score";
 import { capitalize, orderBy } from "es-toolkit/compat";
@@ -1304,7 +1305,7 @@ const Empty = styled.div`
   align-items: center;
   color: ${s("textSecondary")};
   font-weight: 500;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   height: 32px;
   padding: 0 16px;
 `;

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -240,7 +241,7 @@ const FlexibleWrapper = styled.div`
 `;
 
 const Label = styled.span`
-  font-size: 15px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   font-weight: 500;
   color: ${s("text")};
 `;

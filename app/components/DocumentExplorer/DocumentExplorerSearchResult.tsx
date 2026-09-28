@@ -1,3 +1,4 @@
+import { transparentize } from "polished";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -67,7 +68,9 @@ const Path = styled(Text)<{ $selected: boolean }>`
   padding-top: 2px;
   margin: 0 4px 0 8px;
   color: ${(props) =>
-    props.$selected ? props.theme.white50 : props.theme.textTertiary};
+    props.$selected
+      ? transparentize(0.5, props.theme.exui.control.primaryForeground)
+      : props.theme.textTertiary};
 `;
 
 export default observer(DocumentExplorerSearchResult);

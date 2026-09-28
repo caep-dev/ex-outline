@@ -5,7 +5,7 @@ import { AvatarVariant } from "./Avatar/Avatar";
 const TeamLogo = styled(Avatar).attrs({
   variant: AvatarVariant.Square,
 })`
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.radii.small};
   border: 0;
 `;
 

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -45,7 +46,7 @@ const Wrapper = styled(Flex)`
 
 const Name = styled.span`
   ${ellipsis()}
-  font-size: 15px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   font-weight: 500;
 `;
 

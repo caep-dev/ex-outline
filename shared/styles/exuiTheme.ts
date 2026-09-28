@@ -1,6 +1,6 @@
 import { darken, getLuminance, lighten, transparentize } from "polished";
 import type { DefaultTheme } from "styled-components";
-import { componentRecipes, exuiTokens } from "@exre/exui-tokens";
+import { componentRecipes, exuiTokens } from "@exre/exui/tokens";
 import type {
   ButtonRecipe,
   ButtonSizeRecipe,
@@ -26,7 +26,7 @@ import type {
   SidebarItemRecipe,
   TabsRecipe,
   ThemeTokens,
-} from "@exre/exui-tokens";
+} from "@exre/exui/tokens";
 import type { CustomTheme } from "../types";
 
 /**
@@ -177,7 +177,7 @@ export interface ExuiDialogTheme {
 export interface ExuiTooltipTheme {
   readonly background: string;
   readonly foreground: string;
-  /** A low-emphasis border derived from the tooltip foreground. */
+  /** ExUI's tooltip surface has no border. */
   readonly border: string;
   readonly radius: string;
   readonly shadow: string;
@@ -220,6 +220,7 @@ export interface ExuiShadowTheme {
   readonly medium: string;
   readonly large: string;
   readonly focus: string;
+  readonly invalid: string;
 }
 
 type FontWeightFoundationPath =
@@ -261,6 +262,9 @@ export interface ExuiComponentTheme {
  */
 export interface ExuiSemanticTheme {
   readonly mode: ExuiThemeMode;
+  /** The complete ExUI theme group before Outline's workspace accent override. */
+  readonly tokens: ThemeTokens;
+  readonly glass: ThemeTokens["glass"];
   readonly surface: ExuiSurfaceTheme;
   readonly control: ExuiControlTheme;
   readonly feedback: ExuiFeedbackTheme;
@@ -393,6 +397,10 @@ function resolveSemanticColor(
       return tokens.control.hover;
     case "control.active":
       return tokens.control.active;
+    case "control.linkHover":
+      return tokens.control.linkHover;
+    case "control.linkActive":
+      return tokens.control.linkActive;
     case "control.disabled":
       return tokens.control.disabled;
     case "control.neutral":
@@ -475,6 +483,8 @@ function resolveFoundationShadow(
       return exuiTokens.shadows.large;
     case "shadows.focus":
       return exuiTokens.shadows.focus;
+    case "shadows.invalid":
+      return exuiTokens.shadows.invalid;
   }
 }
 
@@ -565,7 +575,6 @@ function resolvePrimaryButtonVariant(
       ...resolved.focus,
       background: accent.primary,
       foreground: accent.primaryForeground,
-      border: accent.focusRing,
     },
     disabled: {
       ...resolved.disabled,
@@ -660,6 +669,7 @@ export function resolveComponentRecipes(
       small: resolveButtonSize(recipes.button.small),
       large: resolveButtonSize(recipes.button.large),
       icon: resolveButtonSize(recipes.button.icon),
+      action: { radius: resolveRadius(recipes.button.action.radius) },
     },
     formControl: {
       base: {
@@ -804,6 +814,14 @@ export function resolveComponentRecipes(
         ),
         indicatorOpacity: recipes.tabs.line.indicatorOpacity,
       },
+      primary: {
+        listBackground: resolveColor(
+          recipes.tabs.primary.listBackground,
+          tokens
+        ),
+        indicatorOpacity: recipes.tabs.primary.indicatorOpacity,
+        selected: resolveState(recipes.tabs.primary.selected, tokens),
+      },
     },
   };
 }
@@ -865,13 +883,12 @@ export function resolveAccent(
   const requestedAccent = customTheme?.accent;
   const requestedAccentText = customTheme?.accentText;
 
-  if (
-    !isValidHexColor(requestedAccent) &&
-    !isValidHexColor(requestedAccentText)
-  ) {
+  if (!isValidHexColor(requestedAccent)) {
     return {
       primary: tokens.control.primary,
-      primaryForeground: tokens.control.primaryForeground,
+      primaryForeground: isValidHexColor(requestedAccentText)
+        ? requestedAccentText
+        : tokens.control.primaryForeground,
       primaryHover: tokens.control.hover,
       primaryActive: tokens.control.active,
       primaryDisabled: tokens.control.disabled,
@@ -879,9 +896,7 @@ export function resolveAccent(
     };
   }
 
-  const primary = isValidHexColor(requestedAccent)
-    ? requestedAccent
-    : tokens.control.primary;
+  const primary = requestedAccent;
   const primaryForeground = isValidHexColor(requestedAccentText)
     ? requestedAccentText
     : tokens.control.primaryForeground;
@@ -910,11 +925,13 @@ export function buildExuiSemanticTheme(
 ): ExuiSemanticTheme {
   const tokens = exuiTokens.themes[mode];
   const accent = resolveAccent(tokens, customTheme);
-  const dangerStates = deriveInteractionStates(tokens.control.danger);
   const { typography, radii, shadows, density } = exuiTokens;
+  const components = resolveComponentRecipes(tokens, accent);
 
   return {
     mode,
+    tokens,
+    glass: tokens.glass,
     surface: {
       background: tokens.surface.background,
       surface: tokens.surface.card,
@@ -922,7 +939,7 @@ export function buildExuiSemanticTheme(
       surfaceTertiary: tokens.surface.tertiary,
       elevated: tokens.surface.popover,
       overlay: tokens.surface.overlay,
-      muted: tokens.surface.secondary,
+      muted: tokens.surface.tertiary,
       border: tokens.border.default,
       borderStrong: tokens.border.strong,
       borderInput: tokens.border.input,
@@ -939,11 +956,11 @@ export function buildExuiSemanticTheme(
       ...accent,
       neutral: tokens.control.neutral,
       neutralForeground: tokens.control.neutralForeground,
-      neutralHover: tokens.surface.secondary,
+      neutralHover: components.button.secondary.hover.background,
       danger: tokens.control.danger,
       dangerForeground: tokens.control.dangerForeground,
-      dangerHover: dangerStates.hover,
-      dangerActive: dangerStates.active,
+      dangerHover: components.button.danger.hover.background,
+      dangerActive: components.button.danger.active.background,
       invalid: tokens.control.invalid,
       selected: tokens.control.selected,
       disabled: tokens.control.disabled,
@@ -988,33 +1005,33 @@ export function buildExuiSemanticTheme(
     },
     overlay: {
       menu: {
-        background: tokens.surface.menu,
-        foreground: tokens.text.secondary,
-        foregroundDisabled: tokens.text.tertiary,
-        radius: radii.medium,
-        shadow: tokens.shadow.menu,
-        itemBackgroundHover: tokens.control.primary,
-        itemForegroundHover: tokens.control.primaryForeground,
-        itemBackgroundDanger: tokens.control.danger,
-        itemForegroundDanger: tokens.control.dangerForeground,
-        itemBackgroundSelected: tokens.control.selected,
-        itemForegroundSelected: tokens.control.primaryForeground,
-        separator: tokens.border.divider,
+        background: components.menu.surface.background,
+        foreground: components.menu.surface.foreground,
+        foregroundDisabled: components.menu.item.disabled.foreground,
+        radius: components.menu.surface.radius,
+        shadow: components.menu.surface.shadow,
+        itemBackgroundHover: components.menu.item.hover.background,
+        itemForegroundHover: components.menu.item.hover.foreground,
+        itemBackgroundDanger: components.menu.item.destructive.background,
+        itemForegroundDanger: components.menu.item.destructive.foreground,
+        itemBackgroundSelected: components.menu.checkedItem.background,
+        itemForegroundSelected: components.menu.checkedItem.foreground,
+        separator: components.menu.separator.color,
       },
       dialog: {
-        background: tokens.surface.modal,
-        foreground: tokens.text.primary,
-        foregroundMuted: tokens.text.secondary,
-        overlay: tokens.surface.overlay,
-        radius: radii.large,
-        shadow: tokens.shadow.modal,
+        background: components.dialog.surface.background,
+        foreground: components.dialog.surface.foreground,
+        foregroundMuted: components.dialog.description.foreground,
+        overlay: components.dialog.overlay.background,
+        radius: components.dialog.surface.radius,
+        shadow: components.dialog.surface.shadow,
       },
       tooltip: {
         background: tokens.text.primary,
         foreground: tokens.surface.background,
-        border: transparentize(0.75, tokens.surface.background),
-        radius: radii.small,
-        shadow: shadows.medium,
+        border: "transparent",
+        radius: radii.extraLarge,
+        shadow: "none",
       },
       toast: {
         background: tokens.surface.popover,
@@ -1024,10 +1041,10 @@ export function buildExuiSemanticTheme(
         shadow: shadows.large,
       },
       tab: {
-        foreground: tokens.text.tertiary,
-        foregroundHover: tokens.text.secondary,
-        foregroundActive: tokens.text.primary,
-        indicator: tokens.text.primary,
+        foreground: components.tabs.trigger.default.foreground,
+        foregroundHover: components.tabs.trigger.hover.foreground,
+        foregroundActive: components.tabs.trigger.selected.foreground,
+        indicator: components.tabs.indicator.background,
       },
     },
     radii: {
@@ -1043,8 +1060,9 @@ export function buildExuiSemanticTheme(
       medium: shadows.medium,
       large: shadows.large,
       focus: shadows.focus,
+      invalid: shadows.invalid,
     },
-    components: resolveComponentRecipes(tokens, accent),
+    components,
   };
 }
 
@@ -1052,9 +1070,8 @@ export function buildExuiSemanticTheme(
  * Maps the ExUI tokens of a theme mode onto the Outline legacy theme fields
  * that the token contract now owns.
  *
- * Fields without a token equivalent, such as the sidebar ramp, notice colors
- * and the brand palette, keep the value produced by the legacy builder so that
- * surfaces outside the first migration stage are unchanged.
+ * Product colors, including sidebar surfaces and editor notices, resolve from
+ * semantic tokens. Document identity colors retain the legacy brand palette.
  *
  * @param mode the ExUI theme group to select.
  * @param customTheme the optional workspace brand override.
@@ -1070,6 +1087,7 @@ export function buildExuiLegacyOverrides(
   const { typography } = exuiTokens;
 
   return {
+    fontFamily: typography.fontFamily,
     fontFamilyMono: typography.fontFamilyMono,
     fontFamilyEmoji: typography.fontFamilyEmoji,
     fontWeightRegular: typography.fontWeightRegular,
@@ -1081,9 +1099,29 @@ export function buildExuiLegacyOverrides(
     backgroundTertiary: tokens.surface.tertiary,
     backgroundQuaternary: tokens.surface.accent,
 
+    sidebarBackground: tokens.sidebar.background,
+    sidebarText: tokens.sidebar.foreground,
+    sidebarHoverBackground: tokens.sidebar.accent,
+    sidebarActiveBackground: tokens.surface.background,
+    sidebarControlHoverBackground: tokens.sidebar.accent,
+    sidebarDraftBorder: tokens.sidebar.border,
+
+    noticeInfoBackground: tokens.feedback.info,
+    noticeInfoText: tokens.text.primary,
+    noticeTipBackground: tokens.feedback.warning,
+    noticeTipText: tokens.text.primary,
+    noticeWarningBackground: tokens.feedback.danger,
+    noticeWarningText: tokens.text.primary,
+    noticeSuccessBackground: tokens.feedback.success,
+    noticeSuccessText: tokens.text.primary,
+
     text: tokens.text.primary,
     textSecondary: tokens.text.secondary,
     textTertiary: tokens.text.tertiary,
+    textDiffInserted: tokens.text.primary,
+    textDiffInsertedBackground: transparentize(0.85, tokens.feedback.success),
+    textDiffDeleted: tokens.text.secondary,
+    textDiffDeletedBackground: transparentize(0.85, tokens.feedback.danger),
     cursor: tokens.text.primary,
     placeholder: tokens.text.placeholder,
     link: tokens.text.link,
@@ -1132,6 +1170,7 @@ export function buildExuiLegacyOverrides(
     tableSelectedBackground: tokens.editor.tableSelection,
     textHighlight: tokens.editor.highlight,
     textHighlightForeground: tokens.editor.highlightForeground,
+    progressBarBackground: tokens.surface.tertiary,
     scrollbarBackground: tokens.editor.scrollbarBackground,
     scrollbarThumb: tokens.editor.scrollbarThumb,
 

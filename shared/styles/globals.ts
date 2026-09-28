@@ -159,7 +159,10 @@ export default createGlobalStyle<Props>`
   optgroup,
   select,
   textarea {
-    font-family: ${s("fontFamily")};
+    font-family: ${(props) =>
+      props.staticHTML
+        ? props.theme.fontFamily
+        : props.theme.exui.typography.fontFamily};
   }
 
   #root {
@@ -232,11 +235,11 @@ export default createGlobalStyle<Props>`
     margin-top: 1em;
     margin-bottom: 0.5em;
   }
-  h1 { font-size: 36px; }
-  h2 { font-size: 26px; }
-  h3 { font-size: 20px; }
-  h4 { font-size: 18px; }
-  h5 { font-size: 16px; }
+  h1 { font-size: 2.25rem; }
+  h2 { font-size: 1.625rem; }
+  h3 { font-size: 1.25rem; }
+  h4 { font-size: 1.125rem; }
+  h5 { font-size: 1rem; }
 
   p,
   dl,

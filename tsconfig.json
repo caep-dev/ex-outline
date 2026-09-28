@@ -30,6 +30,9 @@
     "ignoreDeprecations": "5.0",
     "target": "es2020",
     "paths": {
+      // Package exports stay disabled for other dependencies; resolve ExUI's
+      // public tokens entry to its published declaration file for TypeScript.
+      "@exre/exui/tokens": ["./node_modules/@exre/exui/dist/tokens/index.d.ts"],
       "@server/*": ["./server/*"],
       "@shared/*": ["./shared/*"],
       "~/*": ["./app/*"],

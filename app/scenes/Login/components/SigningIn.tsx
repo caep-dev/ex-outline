@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -32,7 +33,7 @@ export function SigningIn() {
 const Note = styled(Text)`
   color: ${s("textTertiary")};
   text-align: center;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   margin-top: 8px;
 
   em {

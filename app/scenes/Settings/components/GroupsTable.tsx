@@ -231,7 +231,7 @@ const Image = styled(Flex)`
   width: 32px;
   height: 32px;
   background: ${s("backgroundSecondary")};
-  border-radius: 32px;
+  border-radius: ${(props) => props.theme.exui.radii.full};
 `;
 
 const Title = styled.span`

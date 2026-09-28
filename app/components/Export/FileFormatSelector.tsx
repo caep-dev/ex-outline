@@ -88,7 +88,8 @@ const Format = styled.label`
   align-items: center;
   gap: 8px;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.formControl.base.radius};
   cursor: var(--pointer);
   background: ${s("backgroundSecondary")};
   box-shadow: inset 0 0 0 2px transparent;
@@ -107,7 +108,8 @@ const Format = styled.label`
   }
 
   &:has(input:focus-visible) {
-    outline: 2px solid ${s("accent")};
-    outline-offset: 2px;
+    outline: none;
+    box-shadow: ${(props) =>
+      props.theme.exui.components.formControl.focus.shadow};
   }
 `;

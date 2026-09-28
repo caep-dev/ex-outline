@@ -86,7 +86,8 @@ const TeamLink = styled.a`
   gap: 8px;
   padding: 8px;
   margin: 4px;
-  border-radius: 8px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.radius};
   width: 100%;
   color: ${s("text")};
   font-weight: ${s("fontWeightMedium")};

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import * as React from "react";
 import styled from "styled-components";
 import { depths, s } from "@shared/styles";
@@ -22,7 +23,7 @@ const Link = styled.a`
   padding-bottom: 16px;
 
   font-weight: 600;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   text-decoration: none;
   border-top-right-radius: 2px;
   color: ${s("text")};

@@ -151,7 +151,7 @@ const StyledInputSelect = styled(InputSelect)`
 const Content = styled.div`
   margin: 0 16px 8px;
   border: 1px solid ${(props) => props.theme.inputBorder};
-  border-radius: 6px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   padding: 8px 8px 0;
   flex-shrink: 0;
 `;

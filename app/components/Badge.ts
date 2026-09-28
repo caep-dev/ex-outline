@@ -1,4 +1,4 @@
-import { darken, transparentize } from "polished";
+import { transparentize } from "polished";
 import styled from "styled-components";
 
 const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
@@ -6,7 +6,7 @@ const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
   margin: 0 2px;
   background: ${({ yellow, primary, theme }) =>
     yellow
-      ? transparentize(0.85, theme.yellow)
+      ? transparentize(0.85, theme.exui.feedback.warning)
       : primary
         ? transparentize(0.85, theme.accent)
         : "transparent"};
@@ -14,18 +14,18 @@ const Badge = styled.span<{ yellow?: boolean; primary?: boolean }>`
     primary
       ? theme.accent
       : yellow
-        ? darken(0.1, theme.yellow)
+        ? theme.exui.feedback.warning
         : theme.textTertiary};
   border: 1px solid
     ${({ yellow, primary, theme }) =>
       yellow
-        ? transparentize(0.25, theme.yellow)
+        ? transparentize(0.25, theme.exui.feedback.warning)
         : primary
           ? transparentize(0.25, theme.accent)
           : theme.textTertiary};
-  border-radius: 8px;
-  font-size: 12px;
-  font-weight: 500;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
+  font-size: ${(props) => props.theme.exui.typography.smallFontSize};
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   user-select: none;
   white-space: nowrap;
 `;

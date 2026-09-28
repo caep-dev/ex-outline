@@ -251,14 +251,14 @@ const Shortcut = styled.kbd`
   margin-left: 2px;
   display: inline-block;
   padding: 2px 4px;
-  font-size: 12px;
+  font-size: ${(props) => props.theme.exui.typography.smallFontSize};
   font-family: ${(props) => props.theme.exui.typography.fontFamilyMono};
   font-feature-settings: "cv08", "zero";
   line-height: 10px;
   color: ${(props) => props.theme.exui.overlay.tooltip.foreground};
-  border: 1px solid ${(props) => props.theme.exui.overlay.tooltip.border};
+  border: 0;
   vertical-align: middle;
-  border-radius: 3px;
+  border-radius: ${(props) => props.theme.exui.radii.small};
 `;
 
 const StyledContent = styled(TooltipPrimitive.Content)`
@@ -267,7 +267,7 @@ const StyledContent = styled(TooltipPrimitive.Content)`
   color: ${(props) => props.theme.exui.overlay.tooltip.foreground};
   box-shadow: ${(props) => props.theme.exui.overlay.tooltip.shadow};
   border-radius: ${(props) => props.theme.exui.overlay.tooltip.radius};
-  font-size: 13px;
+  font-size: ${(props) => props.theme.exui.typography.smallFontSize};
   line-height: 1.4;
   white-space: normal;
   outline: 0;

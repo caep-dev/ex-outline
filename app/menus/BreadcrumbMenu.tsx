@@ -29,7 +29,8 @@ const Button = styled(OverflowMenuButton)`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: 4px;
+    border-radius: ${(props) =>
+      props.theme.exui.components.button.action.radius};
     margin-inline: -4px;
     transition: background 100ms ease-in-out;
   }

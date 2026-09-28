@@ -1,7 +1,7 @@
 import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { CloseIcon, MenuIcon } from "outline-icons";
-import { transparentize } from "polished";
+import { glassSurface } from "@shared/styles/glass";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
@@ -178,10 +178,7 @@ const Wrapper = styled(Flex)<WrapperProps>`
       background: transparent;
       pointer-events: none;
       `
-      : `
-      background: ${transparentize(0.2, props.theme.background)};
-      backdrop-filter: blur(20px);
-      `};
+      : glassSurface};
 
   padding: 12px 16px;
   transform: translate3d(0, 0, 0);
@@ -192,15 +189,6 @@ const Wrapper = styled(Flex)<WrapperProps>`
   button,
   [role="button"] {
     ${fadeOnDesktopBackgrounded()}
-  }
-
-  @supports (backdrop-filter: blur(20px)) {
-    ${(props) =>
-      !props.$passThrough &&
-      `
-      backdrop-filter: blur(20px);
-      background: ${transparentize(0.2, props.theme.background)};
-      `}
   }
 
   @media print {
@@ -215,8 +203,8 @@ const Wrapper = styled(Flex)<WrapperProps>`
 
 const Title = styled("div")`
   display: none;
-  font-size: 16px;
-  font-weight: 600;
+  font-size: 1rem;
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   text-overflow: ellipsis;
   white-space: nowrap;
   overflow: hidden;

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import * as Dialog from "@radix-ui/react-dialog";
 import type { Keyframes } from "styled-components";
@@ -55,7 +56,7 @@ import {
   TransformComponent,
   useTransformEffect,
 } from "react-zoom-pan-pinch";
-import { transparentize } from "polished";
+import { glassSurface } from "@shared/styles/glass";
 import { mergeRefs } from "react-merge-refs";
 import { useEditor } from "~/editor/components/EditorContext";
 import { NodeSelection } from "prosemirror-state";
@@ -1104,7 +1105,7 @@ const Figure = styled("figure")`
 `;
 
 const Caption = styled("figcaption")`
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   min-height: 1.5em;
   font-weight: normal;
   margin-top: 8px;
@@ -1202,9 +1203,8 @@ const Actions = styled(HStack)<{
   right: ${(props) => (props.$commentsOpen ? "360px" : "44px")};
   margin: 16px 12px;
   z-index: ${depths.modal};
-  background: ${(props) => transparentize(0.2, props.theme.background)};
-  backdrop-filter: blur(4px);
-  border-radius: 6px;
+  ${glassSurface}
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
   transition: right 200ms ease-out;
 
   ${(props) =>
@@ -1231,9 +1231,8 @@ const CloseAction = styled.div<{ animation: Animation | null }>`
   right: 0;
   margin: 16px 12px;
   z-index: ${depths.modal + 1};
-  background: ${(props) => transparentize(0.2, props.theme.background)};
-  backdrop-filter: blur(4px);
-  border-radius: 6px;
+  ${glassSurface}
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
 
   ${(props) =>
     props.animation === null

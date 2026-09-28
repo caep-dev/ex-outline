@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { OpenIcon } from "outline-icons";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
@@ -112,7 +113,10 @@ const Frame = ({
 };
 
 const Iframe = styled.iframe<{ $showBottomBar: boolean }>`
-  border-radius: ${(props) => (props.$showBottomBar ? "3px 3px 0 0" : "3px")};
+  border-radius: ${(props) =>
+    props.$showBottomBar
+      ? `${props.theme.exui.radii.extraLarge} ${props.theme.exui.radii.extraLarge} 0 0`
+      : props.theme.exui.radii.extraLarge};
   display: block;
 `;
 
@@ -122,7 +126,7 @@ const Rounded = styled.div<{
 }>`
   border: 1px solid
     ${(props) => (props.$border ? props.theme.embedBorder : "transparent")};
-  border-radius: 6px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   overflow: hidden;
 
   ${(props) =>
@@ -134,7 +138,7 @@ const Rounded = styled.div<{
 
 const Open = styled.a`
   color: ${s("textSecondary")} !important;
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: 500;
   align-items: center;
   display: flex;
@@ -144,7 +148,7 @@ const Open = styled.a`
 `;
 
 const Title = styled.span`
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: 500;
   padding-left: 4px;
 `;

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
 import { MarkAsReadIcon } from "outline-icons";
 import * as React from "react";
@@ -174,7 +175,7 @@ function Notifications(
 const StyledInputSelect = styled(InputSelect)`
   color: ${s("textSecondary")};
   font-weight: 500;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   height: 24px;
 
   & > * {

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import type { FormEvent, ChangeEvent } from "react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -101,7 +102,7 @@ const StyledForm = styled.form`
 `;
 
 const ErrorText = styled.p`
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   color: ${s("danger")};
   margin: 0;
 `;

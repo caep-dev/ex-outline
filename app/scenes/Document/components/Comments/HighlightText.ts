@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import styled from "styled-components";
 import { s, truncateMultiline } from "@shared/styles";
 import Text from "~/components/Text";
@@ -8,7 +9,7 @@ import Text from "~/components/Text";
 export const HighlightedText = styled(Text)`
   position: relative;
   color: ${s("textSecondary")};
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   padding: 0 8px;
   margin: 4px 0;
   display: inline-block;

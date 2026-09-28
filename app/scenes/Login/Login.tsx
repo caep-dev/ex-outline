@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { find } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { EmailIcon } from "outline-icons";
@@ -443,7 +444,7 @@ const Content = styled(Text)`
 const Note = styled(Text)`
   color: ${s("textTertiary")};
   text-align: center;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   margin-top: 8px;
 
   em {
@@ -466,7 +467,7 @@ const Or = styled.hr`
     left: 50%;
     transform: translate3d(-50%, -50%, 0);
     text-transform: uppercase;
-    font-size: 11px;
+    font-size: ${exuiTokens.typography.smallFontSize};
     font-weight: 500;
     color: ${s("textTertiary")};
     background: ${s("background")};

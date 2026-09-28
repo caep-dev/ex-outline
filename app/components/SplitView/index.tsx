@@ -320,7 +320,7 @@ const FocusRing = styled.div<{ $visible: boolean; $secondary: boolean }>`
   box-shadow:
     inset 0 0 0 2px ${s("background")},
     inset 0 0 0 4px ${s("inputBorder")};
-  border-radius: 6px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   opacity: ${(props) => (props.$visible ? 1 : 0)};
   transition: opacity 100ms ease-in-out;
 `;

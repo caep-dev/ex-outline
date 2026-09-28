@@ -2,10 +2,10 @@
 import "vite/modulepreload-polyfill";
 // Keep ahead of the other imports so polyfills apply before they evaluate.
 import "~/utils/polyfills";
-// Registers the Outfit font faces declared by the ExUI token package. Imported
+// Registers the Outfit font faces declared by the ExUI package. Imported
 // once here so the font is available to the application UI. Document content
 // keeps Outline's existing system font stack.
-import "@exre/exui-tokens/font.css";
+import "@exre/exui/tokens/font.css";
 import { LazyMotion, domMax } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";

@@ -2142,11 +2142,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@exre/exui-tokens@portal:../../exui/packages/tokens::locator=outline%40workspace%3A.":
+"@exre/exui@portal:../../exui/packages/components::locator=outline%40workspace%3A.":
   version: 0.0.0-use.local
-  resolution: "@exre/exui-tokens@portal:../../exui/packages/tokens::locator=outline%40workspace%3A."
+  resolution: "@exre/exui@portal:../../exui/packages/components::locator=outline%40workspace%3A."
   dependencies:
     "@fontsource-variable/outfit": "npm:^5.2.8"
+  peerDependencies:
+    react: ">=19.0.0 <20"
+    react-dom: ">=19.0.0 <20"
+  peerDependenciesMeta:
+    react:
+      optional: true
+    react-dom:
+      optional: true
   languageName: node
   linkType: soft
 
@@ -15859,7 +15867,7 @@ __metadata:
     "@dnd-kit/sortable": "npm:^7.0.2"
     "@dotenvx/dotenvx": "npm:^1.75.1"
     "@emoji-mart/data": "npm:^1.2.1"
-    "@exre/exui-tokens": "portal:../../exui/packages/tokens"
+    "@exre/exui": "portal:../../exui/packages/components"
     "@faker-js/faker": "npm:^8.4.1"
     "@fast-csv/parse": "npm:^5.0.7"
     "@firecrawl/pdf-inspector": "npm:^1.11.2"

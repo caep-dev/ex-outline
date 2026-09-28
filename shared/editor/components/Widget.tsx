@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { s } from "../../styles";
@@ -63,7 +64,7 @@ const Children = styled.div`
 
 export const Title = styled.strong`
   font-weight: 500;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   line-height: 28px;
   text-overflow: ellipsis;
   overflow: hidden;
@@ -81,7 +82,7 @@ export const Preview = styled(Flex).attrs({
 `;
 
 export const Subtitle = styled.span`
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   line-height: 28px;
   text-overflow: ellipsis;
   overflow: hidden;

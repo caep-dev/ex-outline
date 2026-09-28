@@ -1,10 +1,12 @@
+import { exuiTokens } from "@exre/exui/tokens";
+
 /**
  * Class names and values used by the editor.
  */
 export class EditorStyleHelper {
   // Blocks
 
-  static readonly blockRadius = "6px";
+  static readonly blockRadius = exuiTokens.radii.extraLarge;
 
   // Images
 

@@ -20,7 +20,6 @@ function InputSearch(
 ) {
   const { t } = useTranslation();
   const theme = useTheme();
-  const [isFocused, setIsFocused] = React.useState(false);
   const {
     placeholder = `${t("Search")}…`,
     onKeyDown,
@@ -29,38 +28,23 @@ function InputSearch(
     ...rest
   } = props;
 
-  const handleFocus = React.useCallback(
-    (event) => {
-      setIsFocused(true);
-      onFocus?.(event);
-    },
-    [onFocus]
-  );
-
-  const handleBlur = React.useCallback(
-    (event) => {
-      setIsFocused(false);
-      onBlur?.(event);
-    },
-    [onBlur]
-  );
-
   return (
     <Input
       type="search"
       placeholder={placeholder}
       icon={
         <SearchIcon
-          color={isFocused ? theme.inputBorderFocused : theme.inputBorder}
+          color={theme.exui.components.formControl.base.placeholder}
         />
       }
       onKeyDown={onKeyDown}
-      onFocus={handleFocus}
-      onBlur={handleBlur}
+      onFocus={onFocus}
+      onBlur={onBlur}
       margin={0}
       labelHidden
       ref={ref}
       {...rest}
+      round
     />
   );
 }

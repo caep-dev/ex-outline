@@ -9,9 +9,9 @@ interface Props extends Omit<
   React.ComponentProps<typeof RadixSwitch.Root>,
   "checked" | "onCheckedChange" | "onChange"
 > {
-  /** Width of the switch. Defaults to 32. */
+  /** Width of the switch. Defaults to the ExUI width (2.75rem). */
   width?: number;
-  /** Height of the switch. Defaults to 18 */
+  /** Height of the switch. Defaults to the ExUI height (1.25rem). */
   height?: number;
   /** An optional label for the switch */
   label?: string;
@@ -32,8 +32,8 @@ interface Props extends Omit<
 
 function Switch(
   {
-    width = 32,
-    height = 18,
+    width,
+    height,
     labelPosition = "left",
     inForm = true,
     label,
@@ -66,7 +66,7 @@ function Switch(
       className={label ? undefined : className}
       {...props}
     >
-      <StyledSwitchThumb width={width} height={height} />
+      <StyledSwitchThumb />
     </StyledSwitchRoot>
   );
 
@@ -87,8 +87,8 @@ function Switch(
             type="secondary"
             size="small"
             style={{
-              paddingRight: labelPosition === "left" ? width : 0,
-              paddingLeft: labelPosition === "right" ? width : 0,
+              paddingRight: labelPosition === "left" ? (width ?? "2.75rem") : 0,
+              paddingLeft: labelPosition === "right" ? (width ?? "2.75rem") : 0,
             }}
           >
             {note}
@@ -125,48 +125,59 @@ const Label = styled.label<{
   ${(props) => (props.disabled ? `opacity: 0.75;` : "")}
 `;
 
-const HOVER_EXTRA = 3;
-
-const StyledSwitchThumb = styled(RadixSwitch.Thumb)<{
-  width: number;
-  height: number;
-}>`
+const StyledSwitchThumb = styled(RadixSwitch.Thumb)`
   display: block;
-  width: ${(props) => props.height - 8}px;
-  height: ${(props) => props.height - 8}px;
-  background-color: white;
-  border-radius: ${(props) => (props.height - 8) / 2}px;
-  transition:
-    transform 0.2s,
-    width 0.2s;
+  width: var(--switch-thumb-width);
+  height: var(--switch-thumb-height);
+  background-color: ${(props) =>
+    props.theme.isDark
+      ? props.theme.exui.surface.foreground
+      : props.theme.exui.surface.background};
+  border-radius: ${(props) => props.theme.exui.radii.full};
+  box-shadow: ${(props) => props.theme.exui.shadow.small};
+  transition: transform 0.2s;
   transform: translateX(0);
-  will-change: transform, width;
 
   &[data-state="checked"] {
-    transform: translateX(${(props) => props.width - props.height}px);
+    background-color: ${(props) => props.theme.exui.control.primaryForeground};
+    transform: translateX(
+      calc(var(--switch-width) - var(--switch-thumb-width) - 4px)
+    );
   }
 
   [dir="rtl"] &[data-state="checked"] {
-    transform: translateX(${(props) => -(props.width - props.height)}px);
+    transform: translateX(
+      calc(var(--switch-thumb-width) + 4px - var(--switch-width))
+    );
   }
 `;
 
 const StyledSwitchRoot = styled(RadixSwitch.Root)<{
-  width: number;
-  height: number;
+  width?: number;
+  height?: number;
 }>`
+  --switch-width: ${(props) =>
+    props.width === undefined ? "2.75rem" : `${props.width}px`};
+  --switch-height: ${(props) =>
+    props.height === undefined ? "1.25rem" : `${props.height}px`};
+  --switch-thumb-width: ${(props) =>
+    props.height === undefined ? "1.5rem" : `${props.height + 4}px`};
+  --switch-thumb-height: ${(props) =>
+    props.height === undefined ? "1rem" : `${Math.max(0, props.height - 4)}px`};
   position: relative;
-  width: ${(props) => props.width}px;
-  height: ${(props) => props.height}px;
-  background-color: ${(props) => props.theme.exui.surface.surfaceTertiary};
-  border-radius: ${(props) => props.height}px;
-  border: none;
+  display: inline-flex;
+  align-items: center;
+  width: var(--switch-width);
+  height: var(--switch-height);
+  background-color: ${(props) => props.theme.inputBackground};
+  border-radius: ${(props) => props.theme.exui.radii.full};
+  border: 2px solid transparent;
   cursor: var(--pointer);
   transition: background-color 0.2s;
-  padding: 0 4px;
+  padding: 0;
   flex-shrink: 0;
 
-  &:focus {
+  &:focus-visible {
     box-shadow: ${(props) => props.theme.exui.shadow.focus};
     outline: none;
   }
@@ -175,36 +186,9 @@ const StyledSwitchRoot = styled(RadixSwitch.Root)<{
     background-color: ${(props) => props.theme.exui.control.primary};
   }
 
-  &:active:not(:disabled) {
-    background-color: ${(props) => props.theme.exui.surface.borderStrong};
-  }
-
-  &:active:not(:disabled)[data-state="checked"] {
-    background-color: ${(props) => props.theme.exui.control.primaryActive};
-  }
-
   &:disabled {
-    background-color: ${(props) => props.theme.exui.control.disabled};
+    opacity: 0.5;
     cursor: default;
   }
-
-  &:hover:not(:disabled) ${StyledSwitchThumb} {
-    width: ${(props) => props.height - 8 + HOVER_EXTRA}px;
-  }
-
-  &:hover:not(:disabled)[data-state="checked"] ${StyledSwitchThumb} {
-    transform: translateX(
-      ${(props) => props.width - props.height - HOVER_EXTRA}px
-    );
-  }
-
-  [dir="rtl"]
-    &:hover:not(:disabled)[data-state="checked"]
-    ${StyledSwitchThumb} {
-    transform: translateX(
-      ${(props) => -(props.width - props.height - HOVER_EXTRA)}px
-    );
-  }
 `;
-
 export default React.forwardRef(Switch);

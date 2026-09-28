@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { CrossIcon, DownloadIcon, GlobeIcon, ZoomInIcon } from "outline-icons";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
@@ -320,7 +321,7 @@ function getPlaceholder(width: number, height: number) {
 export const Error = styled(Flex)`
   max-width: 100%;
   color: ${s("textTertiary")};
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   background: ${s("backgroundSecondary")};
   border-radius: ${EditorStyleHelper.blockRadius};
   height: 80px;
@@ -347,7 +348,7 @@ const Button = styled.button`
   border: 0;
   margin: 0;
   padding: 0;
-  border-radius: 4px;
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
   background: ${s("background")};
   color: ${s("textSecondary")};
   width: 24px;

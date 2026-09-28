@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { startCase } from "es-toolkit/compat";
 import styled from "styled-components";
 import { s } from "@shared/styles";
@@ -99,7 +100,7 @@ const Container = styled(Flex)<{ $showFade?: boolean }>`
 `;
 
 const Name = styled(Text)`
-  font-size: 15px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
 `;
 
 const Glyph = styled(Flex)`

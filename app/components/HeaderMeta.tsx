@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { s } from "@shared/styles";
@@ -34,7 +35,7 @@ export const MetaButton = styled(NudeButton)`
 export const metaStyles = css<{ $rtl?: boolean }>`
   justify-content: ${(props) => (props.$rtl ? "flex-end" : "flex-start")};
   color: ${s("textTertiary")};
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   white-space: nowrap;
   overflow: hidden;
   min-width: 0;
@@ -47,7 +48,7 @@ export const metaStyles = css<{ $rtl?: boolean }>`
  */
 export const headerMetaStyles = css`
   margin: -12px 0 2em 0;
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   position: relative;
   user-select: none;
   z-index: 1;

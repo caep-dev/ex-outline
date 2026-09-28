@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { useKBar } from "kbar";
 import { observer } from "mobx-react";
 import { SearchIcon } from "outline-icons";
@@ -141,11 +142,12 @@ const SearchButton = styled.button`
   padding: 6px 12px;
   margin: 4px 0 12px;
   border: 1px solid ${s("inputBorder")};
-  border-radius: 16px;
+  border-radius: ${(props) =>
+    props.theme.exui.components.formControl.base.radius};
   background: ${s("background")};
   color: ${s("textTertiary")};
   cursor: var(--pointer);
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
 
   &:hover {
     border-color: ${s("inputBorderFocused")};
@@ -160,7 +162,7 @@ const SearchLabel = styled.span`
 
 const Shortcut = styled.span`
   flex-shrink: 0;
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-feature-settings: "cv08", "zero";
 `;
 

@@ -53,19 +53,37 @@ const OneTimePasswordInputField = styled(OneTimePasswordField.Input)`
   align-items: center;
   justify-content: center;
   text-align: center;
-  border-radius: 4px;
-  font-size: 15px;
-  color: ${s("text")};
-  background: ${s("background")};
-  box-shadow: 0 0 0 1px ${s("inputBorder")};
+  border-radius: ${(props) =>
+    props.theme.exui.components.formControl.base.radius};
+  font-size: ${(props) =>
+    props.theme.exui.components.formControl.base.fontSize};
+  color: ${(props) => props.theme.exui.components.formControl.base.foreground};
+  background: ${(props) =>
+    props.theme.exui.components.formControl.base.background};
+  border: 1px solid
+    ${(props) => props.theme.exui.components.formControl.base.border};
   padding: 0;
-  height: 38px;
-  width: 38px;
+  height: ${(props) => props.theme.exui.components.formControl.base.height};
+  width: ${(props) => props.theme.exui.components.formControl.base.height};
+  min-width: 0;
   line-height: 1;
   transition: box-shadow 0.1s ease-in-out;
 
   &:focus {
-    box-shadow: 0 0 0 2px ${s("inputBorderFocused")};
+    border-color: ${(props) =>
+      props.theme.exui.components.formControl.focus.border};
+    box-shadow: ${(props) =>
+      props.theme.exui.components.formControl.focus.shadow};
+  }
+  &:disabled {
+    opacity: ${(props) =>
+      props.theme.exui.components.formControl.disabled.opacity};
+    color: ${(props) =>
+      props.theme.exui.components.formControl.disabled.foreground};
+  }
+  &[aria-invalid="true"] {
+    box-shadow: ${(props) =>
+      props.theme.exui.components.formControl.invalid.shadow};
   }
   &::selection {
     background-color: ${s("background")};

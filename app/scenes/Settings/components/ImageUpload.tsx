@@ -208,8 +208,8 @@ const RangeInput = styled.input`
   height: 4px;
   cursor: var(--pointer);
   color: inherit;
-  border-radius: 99999px;
-  background-color: #dee1e3;
+  border-radius: ${(props) => props.theme.exui.radii.full};
+  background-color: ${(props) => props.theme.exui.surface.surfaceSecondary};
   appearance: none;
 
   &::-webkit-slider-thumb {

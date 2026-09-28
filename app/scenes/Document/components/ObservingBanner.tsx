@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { m, AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
 import { useTranslation } from "react-i18next";
@@ -49,7 +50,7 @@ const Positioner = styled.div`
 
 const Banner = styled(m.div)<{ $color: string }>`
   padding: 6px 6px 1px;
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: 500;
   z-index: ${depths.header + 1};
   color: ${(props) => props.theme.white};

@@ -87,7 +87,7 @@ const DragPlaceholder = () => {
 
 const GhostLink = styled(SidebarLink)`
   transition: box-shadow 250ms ease-in-out;
-  box-shadow: rgb(0 0 0 / 30%) 0px 4px 15px;
+  box-shadow: ${(props) => props.theme.exui.shadow.large};
   opacity: 0.95;
 `;
 

@@ -4,7 +4,7 @@ import react from "@vitejs/plugin-react";
 import browserslistToEsbuild from "browserslist-to-esbuild";
 import webpackStats from "rollup-plugin-webpack-stats";
 import type { ConfigEnv, ServerOptions } from "vite";
-import { defineConfig } from "vite";
+import { defineConfig, searchForWorkspaceRoot } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import environment from "./server/utils/environment";
 
@@ -49,7 +49,12 @@ export default ({ mode }: ConfigEnv) =>
         environment.NODE_ENV === "development"
           ? {
               // Allow serving files from one level up to the project root
-              allow: [".."],
+              allow: [
+                "..",
+                searchForWorkspaceRoot(
+                  fs.realpathSync("node_modules/@exre/exui")
+                ),
+              ],
             }
           : { strict: true },
     },

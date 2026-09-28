@@ -1,4 +1,4 @@
-import "@exre/exui-tokens/font.css";
+import "@exre/exui/tokens/font.css";
 import { vi } from "vitest";
 import { initI18n } from "~/utils/i18n";
 

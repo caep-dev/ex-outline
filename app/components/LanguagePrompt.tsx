@@ -67,9 +67,9 @@ const Wrapper = styled(m.p)`
   border: 1px solid ${(props) => props.theme.divider};
   padding: 20px;
   margin-top: 12px;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
   position: relative;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  box-shadow: ${(props) => props.theme.exui.shadow.small};
 
   a {
     color: ${(props) => props.theme.text};

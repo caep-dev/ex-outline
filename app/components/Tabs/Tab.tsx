@@ -1,7 +1,4 @@
-import { m } from "framer-motion";
 import type { LocationDescriptor } from "history";
-import { isEqual } from "es-toolkit/compat";
-import queryString from "query-string";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
 import { hover } from "@shared/styles";
@@ -52,6 +49,8 @@ const tabStyles = css`
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  flex: 0 0 auto;
+  height: 100%;
   gap: ${(props) => props.theme.exui.components.tabs.trigger.gap};
   padding-block: ${(props) =>
     props.theme.exui.components.tabs.trigger.paddingBlock};
@@ -59,7 +58,7 @@ const tabStyles = css`
     props.theme.exui.components.tabs.trigger.paddingInline};
   border: 1px solid
     ${(props) => props.theme.exui.components.tabs.trigger.default.border};
-  border-radius: ${(props) => props.theme.exui.components.tabs.trigger.radius};
+  border-radius: ${(props) => props.theme.exui.radii.full};
   background: ${(props) =>
     props.theme.exui.components.tabs.trigger.default.background};
   color: ${(props) =>
@@ -74,6 +73,8 @@ const tabStyles = css`
   cursor: var(--pointer);
   user-select: none;
   text-decoration: none;
+  white-space: nowrap;
+  transition: all 150ms cubic-bezier(0.4, 0, 0.2, 1);
 
   &:focus-visible {
     outline: none;
@@ -166,37 +167,9 @@ const TabButton = styled.button<{ $active: boolean }>`
   }
 `;
 
-const Active = styled(m.div)`
-  position: absolute;
-  bottom: ${(props) => props.theme.exui.components.tabs.indicator.offset};
-  left: 0;
-  right: 0;
-  height: ${(props) => props.theme.exui.components.tabs.indicator.thickness};
-  width: 100%;
-  border-radius: ${(props) => props.theme.exui.components.tabs.trigger.radius};
-  background: ${(props) =>
-    props.theme.exui.components.tabs.indicator.background};
-  opacity: ${(props) =>
-    props.theme.exui.components.tabs.default.indicatorOpacity};
-  pointer-events: none;
-`;
-
-const transition = {
-  type: "spring",
-  stiffness: 500,
-  damping: 30,
-};
-
-/** Restrict shared layout animation to the X axis only. */
-const horizontalOnly = (transform: Record<string, string>, generated: string) =>
-  generated.replace(
-    /translate3d\(([^,]+),\s*[^,]+,\s*([^)]+)\)/,
-    "translate3d($1, 0px, $2)"
-  );
-
 /**
- * A single tab with an animated active underline, rendered either as a link
- * matched against the current location, or as a button in controlled mode.
+ * A single tab rendered either as a link matched against the current location,
+ * or as a button in controlled mode.
  * A forwarded ref is only attached in button mode.
  */
 export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
@@ -225,14 +198,6 @@ export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
     return (
       <TabButton {...rest} ref={ref} type="button" $active={active}>
         {children}
-        {active && (
-          <Active
-            layoutId="underline"
-            initial={false}
-            transition={transition}
-            transformTemplate={horizontalOnly}
-          />
-        )}
       </TabButton>
     );
   }
@@ -246,24 +211,7 @@ export const Tab = React.forwardRef<HTMLButtonElement, Props>(function Tab(
       exact={exact || exactQueryString}
       activeStyle={activeStyle}
     >
-      {(match, location) => (
-        <>
-          {children}
-          {match &&
-            (!exactQueryString ||
-              isEqual(
-                queryString.parse(location.search ?? ""),
-                queryString.parse(to.search as string)
-              )) && (
-              <Active
-                layoutId="underline"
-                initial={false}
-                transition={transition}
-                transformTemplate={horizontalOnly}
-              />
-            )}
-        </>
-      )}
+      {() => children}
     </TabLink>
   );
 });

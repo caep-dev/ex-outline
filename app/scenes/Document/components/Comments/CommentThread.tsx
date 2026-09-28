@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
 import { darken } from "polished";
@@ -314,7 +315,7 @@ const Reply = styled.button`
   margin: 0;
   background: none;
   color: ${s("textTertiary")};
-  font-size: 14px;
+  font-size: ${exuiTokens.typography.bodyFontSize};
   -webkit-appearance: none;
   cursor: var(--pointer);
   transition: opacity 100ms ease-out;
@@ -339,7 +340,7 @@ const ShowMore = styled.div`
   color: ${s("textTertiary")};
   background: ${(props) => darken(0.015, props.theme.backgroundSecondary)};
   cursor: var(--pointer);
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
 
   &: ${hover} {
     color: ${s("textSecondary")};

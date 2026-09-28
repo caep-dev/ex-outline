@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { deburr } from "es-toolkit/compat";
 import { CheckmarkIcon } from "outline-icons";
 import * as React from "react";
@@ -323,7 +324,7 @@ const SearchInput = styled(Input)`
   }
 
   ${NativeInput} {
-    font-size: 14px;
+    font-size: ${exuiTokens.typography.bodyFontSize};
   }
 `;
 

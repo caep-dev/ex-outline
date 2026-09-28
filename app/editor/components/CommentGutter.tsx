@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { t } from "i18next";
 import { observer } from "mobx-react";
 import { CommentIcon } from "outline-icons";
@@ -97,11 +98,11 @@ const Icon = styled.button`
   margin: 0;
   padding: 2px 6px;
   border: 0;
-  border-radius: 6px;
+  border-radius: ${(props) => props.theme.exui.components.button.action.radius};
   background: none;
   color: ${s("textTertiary")};
   cursor: var(--pointer);
-  font-size: 13px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: 500;
   line-height: 1;
 

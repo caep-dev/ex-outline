@@ -55,35 +55,32 @@ const StyledInput = styled.input`
   width: 100%;
   padding-block: 10px 10px;
   padding-inline: 60px 10px;
-  font-size: 30px;
-  font-weight: 400;
+  font-size: 1.875rem;
+  font-weight: ${(props) => props.theme.exui.typography.fontWeightRegular};
   outline: none;
   border: 0;
   background: ${s("inputBackground")};
-  border-radius: 4px;
+  border-radius: 9999px;
   color: ${s("text")};
+
+  &:focus-visible {
+    box-shadow: ${(props) =>
+      props.theme.exui.components.formControl.focus.shadow};
+  }
 
   ::-webkit-search-cancel-button {
     -webkit-appearance: none;
   }
-  ::-webkit-input-placeholder {
-    color: ${s("placeholder")};
-  }
-  :-moz-placeholder {
-    color: ${s("placeholder")};
-  }
-  ::-moz-placeholder {
-    color: ${s("placeholder")};
-  }
-  :-ms-input-placeholder {
-    color: ${s("placeholder")};
+  &::placeholder {
+    color: ${(props) =>
+      props.theme.exui.components.formControl.base.placeholder};
+    opacity: 1;
   }
 `;
 
 const StyledIcon = styled(SearchIcon)`
   position: absolute;
   inset-inline-start: 8px;
-  opacity: 0.7;
 `;
 
 export default React.forwardRef(SearchInput);

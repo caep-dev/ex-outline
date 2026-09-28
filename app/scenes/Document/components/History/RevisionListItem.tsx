@@ -176,7 +176,7 @@ const RevisionItem = styled(Item)<{ $menuOpen?: boolean }>`
   position: relative;
   margin: 8px 0;
   padding: 8px;
-  border-radius: 8px;
+  border-radius: ${(props) => props.theme.exui.components.sidebarItem.default.radius};
 
   ${Actions} {
     opacity: 0;

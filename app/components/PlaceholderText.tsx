@@ -37,7 +37,7 @@ const Mask = styled(Flex)<{
   height: ${(props) =>
     props.height ? props.height : props.header ? 24 : 18}px;
   margin-bottom: 6px;
-  border-radius: 6px;
+  border-radius: ${(props) => props.theme.exui.radii.medium};
   background-color: ${s("divider")};
   animation: ${pulsate} 2s infinite;
   animation-delay: ${(props) => props.delay || 0}s;

@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { debounce } from "es-toolkit/compat";
 import {
   CaretDownIcon,
@@ -559,7 +560,7 @@ const Content = styled(Flex)`
 
 const Results = styled.span`
   color: ${s("textSecondary")};
-  font-size: 12px;
+  font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: 500;
   font-variant-numeric: tabular-nums;
   line-height: 32px;
