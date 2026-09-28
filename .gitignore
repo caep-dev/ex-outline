@@ -23,3 +23,7 @@ data/*
 !.yarn/releases
 .yarn/releases
 !.yarn/sdks
+
+
+.playwright-cli
+.vitest-attachments
