@@ -1,5 +1,11 @@
 import copy from "copy-to-clipboard";
-import { CopyIcon, PlusIcon, TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CopyIcon, PlusIcon, TrashIcon } from "outline-icons";
+ */
+import { CopyIcon, PlusIcon, TrashIcon } from "@shared/components/LucideIcon";
 import { toast } from "sonner";
 import stores from "~/stores";
 import env from "~/env";

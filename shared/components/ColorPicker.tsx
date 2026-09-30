@@ -1,5 +1,11 @@
 import copy from "copy-to-clipboard";
-import { CheckmarkIcon, CopyIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CheckmarkIcon, CopyIcon } from "outline-icons";
+ */
+import { CheckmarkIcon, CopyIcon } from "@shared/components/LucideIcon";
 import { useState, useRef, useCallback, useEffect } from "react";
 import {
   HexColorInput,

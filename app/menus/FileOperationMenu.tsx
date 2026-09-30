@@ -1,4 +1,10 @@
-import { DownloadIcon, TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { DownloadIcon, TrashIcon } from "outline-icons";
+ */
+import { DownloadIcon, TrashIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { FileOperationState, FileOperationType } from "@shared/types";

@@ -1,6 +1,12 @@
 import type { LocationDescriptor } from "history";
 import { observer, useObserver } from "mobx-react";
-import { CommentIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CommentIcon } from "outline-icons";
+ */
+import { CommentIcon } from "@shared/components/LucideIcon";
 import { useRef, Fragment, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";

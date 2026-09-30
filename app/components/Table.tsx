@@ -14,7 +14,13 @@ import {
 } from "@tanstack/react-table";
 import { useWindowVirtualizer } from "@tanstack/react-virtual";
 import { observer } from "mobx-react";
-import { CollapsedIcon, SettingsIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CollapsedIcon, SettingsIcon } from "outline-icons";
+ */
+import { CollapsedIcon, SettingsIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { Waypoint } from "react-waypoint";
@@ -648,7 +654,11 @@ const DescSortIcon = styled(CollapsedIcon)`
   margin-left: -2px;
 
   &:hover {
-    fill: ${s("text")};
+    /**
+     * OUTLINE ICON BLOCK
+     * fill: theme.text;
+     */
+    color: ${s("text")};
   }
 `;
 

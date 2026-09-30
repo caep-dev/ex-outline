@@ -1,6 +1,12 @@
 import * as Dialog from "@radix-ui/react-dialog";
 import { observer } from "mobx-react";
-import { CloseIcon, BackIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CloseIcon, BackIcon } from "outline-icons";
+ */
+import { CloseIcon, BackIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

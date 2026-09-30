@@ -1,7 +1,13 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import { find } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { EmailIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { EmailIcon } from "outline-icons";
+ */
+import { EmailIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useLocation, Link, Redirect } from "react-router-dom";

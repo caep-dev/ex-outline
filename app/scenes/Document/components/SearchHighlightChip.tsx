@@ -1,5 +1,11 @@
 import { exuiTokens } from "@exre/exui/tokens";
-import { CloseIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CloseIcon } from "outline-icons";
+ */
+import { CloseIcon } from "@shared/components/LucideIcon";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";

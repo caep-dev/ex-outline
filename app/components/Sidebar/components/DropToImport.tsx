@@ -101,8 +101,15 @@ const DropzoneContainer = styled.div<{ $isDragActive: boolean }>`
         background: ${theme.exui.control.primary} !important;
         color: ${theme.exui.control.primaryForeground} !important;
       }
-      svg {
+      /**
+       * OUTLINE ICON BLOCK
+       * drag-target fill previously applied to every SVG.
+       */
+      svg:not(.lucide) {
         fill: ${theme.exui.control.primaryForeground};
+      }
+      svg.lucide {
+        color: ${theme.exui.control.primaryForeground};
       }
     `}
 `;

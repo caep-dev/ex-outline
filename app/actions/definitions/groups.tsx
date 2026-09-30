@@ -1,4 +1,10 @@
-import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { EditIcon, GroupIcon, TrashIcon } from "outline-icons";
+ */
+import { EditIcon, GroupIcon, TrashIcon } from "@shared/components/LucideIcon";
 import Group from "~/models/Group";
 import {
   DeleteGroupDialog,

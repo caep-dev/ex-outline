@@ -23,7 +23,13 @@ import ApiKeyMenu from "~/menus/ApiKeyMenu";
 import { HStack } from "~/components/primitives/HStack";
 import { dateToExpiry } from "~/utils/date";
 import { FILTER_HEIGHT } from "./StickyFilters";
-import { CopyIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CopyIcon } from "outline-icons";
+ */
+import { CopyIcon } from "@shared/components/LucideIcon";
 
 const ROW_HEIGHT = 50;
 const STICKY_OFFSET = HEADER_HEIGHT + FILTER_HEIGHT;

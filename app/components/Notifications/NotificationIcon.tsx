@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { SubscribeIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SubscribeIcon } from "outline-icons";
+ */
+import { SubscribeIcon } from "@shared/components/LucideIcon";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import useStores from "~/hooks/useStores";

@@ -7,7 +7,16 @@ import type {
   Node as ProsemirrorNode,
 } from "prosemirror-model";
 import type { Command } from "prosemirror-state";
-import { PageBreakIcon, HorizontalRuleIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PageBreakIcon, HorizontalRuleIcon } from "outline-icons";
+ */
+import {
+  PageBreakIcon,
+  HorizontalRuleIcon,
+} from "@shared/components/LucideIcon";
 import type { Primitive } from "utility-types";
 import { isNodeActive } from "../queries/isNodeActive";
 import type { MarkdownSerializerState } from "../lib/markdown/serializer";

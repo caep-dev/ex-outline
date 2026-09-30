@@ -1,5 +1,11 @@
 import { t } from "i18next";
-import { MoreIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { MoreIcon } from "outline-icons";
+ */
+import { MoreIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import styled from "styled-components";
 import { s, hover } from "@shared/styles";

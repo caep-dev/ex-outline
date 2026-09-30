@@ -2,7 +2,13 @@ import { exuiTokens } from "@exre/exui/tokens";
 import { differenceInMilliseconds } from "date-fns";
 import { runInAction } from "mobx";
 import { observer } from "mobx-react";
-import { DoneIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { DoneIcon } from "outline-icons";
+ */
+import { DoneIcon } from "@shared/components/LucideIcon";
 import { darken } from "polished";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
@@ -373,8 +379,15 @@ const Action = styled.span<{ $rounded?: boolean }>`
     `}
 
   svg {
-    fill: currentColor;
     opacity: 0.5;
+  }
+
+  /**
+   * OUTLINE ICON BLOCK
+   * svg { fill: currentColor; }
+   */
+  svg:not(.lucide) {
+    fill: currentColor;
   }
 
   &[aria-expanded="true"],

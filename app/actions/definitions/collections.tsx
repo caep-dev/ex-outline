@@ -1,3 +1,31 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   SortAlphabeticalReverseIcon,
+ *   SortAlphabeticalIcon,
+ *   ArchiveIcon,
+ *   CollectionIcon,
+ *   DuplicateIcon,
+ *   EditIcon,
+ *   ExportIcon,
+ *   ImportIcon,
+ *   SortManualIcon,
+ *   NewDocumentIcon,
+ *   PadlockIcon,
+ *   PlusIcon,
+ *   RestoreIcon,
+ *   SearchIcon,
+ *   ShapesIcon,
+ *   SplitIcon,
+ *   StarredIcon,
+ *   SubscribeIcon,
+ *   TrashIcon,
+ *   UnstarredIcon,
+ *   UnsubscribeIcon,
+ * } from "outline-icons";
+ */
 import {
   SortAlphabeticalReverseIcon,
   SortAlphabeticalIcon,
@@ -20,7 +48,7 @@ import {
   TrashIcon,
   UnstarredIcon,
   UnsubscribeIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { toast } from "sonner";
 import Collection from "~/models/Collection";
 import { CollectionEdit } from "~/components/Collection/CollectionEdit";

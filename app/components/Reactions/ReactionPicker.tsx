@@ -1,4 +1,10 @@
-import { ReactionIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ReactionIcon } from "outline-icons";
+ */
+import { ReactionIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import EventBoundary from "@shared/components/EventBoundary";

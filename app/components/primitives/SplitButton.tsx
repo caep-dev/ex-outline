@@ -1,6 +1,12 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { CheckmarkIcon, ExpandedIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CheckmarkIcon, ExpandedIcon } from "outline-icons";
+ */
+import { CheckmarkIcon, ExpandedIcon } from "@shared/components/LucideIcon";
 import { transparentize } from "polished";
 import * as React from "react";
 import styled, { css } from "styled-components";

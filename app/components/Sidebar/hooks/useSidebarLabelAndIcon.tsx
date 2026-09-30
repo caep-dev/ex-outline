@@ -1,4 +1,11 @@
-import { DocumentIcon, QuestionMarkIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { DocumentIcon, QuestionMarkIcon } from "outline-icons";
+ */
+import { DocumentIcon } from "outline-icons";
+import { QuestionMarkIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import Icon from "@shared/components/Icon";
 import CollectionIcon from "~/components/Icons/CollectionIcon";

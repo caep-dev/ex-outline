@@ -1,5 +1,16 @@
 import { t } from "i18next";
-import { TrashIcon, DownloadIcon, ReplaceIcon, PDFIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { TrashIcon, DownloadIcon, ReplaceIcon, PDFIcon } from "outline-icons";
+ */
+import {
+  TrashIcon,
+  DownloadIcon,
+  ReplaceIcon,
+  PDFIcon,
+} from "@shared/components/LucideIcon";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { isPDFAttachmentActive } from "@shared/editor/queries/isPDFAttachment";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";

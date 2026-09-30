@@ -1,5 +1,16 @@
 import copy from "copy-to-clipboard";
-import { CopyIcon, DoneIcon, SmileyIcon, TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CopyIcon, DoneIcon, SmileyIcon, TrashIcon } from "outline-icons";
+ */
+import {
+  CopyIcon,
+  DoneIcon,
+  SmileyIcon,
+  TrashIcon,
+} from "@shared/components/LucideIcon";
 import { toast } from "sonner";
 import type Comment from "~/models/Comment";
 import CommentDeleteDialog from "~/components/CommentDeleteDialog";

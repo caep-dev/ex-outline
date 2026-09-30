@@ -1,3 +1,25 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   HomeIcon,
+ *   SearchIcon,
+ *   ArchiveIcon,
+ *   TrashIcon,
+ *   OpenIcon,
+ *   SettingsIcon,
+ *   KeyboardIcon,
+ *   EmailIcon,
+ *   LogoutIcon,
+ *   ProfileIcon,
+ *   BrowserIcon,
+ *   ShapesIcon,
+ *   DraftsIcon,
+ *   BugIcon,
+ *   ImportIcon,
+ * } from "outline-icons";
+ */
 import {
   HomeIcon,
   SearchIcon,
@@ -14,7 +36,7 @@ import {
   DraftsIcon,
   BugIcon,
   ImportIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
 import stores from "~/stores";

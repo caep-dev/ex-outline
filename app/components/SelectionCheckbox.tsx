@@ -1,4 +1,10 @@
-import { CheckmarkIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CheckmarkIcon } from "outline-icons";
+ */
+import { CheckmarkIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import styled, { css } from "styled-components";
 import { hover } from "@shared/styles";

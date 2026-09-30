@@ -1,7 +1,13 @@
 import copy from "copy-to-clipboard";
 import { debounce, isEmpty } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { CopyIcon, GlobeIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CopyIcon, GlobeIcon } from "outline-icons";
+ */
+import { CopyIcon, GlobeIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";

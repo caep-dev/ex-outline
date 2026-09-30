@@ -3,7 +3,14 @@ import { CSS } from "@dnd-kit/utilities";
 import { subDays } from "date-fns";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { CloseIcon, DocumentIcon, ClockIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CloseIcon, DocumentIcon, ClockIcon } from "outline-icons";
+ */
+import { DocumentIcon, ClockIcon } from "outline-icons";
+import { CloseIcon } from "@shared/components/LucideIcon";
 import { useRef, useCallback, Suspense } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";

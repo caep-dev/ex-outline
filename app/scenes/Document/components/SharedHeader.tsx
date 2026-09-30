@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { TableOfContentsIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { TableOfContentsIcon } from "outline-icons";
+ */
+import { TableOfContentsIcon } from "@shared/components/LucideIcon";
 import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import useMeasure from "react-use-measure";

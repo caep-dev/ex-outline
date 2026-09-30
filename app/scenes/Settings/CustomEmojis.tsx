@@ -1,6 +1,13 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { observer } from "mobx-react";
-import { PlusIcon, SmileyIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon, SmileyIcon } from "outline-icons";
+ */
+import { SmileyIcon } from "outline-icons";
+import { PlusIcon } from "@shared/components/LucideIcon";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";

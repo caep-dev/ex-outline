@@ -1,4 +1,10 @@
-import { MoreIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { MoreIcon } from "outline-icons";
+ */
+import { MoreIcon } from "@shared/components/LucideIcon";
 import Flex from "@shared/components/Flex";
 import Text from "@shared/components/Text";
 import type Team from "~/models/Team";

@@ -1,5 +1,11 @@
 import { exuiTokens } from "@exre/exui/tokens";
-import { ExpandedIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ExpandedIcon } from "outline-icons";
+ */
+import { ExpandedIcon } from "@shared/components/LucideIcon";
 import { ellipsis } from "polished";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";
@@ -86,7 +92,13 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
 
   svg:not([data-fixed-color]) {
     color: inherit;
-    fill: currentColor;
+    /**
+     * OUTLINE ICON BLOCK
+     * fill: currentColor;
+     */
+    &:not(.lucide) {
+      fill: currentColor;
+    }
   }
 
   &:focus-visible {

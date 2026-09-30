@@ -271,8 +271,15 @@ const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
 
   svg {
     color: ${s("textSecondary")};
-    fill: currentColor;
     opacity: 0.5;
+  }
+
+  /**
+   * OUTLINE ICON BLOCK
+   * svg { fill: currentColor; }
+   */
+  svg:not(.lucide) {
+    fill: currentColor;
   }
 
   &:hover {
@@ -419,12 +426,24 @@ const Link = styled(NavLink)<LinkStyleProps>`
       }
     `}
 
-  svg {
+  /**
+   * OUTLINE ICON BLOCK
+   * drag-target fill previously applied to every SVG.
+   */
+  svg:not(.lucide) {
     ${(props) =>
       props.$isActiveDrop
         ? `fill: ${props.theme.exui.control.primaryForeground};`
         : ""}
     transition: fill 50ms;
+  }
+
+  svg.lucide {
+    ${(props) =>
+      props.$isActiveDrop
+        ? `color: ${props.theme.exui.control.primaryForeground};`
+        : ""}
+    transition: color 50ms;
   }
 
   &: ${hover},

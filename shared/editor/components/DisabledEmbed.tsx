@@ -1,4 +1,10 @@
-import { OpenIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { OpenIcon } from "outline-icons";
+ */
+import { OpenIcon } from "@shared/components/LucideIcon";
 import type { EmbedProps as Props } from "../embeds";
 import Widget from "./Widget";
 

@@ -1,4 +1,10 @@
-import { PlusIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon } from "outline-icons";
+ */
+import { PlusIcon } from "@shared/components/LucideIcon";
 import styled from "styled-components";
 import { hover } from "@shared/styles";
 import BaseListItem from "~/components/List/Item";

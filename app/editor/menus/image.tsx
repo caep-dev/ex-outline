@@ -1,3 +1,20 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   TrashIcon,
+ *   DownloadIcon,
+ *   ReplaceIcon,
+ *   AlignImageLeftIcon,
+ *   AlignImageRightIcon,
+ *   AlignImageCenterIcon,
+ *   AlignFullWidthIcon,
+ *   EditIcon,
+ *   CommentIcon,
+ *   LinkIcon,
+ * } from "outline-icons";
+ */
 import {
   TrashIcon,
   DownloadIcon,
@@ -9,7 +26,7 @@ import {
   EditIcon,
   CommentIcon,
   LinkIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { NodeSelection } from "prosemirror-state";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { InlineIconMaxWidth } from "@shared/editor/components/Image";

@@ -1,6 +1,12 @@
 import { debounce } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { InputIcon, ShapesIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { InputIcon, ShapesIcon } from "outline-icons";
+ */
+import { InputIcon, ShapesIcon } from "@shared/components/LucideIcon";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { Prompt } from "react-router-dom";

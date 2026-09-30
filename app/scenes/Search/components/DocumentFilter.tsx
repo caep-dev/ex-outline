@@ -1,4 +1,10 @@
-import { CloseIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CloseIcon } from "outline-icons";
+ */
+import { CloseIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";

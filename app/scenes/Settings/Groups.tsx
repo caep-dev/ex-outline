@@ -1,7 +1,14 @@
 import type { ColumnSort } from "@tanstack/react-table";
 import { deburr } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { PlusIcon, GroupIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon, GroupIcon } from "outline-icons";
+ */
+import { GroupIcon } from "outline-icons";
+import { PlusIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation, Trans } from "react-i18next";

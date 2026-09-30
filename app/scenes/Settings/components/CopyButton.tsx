@@ -1,4 +1,10 @@
-import { LinkIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { LinkIcon } from "outline-icons";
+ */
+import { LinkIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { toast } from "sonner";
 import CopyToClipboard from "~/components/CopyToClipboard";

@@ -1,5 +1,11 @@
 import { debounce } from "es-toolkit/compat";
-import { CheckmarkIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CheckmarkIcon } from "outline-icons";
+ */
+import { CheckmarkIcon } from "@shared/components/LucideIcon";
 import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { CloseIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CloseIcon } from "outline-icons";
+ */
+import { CloseIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";

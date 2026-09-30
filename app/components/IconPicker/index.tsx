@@ -1,6 +1,12 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import * as Tabs from "@radix-ui/react-tabs";
-import { SmileyIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SmileyIcon } from "outline-icons";
+ */
+import { SmileyIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

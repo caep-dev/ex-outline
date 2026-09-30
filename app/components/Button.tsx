@@ -1,5 +1,11 @@
 import type { LocationDescriptor } from "history";
-import { DisclosureIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { DisclosureIcon } from "outline-icons";
+ */
+import { DisclosureIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import styled from "styled-components";
 import type { DefaultTheme, ThemeProps } from "styled-components";
@@ -105,7 +111,11 @@ const RealButton = styled(ActionButton)<RealProps>`
     box-shadow: ${(props) => getButtonVariant(props).disabled.shadow};
     opacity: ${(props) => getButtonVariant(props).disabled.opacity};
 
-    svg {
+    /**
+     * OUTLINE ICON BLOCK
+     * svg { fill: currentColor; }
+     */
+    svg:not(.lucide) {
       fill: currentColor;
     }
   }

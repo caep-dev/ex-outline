@@ -1,7 +1,13 @@
 import { isEmail } from "class-validator";
 import { concat } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { CheckmarkIcon, CloseIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CheckmarkIcon, CloseIcon } from "outline-icons";
+ */
+import { CheckmarkIcon, CloseIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

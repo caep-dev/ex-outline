@@ -1,4 +1,10 @@
-import { ArrowIcon, PlusIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ArrowIcon, PlusIcon } from "outline-icons";
+ */
+import { ArrowIcon, PlusIcon } from "@shared/components/LucideIcon";
 import styled from "styled-components";
 import { stringToColor } from "@shared/utils/color";
 import type RootStore from "~/stores/RootStore";

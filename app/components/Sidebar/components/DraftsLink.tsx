@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { DraftsIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { DraftsIcon } from "outline-icons";
+ */
+import { DraftsIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Flex from "~/components/Flex";

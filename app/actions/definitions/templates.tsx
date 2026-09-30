@@ -1,4 +1,21 @@
 import copy from "copy-to-clipboard";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   CaseSensitiveIcon,
+ *   CollectionIcon,
+ *   CopyIcon,
+ *   DuplicateIcon,
+ *   MoveIcon,
+ *   NewDocumentIcon,
+ *   PlusIcon,
+ *   PrintIcon,
+ *   PublishIcon,
+ *   TrashIcon,
+ * } from "outline-icons";
+ */
 import {
   CaseSensitiveIcon,
   CollectionIcon,
@@ -10,7 +27,7 @@ import {
   PrintIcon,
   PublishIcon,
   TrashIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { Trans } from "react-i18next";
 import { toast } from "sonner";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";

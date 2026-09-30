@@ -2,6 +2,57 @@ import copy from "copy-to-clipboard";
 import type { TFunction } from "i18next";
 import invariant from "invariant";
 import { capitalize, uniqBy } from "es-toolkit/compat";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   DuplicateIcon,
+ *   StarredIcon,
+ *   PrintIcon,
+ *   UnstarredIcon,
+ *   DocumentIcon,
+ *   NewDocumentIcon,
+ *   ShapesIcon,
+ *   ImportIcon,
+ *   PinIcon,
+ *   SearchIcon,
+ *   UnsubscribeIcon,
+ *   SubscribeIcon,
+ *   MoveIcon,
+ *   TrashIcon,
+ *   CrossIcon,
+ *   ArchiveIcon,
+ *   ShuffleIcon,
+ *   HistoryIcon,
+ *   GraphIcon,
+ *   HashtagIcon,
+ *   UnpublishIcon,
+ *   PublishIcon,
+ *   CommentIcon,
+ *   CopyIcon,
+ *   PadlockIcon,
+ *   GlobeIcon,
+ *   LogoutIcon,
+ *   CaseSensitiveIcon,
+ *   OrderedListIcon,
+ *   RestoreIcon,
+ *   EditIcon,
+ *   EmbedIcon,
+ *   OpenIcon,
+ *   SplitIcon,
+ *   ExportIcon,
+ *   CodeIcon,
+ *   PDFIcon,
+ * } from "outline-icons";
+ */
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ShuffleIcon } from "outline-icons";
+ */
+import { ShuffleIcon } from "@shared/components/LucideIcon";
 import {
   DuplicateIcon,
   StarredIcon,
@@ -19,7 +70,6 @@ import {
   TrashIcon,
   CrossIcon,
   ArchiveIcon,
-  ShuffleIcon,
   HistoryIcon,
   GraphIcon,
   HashtagIcon,
@@ -40,7 +90,7 @@ import {
   ExportIcon,
   CodeIcon,
   PDFIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { toast } from "sonner";
 import Icon from "@shared/components/Icon";
 import type { NavigationNode } from "@shared/types";

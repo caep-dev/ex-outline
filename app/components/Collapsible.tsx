@@ -1,6 +1,12 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import * as RadixCollapsible from "@radix-ui/react-collapsible";
-import { ExpandedIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ExpandedIcon } from "outline-icons";
+ */
+import { ExpandedIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import styled from "styled-components";
 import { s } from "@shared/styles";

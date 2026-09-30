@@ -1,4 +1,14 @@
-import { ArchiveIcon, CheckmarkIcon, MarkAsReadIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ArchiveIcon, CheckmarkIcon, MarkAsReadIcon } from "outline-icons";
+ */
+import {
+  ArchiveIcon,
+  CheckmarkIcon,
+  MarkAsReadIcon,
+} from "@shared/components/LucideIcon";
 import { createAction } from "..";
 import { NotificationSection } from "../sections";
 import type Notification from "~/models/Notification";

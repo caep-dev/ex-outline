@@ -1,4 +1,10 @@
-import { ArrowIcon, ClockIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ArrowIcon, ClockIcon } from "outline-icons";
+ */
+import { ArrowIcon, ClockIcon } from "@shared/components/LucideIcon";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";

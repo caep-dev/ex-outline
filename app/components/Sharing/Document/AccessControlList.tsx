@@ -1,5 +1,12 @@
 import { observer } from "mobx-react";
-import { MoreIcon, QuestionMarkIcon, UserIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { MoreIcon, QuestionMarkIcon, UserIcon } from "outline-icons";
+ */
+import { QuestionMarkIcon, UserIcon } from "outline-icons";
+import { MoreIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";

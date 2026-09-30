@@ -1,9 +1,20 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   AlignFullWidthIcon,
+ *   DownloadIcon,
+ *   TableColumnsDistributeIcon,
+ *   TrashIcon,
+ * } from "outline-icons";
+ */
 import {
   AlignFullWidthIcon,
   DownloadIcon,
   TableColumnsDistributeIcon,
   TrashIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import { t } from "i18next";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";

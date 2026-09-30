@@ -14701,6 +14701,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"lucide-react@npm:^1.48.0":
+  version: 1.48.0
+  resolution: "lucide-react@npm:1.48.0"
+  peerDependencies:
+    react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10c0/62c6703cdd6ff0a85f02414242f480d93a2ebf55ef10e42fc46eb9ef0dcb3c13925a199847e31245dd90d837a791b8670f16a817d0fe0d04c725aeae64d70574
+  languageName: node
+  linkType: hard
+
 "luxon@npm:^3.2.1":
   version: 3.7.2
   resolution: "luxon@npm:3.7.2"
@@ -16053,6 +16062,7 @@ __metadata:
     koa-sslify: "npm:5.0.1"
     koa-useragent: "npm:^4.1.0"
     lint-staged: "npm:^16.4.0"
+    lucide-react: "npm:^1.48.0"
     mailparser: "npm:^3.9.15"
     mammoth: "npm:^1.11.0"
     markdown-it: "npm:^14.3.0"

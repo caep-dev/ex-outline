@@ -1,6 +1,12 @@
 import { groupBy } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { BackIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { BackIcon } from "outline-icons";
+ */
+import { BackIcon } from "@shared/components/LucideIcon";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory, useLocation } from "react-router-dom";

@@ -1,6 +1,12 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
-import { SearchIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SearchIcon } from "outline-icons";
+ */
+import { SearchIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";

@@ -1,10 +1,22 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   DoneIcon,
+ *   EmailIcon,
+ *   PlusIcon,
+ *   TrashIcon,
+ *   UserRemoveIcon,
+ * } from "outline-icons";
+ */
 import {
   DoneIcon,
   EmailIcon,
   PlusIcon,
   TrashIcon,
   UserRemoveIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { toast } from "sonner";
 import { UserRole } from "@shared/types";
 import { UserRoleHelper } from "@shared/utils/UserRoleHelper";

@@ -1,5 +1,11 @@
 import { exuiTokens } from "@exre/exui/tokens";
-import { GlobeIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { GlobeIcon } from "outline-icons";
+ */
+import { GlobeIcon } from "@shared/components/LucideIcon";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

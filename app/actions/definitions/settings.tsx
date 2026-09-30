@@ -1,4 +1,10 @@
-import { SunIcon, MoonIcon, BrowserIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SunIcon, MoonIcon, BrowserIcon } from "outline-icons";
+ */
+import { SunIcon, MoonIcon, BrowserIcon } from "@shared/components/LucideIcon";
 import { Theme } from "~/stores/UiStore";
 import { createAction, createActionWithChildren } from "~/actions";
 import { SettingsSection } from "~/actions/sections";

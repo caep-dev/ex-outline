@@ -1,6 +1,12 @@
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
-import { SearchIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SearchIcon } from "outline-icons";
+ */
+import { SearchIcon } from "@shared/components/LucideIcon";
 import { ActionSeparator, createAction, createRootMenuAction } from "~/actions";
 import {
   restoreDocument,

@@ -1,4 +1,10 @@
-import { ArrowIcon, BackIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ArrowIcon, BackIcon } from "outline-icons";
+ */
+import { ArrowIcon, BackIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import styled, { css, useTheme } from "styled-components";
 import { s, ellipsis } from "@shared/styles";

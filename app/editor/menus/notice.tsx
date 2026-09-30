@@ -1,11 +1,29 @@
 import { t } from "i18next";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   DoneIcon,
+ *   ExpandedIcon,
+ *   InfoIcon,
+ *   StarredIcon,
+ *   WarningIcon,
+ * } from "outline-icons";
+ */
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { WarningIcon } from "outline-icons";
+ */
+import { WarningIcon } from "@shared/components/LucideIcon";
 import {
   DoneIcon,
   ExpandedIcon,
   InfoIcon,
   StarredIcon,
-  WarningIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { NoticeTypes } from "@shared/editor/nodes/Notice";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 

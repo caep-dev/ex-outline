@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { EditIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { EditIcon } from "outline-icons";
+ */
+import { EditIcon } from "@shared/components/LucideIcon";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type Comment from "~/models/Comment";

@@ -1,11 +1,22 @@
 import { isEmail } from "class-validator";
 import type { TFunction } from "i18next";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   CollectionIcon,
+ *   DocumentIcon,
+ *   NewDocumentIcon,
+ *   PlusIcon,
+ * } from "outline-icons";
+ */
 import {
   CollectionIcon,
   DocumentIcon,
   NewDocumentIcon,
   PlusIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { v4 as uuidv4 } from "uuid";
 import Icon from "@shared/components/Icon";
 import type { MenuItem } from "@shared/editor/types";

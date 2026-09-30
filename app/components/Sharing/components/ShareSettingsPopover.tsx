@@ -1,11 +1,22 @@
 import { debounce, uniqueId } from "es-toolkit/compat";
 import { observer } from "mobx-react";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   ImageIcon,
+ *   QuestionMarkIcon,
+ *   SettingsIcon,
+ *   TrashIcon,
+ * } from "outline-icons";
+ */
+import { QuestionMarkIcon } from "outline-icons";
 import {
   ImageIcon,
-  QuestionMarkIcon,
   SettingsIcon,
   TrashIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";

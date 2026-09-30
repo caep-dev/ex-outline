@@ -1,5 +1,11 @@
 import type { TFunction } from "i18next";
-import { InputIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { InputIcon } from "outline-icons";
+ */
+import { InputIcon } from "@shared/components/LucideIcon";
 import { toast } from "sonner";
 import stores from "~/stores";
 import type Model from "~/models/base/Model";

@@ -1,4 +1,15 @@
-import { CopyIcon, EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CopyIcon, EditIcon, ExpandedIcon, TextWrapIcon } from "outline-icons";
+ */
+import {
+  CopyIcon,
+  EditIcon,
+  ExpandedIcon,
+  TextWrapIcon,
+} from "@shared/components/LucideIcon";
 import type { Node as ProseMirrorNode } from "prosemirror-model";
 import { NodeSelection } from "prosemirror-state";
 import {

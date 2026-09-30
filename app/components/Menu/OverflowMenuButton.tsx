@@ -1,5 +1,11 @@
 import type * as DropdownMenuPrimitive from "@radix-ui/react-dropdown-menu";
-import { MoreIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { MoreIcon } from "outline-icons";
+ */
+import { MoreIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import Button from "~/components/Button";
 import NudeButton from "~/components/NudeButton";

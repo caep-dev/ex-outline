@@ -1,8 +1,18 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   CollectionIcon as CollectionIconComponent,
+ *   HomeIcon,
+ *   PrivateCollectionIcon,
+ * } from "outline-icons";
+ */
 import {
   CollectionIcon as CollectionIconComponent,
-  HomeIcon,
   PrivateCollectionIcon,
 } from "outline-icons";
+import { HomeIcon } from "@shared/components/LucideIcon";
 import { observer } from "mobx-react";
 import { getLuminance } from "polished";
 import React, { useState } from "react";

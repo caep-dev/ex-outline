@@ -1,5 +1,15 @@
 import { observer } from "mobx-react";
-import { MoonIcon, SunIcon, SubscribeIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { MoonIcon, SunIcon, SubscribeIcon } from "outline-icons";
+ */
+import {
+  MoonIcon,
+  SunIcon,
+  SubscribeIcon,
+} from "@shared/components/LucideIcon";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Action } from "~/components/Actions";

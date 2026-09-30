@@ -1,4 +1,10 @@
-import { TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { TrashIcon } from "outline-icons";
+ */
+import { TrashIcon } from "@shared/components/LucideIcon";
 import { createAction } from "..";
 import { dialogActionFactory } from "./common";
 import { SettingsSection } from "../sections";

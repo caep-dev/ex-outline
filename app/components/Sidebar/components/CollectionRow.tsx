@@ -1,6 +1,12 @@
 import type { Location, LocationDescriptor } from "history";
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon } from "outline-icons";
+ */
+import { PlusIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import type { ConnectDropTarget } from "react-dnd";
 import { useTranslation } from "react-i18next";

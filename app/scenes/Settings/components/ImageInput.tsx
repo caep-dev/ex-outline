@@ -1,5 +1,11 @@
 import { exuiTokens } from "@exre/exui/tokens";
-import { EditIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { EditIcon } from "outline-icons";
+ */
+import { EditIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { s } from "@shared/styles";

@@ -1,4 +1,10 @@
-import { NewDocumentIcon, ShapesIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { NewDocumentIcon, ShapesIcon } from "outline-icons";
+ */
+import { NewDocumentIcon, ShapesIcon } from "@shared/components/LucideIcon";
 import { useEffect, useMemo } from "react";
 import Icon from "@shared/components/Icon";
 import { createActionWithChildren, createInternalLinkAction } from "~/actions";

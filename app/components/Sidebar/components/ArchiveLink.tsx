@@ -1,6 +1,12 @@
 import { isUndefined } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { ArchiveIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ArchiveIcon } from "outline-icons";
+ */
+import { ArchiveIcon } from "@shared/components/LucideIcon";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import Flex from "@shared/components/Flex";

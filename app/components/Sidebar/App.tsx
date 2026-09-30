@@ -1,5 +1,15 @@
 import { observer } from "mobx-react";
-import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
+ */
+import {
+  SearchIcon,
+  HomeIcon,
+  SidebarIcon,
+} from "@shared/components/LucideIcon";
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   DragActiveProvider,

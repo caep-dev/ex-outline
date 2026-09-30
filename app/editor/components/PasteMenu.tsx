@@ -1,6 +1,12 @@
 import { observer } from "mobx-react";
 import { v4 as uuidv4 } from "uuid";
-import { EmailIcon, LinkIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { EmailIcon, LinkIcon } from "outline-icons";
+ */
+import { EmailIcon, LinkIcon } from "@shared/components/LucideIcon";
 import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { EmbedDescriptor } from "@shared/editor/embeds";

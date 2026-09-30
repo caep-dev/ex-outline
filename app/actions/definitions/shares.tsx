@@ -5,7 +5,13 @@ import {
   everyActiveModel,
   performBatchOnActiveModels,
 } from "~/actions/definitions/common";
-import { ArrowIcon, CopyIcon, TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ArrowIcon, CopyIcon, TrashIcon } from "outline-icons";
+ */
+import { ArrowIcon, CopyIcon, TrashIcon } from "@shared/components/LucideIcon";
 import { ShareSection } from "../sections";
 import type { ActionContext } from "~/types";
 import env from "~/env";

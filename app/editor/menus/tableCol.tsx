@@ -1,3 +1,23 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   TrashIcon,
+ *   AlignLeftIcon,
+ *   AlignRightIcon,
+ *   AlignCenterIcon,
+ *   InsertLeftIcon,
+ *   InsertRightIcon,
+ *   PaletteIcon,
+ *   TableHeaderColumnIcon,
+ *   TableMergeCellsIcon,
+ *   TableSplitCellsIcon,
+ *   SortAscendingIcon,
+ *   SortDescendingIcon,
+ *   TableColumnsDistributeIcon,
+ * } from "outline-icons";
+ */
 import {
   TrashIcon,
   AlignLeftIcon,
@@ -12,7 +32,7 @@ import {
   SortAscendingIcon,
   SortDescendingIcon,
   TableColumnsDistributeIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import { isNodeActive } from "@shared/editor/queries/isNodeActive";
 import {

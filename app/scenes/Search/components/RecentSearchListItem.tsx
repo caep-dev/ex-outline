@@ -3,7 +3,13 @@ import {
   useFocusEffect,
   useRovingTabIndex,
 } from "@getoutline/react-roving-tabindex";
-import { CloseIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CloseIcon } from "outline-icons";
+ */
+import { CloseIcon } from "@shared/components/LucideIcon";
 import { useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";

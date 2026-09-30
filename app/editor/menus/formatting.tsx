@@ -1,3 +1,32 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   BoldIcon,
+ *   CodeIcon,
+ *   Heading1Icon,
+ *   Heading2Icon,
+ *   BlockQuoteIcon,
+ *   LinkIcon,
+ *   StrikethroughIcon,
+ *   OrderedListIcon,
+ *   BulletedListIcon,
+ *   TodoListIcon,
+ *   InputIcon,
+ *   HighlightIcon,
+ *   CommentIcon,
+ *   ItalicIcon,
+ *   OutdentIcon,
+ *   IndentIcon,
+ *   CopyIcon,
+ *   Heading3Icon,
+ *   TableMergeCellsIcon,
+ *   TableSplitCellsIcon,
+ *   PaletteIcon,
+ *   CollapseIcon,
+ * } from "outline-icons";
+ */
 import {
   BoldIcon,
   CodeIcon,
@@ -21,7 +50,7 @@ import {
   TableSplitCellsIcon,
   PaletteIcon,
   CollapseIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { v4 as uuidv4 } from "uuid";
 import CellBackgroundColorPicker from "../components/CellBackgroundColorPicker";
 import HighlightColorPicker from "../components/HighlightColorPicker";

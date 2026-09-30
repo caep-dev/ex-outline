@@ -7,7 +7,14 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
 import { Link } from "react-router-dom";
-import { CheckmarkIcon, DocumentIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CheckmarkIcon, DocumentIcon } from "outline-icons";
+ */
+import { DocumentIcon } from "outline-icons";
+import { CheckmarkIcon } from "@shared/components/LucideIcon";
 import styled, { css, useTheme } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import EventBoundary from "@shared/components/EventBoundary";

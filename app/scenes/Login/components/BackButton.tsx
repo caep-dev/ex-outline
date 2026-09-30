@@ -1,4 +1,10 @@
-import { BackIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { BackIcon } from "outline-icons";
+ */
+import { BackIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import { parseDomain } from "@shared/utils/domains";

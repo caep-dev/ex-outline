@@ -1,5 +1,12 @@
 import { observer } from "mobx-react";
-import { DocumentIcon, PlusIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { DocumentIcon, PlusIcon } from "outline-icons";
+ */
+import { DocumentIcon } from "outline-icons";
+import { PlusIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled, { css } from "styled-components";

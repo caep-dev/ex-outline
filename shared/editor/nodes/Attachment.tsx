@@ -1,5 +1,11 @@
 import type Token from "markdown-it/lib/token.mjs";
-import { DownloadIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { DownloadIcon } from "outline-icons";
+ */
+import { DownloadIcon } from "@shared/components/LucideIcon";
 import type {
   NodeSpec,
   NodeType,

@@ -1,5 +1,11 @@
 import { t } from "i18next";
-import { CommentIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CommentIcon } from "outline-icons";
+ */
+import { CommentIcon } from "@shared/components/LucideIcon";
 import { isMarkActive } from "@shared/editor/queries/isMarkActive";
 import type { MenuItem, SelectionContext } from "@shared/editor/types";
 

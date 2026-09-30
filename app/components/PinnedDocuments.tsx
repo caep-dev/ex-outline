@@ -17,7 +17,13 @@ import {
 import fractionalIndex from "fractional-index";
 import { AnimatePresence } from "framer-motion";
 import { observer } from "mobx-react";
-import { CollapseIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CollapseIcon } from "outline-icons";
+ */
+import { CollapseIcon } from "@shared/components/LucideIcon";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

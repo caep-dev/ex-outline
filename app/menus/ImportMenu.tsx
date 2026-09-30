@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { CrossIcon, TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CrossIcon, TrashIcon } from "outline-icons";
+ */
+import { CrossIcon, TrashIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import type Import from "~/models/Import";

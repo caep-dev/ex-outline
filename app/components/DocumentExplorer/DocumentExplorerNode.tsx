@@ -139,6 +139,12 @@ export const Node = styled.span<{
 
       svg {
         color: ${props.theme.exui.control.primaryForeground};
+      }
+      /**
+       * OUTLINE ICON BLOCK
+       * selected fill previously applied to every SVG.
+       */
+      svg:not(.lucide) {
         fill: ${props.theme.exui.control.primaryForeground};
       }
     `}

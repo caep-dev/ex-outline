@@ -1,4 +1,11 @@
-import { DocumentIcon, ShapesIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { DocumentIcon, ShapesIcon } from "outline-icons";
+ */
+import { DocumentIcon } from "outline-icons";
+import { ShapesIcon } from "@shared/components/LucideIcon";
 import { cloneDeep } from "es-toolkit/compat";
 import { observer } from "mobx-react";
 import { useCallback, useMemo } from "react";

@@ -1,6 +1,26 @@
 import { debounce } from "es-toolkit/compat";
 import { runInAction } from "mobx";
 import { observer } from "mobx-react";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   AcademicCapIcon,
+ *   CheckboxIcon,
+ *   CollectionIcon,
+ *   CommentIcon,
+ *   DocumentIcon,
+ *   DoneIcon,
+ *   EditIcon,
+ *   EmailIcon,
+ *   PublishIcon,
+ *   SmileyIcon,
+ *   StarredIcon,
+ *   UserIcon,
+ *   GroupIcon,
+ * } from "outline-icons";
+ */
 import {
   AcademicCapIcon,
   CheckboxIcon,
@@ -8,7 +28,6 @@ import {
   CommentIcon,
   DocumentIcon,
   DoneIcon,
-  EditIcon,
   EmailIcon,
   PublishIcon,
   SmileyIcon,
@@ -16,6 +35,7 @@ import {
   UserIcon,
   GroupIcon,
 } from "outline-icons";
+import { EditIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";

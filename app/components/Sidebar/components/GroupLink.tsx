@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { GroupIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { GroupIcon } from "outline-icons";
+ */
+import { GroupIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import type Group from "~/models/Group";
 import { useActiveSidebarContext } from "~/hooks/useActiveSidebarContext";

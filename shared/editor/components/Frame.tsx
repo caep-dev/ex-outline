@@ -1,5 +1,11 @@
 import { exuiTokens } from "@exre/exui/tokens";
-import { OpenIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { OpenIcon } from "outline-icons";
+ */
+import { OpenIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useState, useEffect, useRef } from "react";
 import styled from "styled-components";

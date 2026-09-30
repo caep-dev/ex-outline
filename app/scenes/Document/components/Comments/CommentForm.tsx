@@ -3,7 +3,13 @@ import { v4 as uuidv4 } from "uuid";
 import { m } from "framer-motion";
 import { action } from "mobx";
 import { observer } from "mobx-react";
-import { ImageIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ImageIcon } from "outline-icons";
+ */
+import { ImageIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";

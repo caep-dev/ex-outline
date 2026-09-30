@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { EditIcon, PlusIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { EditIcon, PlusIcon } from "outline-icons";
+ */
+import { EditIcon, PlusIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import type Collection from "~/models/Collection";

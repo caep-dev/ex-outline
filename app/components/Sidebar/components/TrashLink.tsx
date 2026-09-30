@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { TrashIcon } from "outline-icons";
+ */
+import { TrashIcon } from "@shared/components/LucideIcon";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import DocumentDelete from "~/scenes/DocumentDelete";

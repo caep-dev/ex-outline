@@ -22,6 +22,23 @@ import {
 } from "react";
 import { isInternalUrl } from "@shared/utils/urls";
 import { Error as ImageError } from "@shared/editor/components/Image";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   BackIcon,
+ *   CloseIcon,
+ *   CommentIcon,
+ *   CrossIcon,
+ *   DownloadIcon,
+ *   LinkIcon,
+ *   NextIcon,
+ *   ZoomInIcon,
+ *   ZoomOutIcon,
+ *   EditIcon,
+ * } from "outline-icons";
+ */
 import {
   BackIcon,
   CloseIcon,
@@ -33,7 +50,7 @@ import {
   ZoomInIcon,
   ZoomOutIcon,
   EditIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { depths, extraArea, s } from "@shared/styles";
 import NudeButton from "./NudeButton";
 import useIdle from "~/hooks/useIdle";

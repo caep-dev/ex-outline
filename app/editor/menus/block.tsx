@@ -1,3 +1,40 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   BlockQuoteIcon,
+ *   BulletedListIcon,
+ *   CodeIcon,
+ *   Heading1Icon,
+ *   Heading2Icon,
+ *   Heading3Icon,
+ *   Heading4Icon,
+ *   HorizontalRuleIcon,
+ *   OrderedListIcon,
+ *   PageBreakIcon,
+ *   PDFIcon,
+ *   TableIcon,
+ *   TodoListIcon,
+ *   ImageIcon,
+ *   StarredIcon,
+ *   WarningIcon,
+ *   InfoIcon,
+ *   AttachmentIcon,
+ *   CalendarIcon,
+ *   MathIcon,
+ *   DoneIcon,
+ *   EmbedIcon,
+ *   CollapseIcon,
+ * } from "outline-icons";
+ */
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { WarningIcon } from "outline-icons";
+ */
+import { WarningIcon } from "@shared/components/LucideIcon";
 import {
   BlockQuoteIcon,
   BulletedListIcon,
@@ -14,7 +51,6 @@ import {
   TodoListIcon,
   ImageIcon,
   StarredIcon,
-  WarningIcon,
   InfoIcon,
   AttachmentIcon,
   CalendarIcon,
@@ -22,7 +58,7 @@ import {
   DoneIcon,
   EmbedIcon,
   CollapseIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import * as React from "react";
 import styled from "styled-components";
 import { v4 as uuidv4 } from "uuid";

@@ -1,5 +1,18 @@
 import Storage from "@shared/utils/Storage";
 import copy from "copy-to-clipboard";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   BeakerIcon,
+ *   CopyIcon,
+ *   EditIcon,
+ *   ToolsIcon,
+ *   TrashIcon,
+ *   UserIcon,
+ * } from "outline-icons";
+ */
 import {
   BeakerIcon,
   CopyIcon,
@@ -7,7 +20,7 @@ import {
   ToolsIcon,
   TrashIcon,
   UserIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { toast } from "sonner";
 import {
   createAction,

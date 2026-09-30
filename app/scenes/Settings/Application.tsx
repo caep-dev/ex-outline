@@ -1,5 +1,12 @@
 import { observer } from "mobx-react";
-import { CopyIcon, InternetIcon, ReplaceIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CopyIcon, InternetIcon, ReplaceIcon } from "outline-icons";
+ */
+import { InternetIcon } from "outline-icons";
+import { CopyIcon, ReplaceIcon } from "@shared/components/LucideIcon";
 import { useEffect, useCallback, useMemo } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { useTranslation } from "react-i18next";

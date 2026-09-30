@@ -1,4 +1,10 @@
-import { GoToIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { GoToIcon } from "outline-icons";
+ */
+import { GoToIcon } from "@shared/components/LucideIcon";
 import { observer } from "mobx-react";
 import * as React from "react";
 import { Link } from "react-router-dom";
@@ -103,7 +109,11 @@ function Breadcrumb(
 
 const Slash = styled(GoToIcon)`
   flex-shrink: 0;
-  fill: ${s("divider")};
+  /**
+   * OUTLINE ICON BLOCK
+   * fill: theme.divider;
+   */
+  color: ${s("divider")};
 `;
 
 const Item = styled(Link)<{ $highlight: boolean }>`

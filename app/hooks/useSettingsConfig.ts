@@ -1,3 +1,28 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   EmailIcon,
+ *   ProfileIcon,
+ *   PadlockIcon,
+ *   CodeIcon,
+ *   UserIcon,
+ *   GroupIcon,
+ *   GlobeIcon,
+ *   ShieldIcon,
+ *   TeamIcon,
+ *   SparklesIcon,
+ *   SettingsIcon,
+ *   ExportIcon,
+ *   ImportIcon,
+ *   ShapesIcon,
+ *   PlusIcon,
+ *   InternetIcon,
+ *   SmileyIcon,
+ *   BrowserIcon,
+ * } from "outline-icons";
+ */
 import {
   EmailIcon,
   ProfileIcon,
@@ -17,7 +42,7 @@ import {
   InternetIcon,
   SmileyIcon,
   BrowserIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { integrationSettingsPath } from "@shared/utils/routeHelpers";

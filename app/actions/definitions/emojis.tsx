@@ -1,4 +1,14 @@
-import { PlusIcon, ReplaceIcon, TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon, ReplaceIcon, TrashIcon } from "outline-icons";
+ */
+import {
+  PlusIcon,
+  ReplaceIcon,
+  TrashIcon,
+} from "@shared/components/LucideIcon";
 import { dialogActionFactory } from "~/actions/definitions/common";
 import { EmojiSecion, TeamSection } from "../sections";
 import stores from "~/stores";

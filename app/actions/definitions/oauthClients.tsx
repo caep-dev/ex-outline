@@ -1,4 +1,10 @@
-import { PlusIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon } from "outline-icons";
+ */
+import { PlusIcon } from "@shared/components/LucideIcon";
 import stores from "~/stores";
 import type OAuthClient from "~/models/oauth/OAuthClient";
 import { OAuthClientNew } from "~/components/OAuthClient/OAuthClientNew";

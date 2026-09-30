@@ -1,5 +1,16 @@
 import { exuiTokens } from "@exre/exui/tokens";
-import { CrossIcon, DownloadIcon, GlobeIcon, ZoomInIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CrossIcon, DownloadIcon, GlobeIcon, ZoomInIcon } from "outline-icons";
+ */
+import {
+  CrossIcon,
+  DownloadIcon,
+  GlobeIcon,
+  ZoomInIcon,
+} from "@shared/components/LucideIcon";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";
 import styled from "styled-components";

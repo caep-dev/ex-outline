@@ -1,5 +1,12 @@
 import { observer } from "mobx-react";
-import { CloseIcon, DocumentIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CloseIcon, DocumentIcon } from "outline-icons";
+ */
+import { DocumentIcon } from "outline-icons";
+import { CloseIcon } from "@shared/components/LucideIcon";
 import { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";

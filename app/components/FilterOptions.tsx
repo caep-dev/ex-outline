@@ -1,6 +1,12 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import { deburr } from "es-toolkit/compat";
-import { CheckmarkIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CheckmarkIcon } from "outline-icons";
+ */
+import { CheckmarkIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

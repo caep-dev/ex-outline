@@ -1,4 +1,10 @@
-import { EmailIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { EmailIcon } from "outline-icons";
+ */
+import { EmailIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

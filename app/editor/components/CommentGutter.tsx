@@ -1,7 +1,13 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import { t } from "i18next";
 import { observer } from "mobx-react";
-import { CommentIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CommentIcon } from "outline-icons";
+ */
+import { CommentIcon } from "@shared/components/LucideIcon";
 import styled from "styled-components";
 import { s } from "@shared/styles";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
@@ -113,6 +119,13 @@ const Icon = styled.button`
 
   svg {
     flex-shrink: 0;
+  }
+
+  /**
+   * OUTLINE ICON BLOCK
+   * svg { fill: currentColor; }
+   */
+  svg:not(.lucide) {
     fill: currentColor;
   }
 `;

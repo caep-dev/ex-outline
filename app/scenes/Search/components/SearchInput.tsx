@@ -1,4 +1,10 @@
-import { SearchIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SearchIcon } from "outline-icons";
+ */
+import { SearchIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
 import { s } from "@shared/styles";

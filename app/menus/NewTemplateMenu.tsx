@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon } from "outline-icons";
+ */
+import { PlusIcon } from "@shared/components/LucideIcon";
 import { useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import Button from "~/components/Button";

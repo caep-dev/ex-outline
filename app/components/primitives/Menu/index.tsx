@@ -4,7 +4,13 @@ import * as Components from "../components/Menu";
 import type { LocationDescriptor } from "history";
 import * as React from "react";
 import Tooltip from "~/components/Tooltip";
-import { CheckmarkIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CheckmarkIcon } from "outline-icons";
+ */
+import { CheckmarkIcon } from "@shared/components/LucideIcon";
 import { normalizeKeyDisplay, shortcutSeparator } from "@shared/utils/keyboard";
 import { useMenuContext } from "./MenuContext";
 

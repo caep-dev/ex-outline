@@ -1,4 +1,10 @@
-import { SettingsIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SettingsIcon } from "outline-icons";
+ */
+import { SettingsIcon } from "@shared/components/LucideIcon";
 import { useMemo } from "react";
 import { createActionWithChildren, createInternalLinkAction } from "~/actions";
 import { NavigationSection } from "~/actions/sections";

@@ -1,4 +1,10 @@
-import { PlusIcon, UserRemoveIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon, UserRemoveIcon } from "outline-icons";
+ */
+import { PlusIcon, UserRemoveIcon } from "@shared/components/LucideIcon";
 import type { GroupPermission } from "@shared/types";
 import { GroupPermissionHelper } from "@shared/utils/GroupPermissionHelper";
 import stores from "~/stores";

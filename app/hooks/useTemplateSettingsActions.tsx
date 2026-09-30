@@ -1,5 +1,11 @@
 import * as React from "react";
-import { EditIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { EditIcon } from "outline-icons";
+ */
+import { EditIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import type Template from "~/models/Template";
 import { ActionSeparator, createAction } from "~/actions";

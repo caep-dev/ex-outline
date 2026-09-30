@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { StarredIcon, UnstarredIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { StarredIcon, UnstarredIcon } from "outline-icons";
+ */
+import { StarredIcon, UnstarredIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";
 import { hover } from "@shared/styles";

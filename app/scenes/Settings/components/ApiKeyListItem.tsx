@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { CopyIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CopyIcon } from "outline-icons";
+ */
+import { CopyIcon } from "@shared/components/LucideIcon";
 import { useState, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";

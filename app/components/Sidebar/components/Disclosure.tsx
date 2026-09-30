@@ -1,4 +1,10 @@
-import { CollapsedIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CollapsedIcon } from "outline-icons";
+ */
+import { CollapsedIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

@@ -1,6 +1,12 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
-import { MarkAsReadIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { MarkAsReadIcon } from "outline-icons";
+ */
+import { MarkAsReadIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

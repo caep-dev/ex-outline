@@ -9,7 +9,14 @@ import {
   map,
 } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { StarredIcon, DocumentIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { StarredIcon, DocumentIcon } from "outline-icons";
+ */
+import { DocumentIcon } from "outline-icons";
+import { StarredIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import AutoSizer from "react-virtualized-auto-sizer";

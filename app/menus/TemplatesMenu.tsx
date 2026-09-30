@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { ShapesIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ShapesIcon } from "outline-icons";
+ */
+import { ShapesIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
 import type Template from "~/models/Template";

@@ -1,12 +1,24 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import { debounce } from "es-toolkit/compat";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   CaretDownIcon,
+ *   CaretUpIcon,
+ *   CaseSensitiveIcon,
+ *   RegexIcon,
+ *   ReplaceIcon,
+ * } from "outline-icons";
+ */
 import {
   CaretDownIcon,
   CaretUpIcon,
   CaseSensitiveIcon,
   RegexIcon,
   ReplaceIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled, { useTheme } from "styled-components";

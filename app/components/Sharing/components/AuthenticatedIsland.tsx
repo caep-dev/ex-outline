@@ -1,6 +1,12 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
-import { EditIcon, SettingsIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { EditIcon, SettingsIcon } from "outline-icons";
+ */
+import { EditIcon, SettingsIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import styled from "styled-components";

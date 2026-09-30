@@ -1,7 +1,13 @@
 import { isEmail } from "class-validator";
 import { m } from "framer-motion";
 import { observer } from "mobx-react";
-import { BackIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { BackIcon } from "outline-icons";
+ */
+import { BackIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";

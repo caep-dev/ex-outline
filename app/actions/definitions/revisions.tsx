@@ -1,4 +1,17 @@
 import copy from "copy-to-clipboard";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   LinkIcon,
+ *   RestoreIcon,
+ *   TrashIcon,
+ *   DownloadIcon,
+ *   ExportIcon,
+ *   PrintIcon,
+ * } from "outline-icons";
+ */
 import {
   LinkIcon,
   RestoreIcon,
@@ -6,7 +19,7 @@ import {
   DownloadIcon,
   ExportIcon,
   PrintIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import { matchPath } from "react-router-dom";
 import { toast } from "sonner";
 import { ExportContentType } from "@shared/types";

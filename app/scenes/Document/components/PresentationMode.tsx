@@ -2,7 +2,13 @@ import { exuiTokens } from "@exre/exui/tokens";
 import * as React from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
-import { ShrinkIcon, GrowIcon, CloseIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ShrinkIcon, GrowIcon, CloseIcon } from "outline-icons";
+ */
+import { ShrinkIcon, GrowIcon, CloseIcon } from "@shared/components/LucideIcon";
 import styled, { useTheme } from "styled-components";
 import Icon from "@shared/components/Icon";
 import { richExtensions } from "@shared/editor/nodes";

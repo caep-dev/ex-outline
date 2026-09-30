@@ -1,4 +1,10 @@
-import { OpenIcon, TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { OpenIcon, TrashIcon } from "outline-icons";
+ */
+import { OpenIcon, TrashIcon } from "@shared/components/LucideIcon";
 import type { Node } from "prosemirror-model";
 import { Selection, TextSelection } from "prosemirror-state";
 import type { EditorView } from "prosemirror-view";

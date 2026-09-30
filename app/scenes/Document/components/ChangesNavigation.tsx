@@ -3,7 +3,13 @@ import { observer } from "mobx-react";
 import Flex from "@shared/components/Flex";
 import { s } from "@shared/styles";
 import Diff from "@shared/editor/extensions/Diff";
-import { CaretDownIcon, CaretUpIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CaretDownIcon, CaretUpIcon } from "outline-icons";
+ */
+import { CaretDownIcon, CaretUpIcon } from "@shared/components/LucideIcon";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
 import Button from "~/components/Button";

@@ -1,7 +1,13 @@
 import { exuiTokens } from "@exre/exui/tokens";
 import { useKBar } from "kbar";
 import { observer } from "mobx-react";
-import { SearchIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SearchIcon } from "outline-icons";
+ */
+import { SearchIcon } from "@shared/components/LucideIcon";
 import { useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

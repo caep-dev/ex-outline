@@ -1,5 +1,14 @@
 import type { DirectionFilter, SortFilter as TSortFilter } from "@shared/types";
-import { SortAscendingIcon, SortDescendingIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { SortAscendingIcon, SortDescendingIcon } from "outline-icons";
+ */
+import {
+  SortAscendingIcon,
+  SortDescendingIcon,
+} from "@shared/components/LucideIcon";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import FilterOptions from "~/components/FilterOptions";

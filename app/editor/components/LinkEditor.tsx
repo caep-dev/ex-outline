@@ -1,11 +1,23 @@
 import { observer } from "mobx-react";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   ArrowIcon,
+ *   CloseIcon,
+ *   DocumentIcon,
+ *   OpenIcon,
+ *   ReturnIcon,
+ * } from "outline-icons";
+ */
+import { DocumentIcon } from "outline-icons";
 import {
   ArrowIcon,
   CloseIcon,
-  DocumentIcon,
   OpenIcon,
   ReturnIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import type { Mark } from "prosemirror-model";
 import type { EditorView } from "prosemirror-view";
 import * as React from "react";

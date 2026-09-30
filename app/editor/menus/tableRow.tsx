@@ -1,3 +1,20 @@
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import {
+ *   TrashIcon,
+ *   AlignLeftIcon,
+ *   AlignRightIcon,
+ *   AlignCenterIcon,
+ *   InsertAboveIcon,
+ *   InsertBelowIcon,
+ *   PaletteIcon,
+ *   TableHeaderRowIcon,
+ *   TableSplitCellsIcon,
+ *   TableMergeCellsIcon,
+ * } from "outline-icons";
+ */
 import {
   TrashIcon,
   AlignLeftIcon,
@@ -9,7 +26,7 @@ import {
   TableHeaderRowIcon,
   TableSplitCellsIcon,
   TableMergeCellsIcon,
-} from "outline-icons";
+} from "@shared/components/LucideIcon";
 import type { EditorState } from "prosemirror-state";
 import { CellSelection, selectedRect } from "prosemirror-tables";
 import {

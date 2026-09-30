@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { PlusIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon } from "outline-icons";
+ */
+import { PlusIcon } from "@shared/components/LucideIcon";
 import pluralize from "pluralize";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";

@@ -2,7 +2,13 @@
  * Reusable components for InputSelect abstraction.
  */
 
-import { CheckmarkIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CheckmarkIcon } from "outline-icons";
+ */
+import { CheckmarkIcon } from "@shared/components/LucideIcon";
 import { forwardRef } from "react";
 import styled, { css } from "styled-components";
 import Button, { Inner } from "~/components/Button";

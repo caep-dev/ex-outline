@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { ArchiveIcon, CodeIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ArchiveIcon, CodeIcon } from "outline-icons";
+ */
+import { ArchiveIcon, CodeIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

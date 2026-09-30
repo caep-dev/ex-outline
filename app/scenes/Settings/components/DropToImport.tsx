@@ -1,5 +1,11 @@
 import { observer } from "mobx-react";
-import { NewDocumentIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { NewDocumentIcon } from "outline-icons";
+ */
+import { NewDocumentIcon } from "@shared/components/LucideIcon";
 import { useState, useCallback } from "react";
 import Dropzone from "react-dropzone";
 import { useTranslation } from "react-i18next";

@@ -1,4 +1,10 @@
-import { ArrowIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ArrowIcon } from "outline-icons";
+ */
+import { ArrowIcon } from "@shared/components/LucideIcon";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";

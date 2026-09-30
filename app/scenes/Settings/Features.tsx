@@ -1,5 +1,12 @@
 import { observer } from "mobx-react";
-import { CopyIcon, SparklesIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CopyIcon, SparklesIcon } from "outline-icons";
+ */
+import { SparklesIcon } from "outline-icons";
+import { CopyIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";

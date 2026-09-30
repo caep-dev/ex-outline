@@ -1,6 +1,12 @@
 import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
-import { CloseIcon, MenuIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { CloseIcon, MenuIcon } from "outline-icons";
+ */
+import { CloseIcon, MenuIcon } from "@shared/components/LucideIcon";
 import { glassSurface } from "@shared/styles/glass";
 import * as React from "react";
 import { useTranslation } from "react-i18next";

@@ -1,6 +1,13 @@
 import type { TFunction } from "i18next";
 import { observer } from "mobx-react";
-import { ArchiveIcon, GoToIcon, TrashIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { ArchiveIcon, GoToIcon, TrashIcon } from "outline-icons";
+ */
+import { ArchiveIcon, TrashIcon } from "outline-icons";
+import { GoToIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
@@ -330,7 +337,11 @@ const SmallSlash = styled(GoToIcon)`
   vertical-align: middle;
   flex-shrink: 0;
 
-  fill: ${(props) => props.theme.textTertiary};
+  /**
+   * OUTLINE ICON BLOCK
+   * fill: theme.textTertiary;
+   */
+  color: ${(props) => props.theme.textTertiary};
   opacity: 0.5;
 `;
 

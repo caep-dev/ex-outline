@@ -11,7 +11,13 @@ import { ActiveDocumentSection } from "~/actions/sections";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import Tooltip from "~/components/Tooltip";
 import Button from "~/components/Button";
-import { PlusIcon } from "outline-icons";
+/**
+ *
+ * OUTLINE ICON BLOCK
+ *
+ * import { PlusIcon } from "outline-icons";
+ */
+import { PlusIcon } from "@shared/components/LucideIcon";
 
 type Props = {
   document: Document;
