@@ -7,6 +7,7 @@ import { useHistory } from "react-router-dom";
 import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { EmojiText } from "@shared/components/EmojiText";
+import { MenuIcon } from "@shared/components/LucideIcon";
 import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
 import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { DocumentPreference, HeadingPrefixStyle } from "@shared/types";
@@ -168,7 +169,10 @@ function Contents() {
 
   return (
     <StickyWrapper>
-      <Heading>{t("Contents")}</Heading>
+      <Heading>
+        <MenuIcon size={16} aria-hidden />
+        {t("Contents")}
+      </Heading>
       <List>
         {items.map(({ heading, label }) => (
           <ListItem
@@ -214,6 +218,9 @@ const StickyWrapper = styled.div`
 `;
 
 const Heading = styled.h3`
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
   font-size: ${exuiTokens.typography.smallFontSize};
   font-weight: 600;
   color: ${s("textTertiary")};

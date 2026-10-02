@@ -1,9 +1,10 @@
+import { ShareIcon as Share } from "@shared/components/LucideIcon";
 import { observer } from "mobx-react";
-import { GlobeIcon } from "outline-icons";
 import { Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type Document from "~/models/Document";
 import Button from "~/components/Button";
+import Tooltip from "~/components/Tooltip";
 import {
   Popover,
   PopoverTrigger,
@@ -54,15 +55,26 @@ function ShareButton({ document }: Props) {
     return null;
   }
 
-  const icon = document.isPubliclyShared ? <GlobeIcon /> : undefined;
-
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger>
-        <Button icon={icon} neutral onMouseEnter={preload}>
-          {t("Share")} {domain && <>&middot; {domain}</>}
-        </Button>
-      </PopoverTrigger>
+      <Tooltip
+        content={
+          <>
+            {t("Share")} {domain && <>&middot; {domain}</>}
+          </>
+        }
+        side="bottom"
+      >
+        <PopoverTrigger>
+          <Button
+            icon={<Share aria-hidden />}
+            aria-label={t("Share")}
+            neutral
+            borderOnHover
+            onMouseEnter={preload}
+          />
+        </PopoverTrigger>
+      </Tooltip>
       <PopoverContent
         aria-label={t("Share")}
         width={400}

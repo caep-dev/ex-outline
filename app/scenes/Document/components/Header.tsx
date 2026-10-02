@@ -229,11 +229,15 @@ function DocumentHeader({
               />
             </Action>
           )}
-          {!isEditing && !isRevision && can.update && (
-            <Action>
-              <ShareButton document={document} />
-            </Action>
-          )}
+          {can.update &&
+            can.createChildDocument &&
+            !isRevision &&
+            !isCompact &&
+            !isMobile && (
+              <Action>
+                <NewChildDocumentMenu document={document} />
+              </Action>
+            )}
           {isEditing && (
             <Action>
               <Tooltip
@@ -257,15 +261,11 @@ function DocumentHeader({
             user?.separateEditMode &&
             !isRevision &&
             editAction}
-          {can.update &&
-            can.createChildDocument &&
-            !isRevision &&
-            !isCompact &&
-            !isMobile && (
-              <Action>
-                <NewChildDocumentMenu document={document} />
-              </Action>
-            )}
+          {!isEditing && !isRevision && can.update && (
+            <Action>
+              <ShareButton document={document} />
+            </Action>
+          )}
           {revision && (
             <>
               <Action>

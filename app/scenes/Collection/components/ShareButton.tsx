@@ -1,18 +1,17 @@
+import { ShareIcon as Share } from "@shared/components/LucideIcon";
 import { observer } from "mobx-react";
-import { GlobeIcon, PadlockIcon } from "outline-icons";
 import { Suspense, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type Collection from "~/models/Collection";
 import Button from "~/components/Button";
+import Tooltip from "~/components/Tooltip";
 import {
   Popover,
   PopoverTrigger,
   PopoverContent,
 } from "~/components/primitives/Popover";
-import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useMobile from "~/hooks/useMobile";
 import useShareDataLoader from "~/hooks/useShareDataLoader";
-import useStores from "~/hooks/useStores";
 import { preventDefault } from "~/utils/events";
 import lazyWithRetry from "~/utils/lazyWithRetry";
 
@@ -28,12 +27,7 @@ type Props = {
 function ShareButton({ collection }: Props) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
-  const { shares } = useStores();
   const isMobile = useMobile();
-  const team = useCurrentTeam();
-  const share = shares.getByCollectionId(collection.id);
-  const isPubliclyShared =
-    team.sharing !== false && collection?.sharing !== false && share?.published;
   const { preload, loading, reset } = useShareDataLoader({ collection });
 
   const handleOpenChange = useCallback(
@@ -56,19 +50,19 @@ function ShareButton({ collection }: Props) {
     return null;
   }
 
-  const icon = isPubliclyShared ? (
-    <GlobeIcon />
-  ) : collection.permission ? undefined : (
-    <PadlockIcon />
-  );
-
   return (
     <Popover open={open} onOpenChange={handleOpenChange}>
-      <PopoverTrigger>
-        <Button icon={icon} neutral onMouseEnter={preload}>
-          {t("Share")}
-        </Button>
-      </PopoverTrigger>
+      <Tooltip content={t("Share")} side="bottom">
+        <PopoverTrigger>
+          <Button
+            icon={<Share aria-hidden />}
+            aria-label={t("Share")}
+            neutral
+            borderOnHover
+            onMouseEnter={preload}
+          />
+        </PopoverTrigger>
+      </Tooltip>
       <PopoverContent
         aria-label={t("Share")}
         width={400}

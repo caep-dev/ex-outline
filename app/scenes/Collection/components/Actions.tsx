@@ -59,9 +59,19 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
 
   return (
     <>
-      {(!isEditing || !user?.separateEditMode) && (
+      {can.createDocument && (
         <Action>
-          <ShareButton collection={collection} />
+          <Tooltip content={t("New document")} shortcut="n" placement="bottom">
+            <Button
+              as={Link}
+              to={collection ? newDocumentPath(collection.id) : ""}
+              disabled={!collection}
+              icon={<PlusIcon />}
+              neutral={isEditing}
+            >
+              {t("New doc")}
+            </Button>
+          </Tooltip>
         </Action>
       )}
       {!isEditing && user?.separateEditMode && (
@@ -84,19 +94,9 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
           <Button onClick={goBack}>{t("Done editing")}</Button>
         </Action>
       )}
-      {can.createDocument && (
+      {(!isEditing || !user?.separateEditMode) && (
         <Action>
-          <Tooltip content={t("New document")} shortcut="n" placement="bottom">
-            <Button
-              as={Link}
-              to={collection ? newDocumentPath(collection.id) : ""}
-              disabled={!collection}
-              icon={<PlusIcon />}
-              neutral={isEditing}
-            >
-              {t("New doc")}
-            </Button>
-          </Tooltip>
+          <ShareButton collection={collection} />
         </Action>
       )}
       <Action>
