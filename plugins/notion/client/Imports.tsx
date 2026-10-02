@@ -100,7 +100,7 @@ export const Notion = observer(() => {
       disabled={!env.NOTION_CLIENT_ID}
       neutral
     >
-      {t("Import")}…
+      {t("Import")}
     </Button>
   );
 });

@@ -30,7 +30,7 @@ function Applications() {
             <Action>
               <Button
                 type="submit"
-                value={`${t("New App")}…`}
+                value={t("New App")}
                 action={createOAuthClient}
               />
             </Action>

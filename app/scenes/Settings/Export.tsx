@@ -45,7 +45,7 @@ function Export() {
         />
       </Text>
       <Button type="submit" onClick={handleOpenDialog}>
-        {t("Export data")}…
+        {t("Export data")}
       </Button>
       <br />
       <PaginatedList<FileOperation>

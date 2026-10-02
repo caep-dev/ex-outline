@@ -59,7 +59,7 @@ function useImportsConfig() {
             }}
             neutral
           >
-            {t("Import")}…
+            {t("Import")}
           </Button>
         ),
       },
@@ -83,7 +83,7 @@ function useImportsConfig() {
             }}
             neutral
           >
-            {t("Import")}…
+            {t("Import")}
           </Button>
         ),
       },

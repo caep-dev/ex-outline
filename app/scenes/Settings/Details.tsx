@@ -395,7 +395,7 @@ function Details() {
               >
                 <span>
                   <Button onClick={showDeleteWorkspace} neutral>
-                    {t("Delete workspace")}…
+                    {t("Delete workspace")}
                   </Button>
                 </span>
               </SettingRow>

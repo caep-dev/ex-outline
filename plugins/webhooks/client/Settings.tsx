@@ -115,7 +115,7 @@ function Webhooks() {
                 action={createWebhookSubscription}
                 icon={<PlusIcon />}
               >
-                {`${t("New webhook")}…`}
+                {t("New webhook")}
               </Button>
             </Action>
           )}

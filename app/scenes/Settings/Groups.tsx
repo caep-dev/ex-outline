@@ -158,7 +158,7 @@ function Groups() {
                 onClick={handleNewGroup}
                 icon={<PlusIcon />}
               >
-                {`${t("New group")}…`}
+                {t("New group")}
               </Button>
             </Action>
           )}

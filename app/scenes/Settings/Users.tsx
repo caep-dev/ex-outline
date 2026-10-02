@@ -141,7 +141,7 @@ function Users() {
                 action={inviteUser}
                 icon={<PlusIcon />}
               >
-                {t("Invite people")}…
+                {t("Invite people")}
               </Button>
             </Action>
           )}

@@ -142,7 +142,7 @@ function PasskeysSettings() {
             disabled={isRegistering || !can.createUserPasskey}
             icon={<PlusIcon />}
           >
-            {isRegistering ? `${t("Registering")}…` : `${t("Add Passkey")}…`}
+            {isRegistering ? `${t("Registering")}…` : t("Add Passkey")}
           </Button>
         </Action>
       }

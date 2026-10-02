@@ -119,7 +119,7 @@ function Emojis() {
                 context={context}
                 icon={<PlusIcon />}
               >
-                {t("New emoji")}…
+                {t("New emoji")}
               </Button>
             </Action>
           )}

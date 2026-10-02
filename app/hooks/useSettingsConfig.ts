@@ -273,7 +273,7 @@ const useSettingsConfig = () => {
         icon: BrowserIcon,
       },
       {
-        name: `${t("Install")}…`,
+        name: t("Install"),
         path: settingsPath("integrations"),
         component: Integrations.Component,
         preload: Integrations.preload,

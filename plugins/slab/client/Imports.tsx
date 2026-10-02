@@ -18,7 +18,7 @@ export const Slab = observer(() => {
 
   return (
     <Button type="submit" onClick={handleClick} neutral>
-      {t("Import")}…
+      {t("Import")}
     </Button>
   );
 });

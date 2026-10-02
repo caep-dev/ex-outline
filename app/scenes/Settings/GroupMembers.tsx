@@ -214,7 +214,7 @@ const GroupMembersPage = observer(function GroupMembersPage({
             </Action>
             <Action>
               <Button action={addGroupUsers} hideOnActionDisabled>
-                {`${t("Add people")}…`}
+                {t("Add people")}
               </Button>
             </Action>
             <Action>

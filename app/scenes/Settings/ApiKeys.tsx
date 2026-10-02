@@ -108,7 +108,7 @@ function ApiKeys() {
             <Action>
               <Button
                 type="submit"
-                value={`${t("New API key")}…`}
+                value={t("New API key")}
                 action={createApiKey}
               />
             </Action>
