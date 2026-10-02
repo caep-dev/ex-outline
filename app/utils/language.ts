@@ -1,5 +1,5 @@
 import type { i18n } from "i18next";
-import type { locales } from "@shared/utils/date";
+import { resolveLanguage } from "@shared/i18n";
 import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import { isRTLLanguage } from "@shared/utils/rtl";
 import Desktop from "./Desktop";
@@ -26,9 +26,7 @@ export function formatNumber(number: number, locale: string) {
  * @returns The user's language in CLDR format (en_US)
  */
 export function detectLanguage() {
-  const [ln, r] = navigator.language.split("-");
-  const region = (r || ln).toUpperCase();
-  return `${ln}_${region}` as keyof typeof locales;
+  return resolveLanguage(navigator.language);
 }
 
 /**
@@ -44,7 +42,8 @@ export async function changeLanguage(
 ) {
   // Languages are stored in en_US format in the database, however the
   // frontend translation framework (i18next) expects en-US
-  const localeBCP = locale ? unicodeCLDRtoBCP47(locale) : undefined;
+  const language = locale ? resolveLanguage(locale) : undefined;
+  const localeBCP = language ? unicodeCLDRtoBCP47(language) : undefined;
 
   if (localeBCP && instance.languages?.[0] !== localeBCP) {
     await instance.changeLanguage(localeBCP);
@@ -52,7 +51,7 @@ export async function changeLanguage(
   }
 
   if (typeof document !== "undefined") {
-    document.documentElement.dir = isRTLLanguage(locale) ? "rtl" : "ltr";
+    document.documentElement.dir = isRTLLanguage(language) ? "rtl" : "ltr";
   }
 }
 

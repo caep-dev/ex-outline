@@ -129,7 +129,7 @@ const RevisionListItem = ({ item, document, ...rest }: Props) => {
               dateTime={item.createdAt}
               format={{
                 en_US: "MMM do, h:mm a",
-                fr_FR: "'Le 'd MMMM 'à' H:mm",
+                zh_CN: "M月d日 HH:mm",
               }}
               relative={false}
               addSuffix

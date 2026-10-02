@@ -3,7 +3,10 @@ import { SettingsIcon } from "outline-icons";
 import * as React from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { toast } from "sonner";
-import { languageOptions as availableLanguages } from "@shared/i18n";
+import {
+  languageOptions as availableLanguages,
+  resolveLanguage,
+} from "@shared/i18n";
 import {
   NotificationBadgeType,
   TeamPreference,
@@ -204,7 +207,7 @@ function Preferences() {
       >
         <InputSelect
           options={languageOptions}
-          value={user.language}
+          value={resolveLanguage(user.language)}
           onChange={handleLanguageChange}
           label={t("Language")}
           labelHidden

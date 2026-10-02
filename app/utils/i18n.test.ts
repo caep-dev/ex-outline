@@ -1,89 +1,38 @@
 import i18n from "i18next";
-import de_DE from "../../shared/i18n/locales/de_DE/translation.json";
 import en_US from "../../shared/i18n/locales/en_US/translation.json";
-import pt_PT from "../../shared/i18n/locales/pt_PT/translation.json";
+import zh_CN from "../../shared/i18n/locales/zh_CN/translation.json";
+import { resolveLanguage } from "@shared/i18n";
+import { unicodeCLDRtoBCP47 } from "@shared/utils/date";
 
-// i18n is already initialized globally via app/test/setup.ts — only add
-// test resources here, without re-initializing the singleton.
+// i18n is already initialized globally via app/test/setup.ts.
 beforeAll(() => {
   i18n
     .addResources("en-US", "translation", en_US)
-    .addResources("de-DE", "translation", de_DE)
-    .addResources("pt-PT", "translation", pt_PT);
+    .addResources("zh-CN", "translation", zh_CN);
 });
 
-describe("i18n env is unset", () => {
-  beforeEach(async () => {
-    await i18n.changeLanguage("en-US");
-  });
+describe("supported interface translations", () => {
+  it.each(["en-US", "zh-CN"])(
+    "switches from %s to both supported languages",
+    async (initialLanguage) => {
+      await i18n.changeLanguage(initialLanguage);
+      await i18n.changeLanguage("en-US");
+      expect(i18n.t("Saving")).toBe("Saving");
+      await i18n.changeLanguage("zh-CN");
+      expect(i18n.t("Saving")).toBe("保存中");
+    }
+  );
 
-  it("translation of key should match", () =>
-    expect(i18n.t("Saving")).toBe("Saving"));
+  it.each(["de_DE", "pt_PT", "he_IL"])(
+    "loads English for the removed %s preference",
+    async (language) => {
+      await i18n.changeLanguage(unicodeCLDRtoBCP47(resolveLanguage(language)));
+      expect(i18n.t("Saving")).toBe("Saving");
+    }
+  );
 
-  it("translation if changed to de-DE", async () => {
-    await i18n.changeLanguage("de-DE");
-    expect(i18n.t("Saving")).toBe("Speichert");
-  });
-
-  it("translation if changed to pt-PT", async () => {
-    await i18n.changeLanguage("pt-PT");
-    expect(i18n.t("Saving")).toBe("A guardar");
-  });
-});
-
-describe("i18n env is en-US", () => {
-  beforeEach(async () => {
-    await i18n.changeLanguage("en-US");
-  });
-
-  it("translation of key should match", () =>
-    expect(i18n.t("Saving")).toBe("Saving"));
-
-  it("translation if changed to de-DE", async () => {
-    await i18n.changeLanguage("de-DE");
-    expect(i18n.t("Saving")).toBe("Speichert");
-  });
-
-  it("translation if changed to pt-PT", async () => {
-    await i18n.changeLanguage("pt-PT");
-    expect(i18n.t("Saving")).toBe("A guardar");
-  });
-});
-
-describe("i18n env is de-DE", () => {
-  beforeEach(async () => {
-    await i18n.changeLanguage("de-DE");
-  });
-
-  it("translation of key should match", () =>
-    expect(i18n.t("Saving")).toBe("Speichert"));
-
-  it("translation if changed to en-US", async () => {
-    await i18n.changeLanguage("en-US");
-    expect(i18n.t("Saving")).toBe("Saving");
-  });
-
-  it("translation if changed to pt-PT", async () => {
-    await i18n.changeLanguage("pt-PT");
-    expect(i18n.t("Saving")).toBe("A guardar");
-  });
-});
-
-describe("i18n env is pt-PT", () => {
-  beforeEach(async () => {
-    await i18n.changeLanguage("pt-PT");
-  });
-
-  it("translation of key should match", () =>
-    expect(i18n.t("Saving")).toBe("A guardar"));
-
-  it("translation if changed to en-US", async () => {
-    await i18n.changeLanguage("en-US");
-    expect(i18n.t("Saving")).toBe("Saving");
-  });
-
-  it("translation if changed to de-DE", async () => {
-    await i18n.changeLanguage("de-DE");
-    expect(i18n.t("Saving")).toBe("Speichert");
+  it("loads Simplified Chinese for a Traditional Chinese preference", async () => {
+    await i18n.changeLanguage(unicodeCLDRtoBCP47(resolveLanguage("zh_TW")));
+    expect(i18n.t("Saving")).toBe("保存中");
   });
 });

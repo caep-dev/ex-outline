@@ -19,32 +19,9 @@ import {
 // Locales are imported from their individual modules rather than the
 // "date-fns/locale" index, which would load every locale date-fns ships
 // (~90) into memory rather than only those supported by the app.
-import { ca } from "date-fns/locale/ca";
-import { cs } from "date-fns/locale/cs";
-import { da } from "date-fns/locale/da";
-import { de } from "date-fns/locale/de";
-import { enGB } from "date-fns/locale/en-GB";
 import { enUS } from "date-fns/locale/en-US";
-import { es } from "date-fns/locale/es";
-import { faIR } from "date-fns/locale/fa-IR";
-import { fr } from "date-fns/locale/fr";
-import { he } from "date-fns/locale/he";
-import { hu } from "date-fns/locale/hu";
-import { id } from "date-fns/locale/id";
-import { it } from "date-fns/locale/it";
-import { ja } from "date-fns/locale/ja";
-import { ko } from "date-fns/locale/ko";
-import { nb } from "date-fns/locale/nb";
-import { nl } from "date-fns/locale/nl";
-import { ptBR } from "date-fns/locale/pt-BR";
-import { pt } from "date-fns/locale/pt";
-import { pl } from "date-fns/locale/pl";
-import { sv } from "date-fns/locale/sv";
-import { tr } from "date-fns/locale/tr";
-import { vi } from "date-fns/locale/vi";
-import { uk } from "date-fns/locale/uk";
 import { zhCN } from "date-fns/locale/zh-CN";
-import { zhTW } from "date-fns/locale/zh-TW";
+import { resolveLanguage } from "../i18n";
 import type { DateFilter } from "../types";
 import { isBrowser } from "./browser";
 
@@ -301,32 +278,8 @@ export function getCurrentDateTimeAsString(locale?: Intl.LocalesArgument) {
 }
 
 const locales = {
-  ca_ES: ca,
-  cs_CZ: cs,
-  da_DK: da,
-  de_DE: de,
-  en_GB: enGB,
   en_US: enUS,
-  es_ES: es,
-  fa_IR: faIR,
-  fr_FR: fr,
-  he_IL: he,
-  hu_HU: hu,
-  id_ID: id,
-  it_IT: it,
-  ja_JP: ja,
-  ko_KR: ko,
-  nb_NO: nb,
-  nl_NL: nl,
-  pt_BR: ptBR,
-  pt_PT: pt,
-  pl_PL: pl,
-  sv_SE: sv,
-  tr_TR: tr,
-  uk_UA: uk,
-  vi_VN: vi,
   zh_CN: zhCN,
-  zh_TW: zhTW,
 };
 
 /**
@@ -335,8 +288,8 @@ const locales = {
  * @param language The user language
  * @returns The date-fns locale.
  */
-export function dateLocale(language: keyof typeof locales | undefined | null) {
-  return language ? locales[language] : undefined;
+export function dateLocale(language: string | undefined | null) {
+  return language ? locales[resolveLanguage(language)] : undefined;
 }
 
 export { locales };
@@ -401,10 +354,10 @@ const separators = new Map<string, string>();
  * formatted datetime, e.g. " at " in English or " um " in German. It is read
  * from the platform's own formatter so the label needs no translation.
  */
-function dateTimeSeparator(language?: keyof typeof locales | null): string {
+function dateTimeSeparator(language?: string | null): string {
   // Without a language the date and time halves fall back to date-fns' English
   // locale, so the separator must be English too rather than the platform's.
-  const tag = language ? language.replace("_", "-") : "en-US";
+  const tag = resolveLanguage(language).replace("_", "-");
 
   let separator = separators.get(tag);
   if (separator !== undefined) {
@@ -456,7 +409,7 @@ function dateTimeSeparator(language?: keyof typeof locales | null): string {
 function joinDateAndTime(
   dateString: string,
   timeString: string,
-  language?: keyof typeof locales | null
+  language?: string | null
 ): string {
   return `${dateString}${dateTimeSeparator(language)}${timeString}`;
 }
@@ -472,10 +425,7 @@ function joinDateAndTime(
  * @param language The user's language preference.
  * @returns the absolute human-readable date, or the original string when invalid.
  */
-export function dateToReadable(
-  iso: string,
-  language?: keyof typeof locales | null
-): string {
+export function dateToReadable(iso: string, language?: string | null): string {
   const date = parseISODate(iso);
   if (!date) {
     return iso;
@@ -506,7 +456,7 @@ export function dateToReadable(
 export function dateToRelativeReadable(
   iso: string,
   t: (key: string) => string,
-  language?: keyof typeof locales | null
+  language?: string | null
 ): string {
   const date = parseISODate(iso);
   if (!date) {

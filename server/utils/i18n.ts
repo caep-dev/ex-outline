@@ -1,7 +1,7 @@
 import path from "node:path";
 import i18n from "i18next";
 import backend from "i18next-fs-backend";
-import { languages } from "@shared/i18n";
+import { languages, resolveLanguage } from "@shared/i18n";
 import { unicodeBCP47toCLDR, unicodeCLDRtoBCP47 } from "@shared/utils/date";
 import env from "@server/env";
 import type { User } from "@server/models";
@@ -15,7 +15,9 @@ import type { User } from "@server/models";
  */
 export function opts(user?: User | null) {
   return {
-    lng: unicodeCLDRtoBCP47(user?.language ?? env.DEFAULT_LANGUAGE),
+    lng: unicodeCLDRtoBCP47(
+      resolveLanguage(user?.language ?? env.DEFAULT_LANGUAGE)
+    ),
   };
 }
 
@@ -26,7 +28,7 @@ export function opts(user?: User | null) {
  * @returns i18n instance
  */
 export async function initI18n() {
-  const lng = unicodeCLDRtoBCP47(env.DEFAULT_LANGUAGE);
+  const lng = unicodeCLDRtoBCP47(resolveLanguage(env.DEFAULT_LANGUAGE));
   i18n.use(backend);
   await i18n.init({
     compatibilityJSON: "v3",
@@ -46,6 +48,7 @@ export async function initI18n() {
         ),
     },
     preload: languages.map(unicodeCLDRtoBCP47),
+    supportedLngs: languages.map(unicodeCLDRtoBCP47),
     interpolation: {
       escapeValue: false,
     },

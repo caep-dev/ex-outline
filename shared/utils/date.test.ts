@@ -70,15 +70,21 @@ describe("dateToReadable", () => {
   });
 
   it("separates the time using the locale's own connector", () => {
-    expect(dateToReadable("2020-02-03T13:00", "de_DE")).toContain(" um ");
-    expect(dateToReadable("2020-02-03T13:00", "ja_JP")).not.toContain(" at ");
+    expect(dateToReadable("2020-02-03T13:00", "en_US")).toContain(" at ");
+    expect(dateToReadable("2020-02-03T13:00", "zh_CN")).not.toContain(" at ");
   });
 
   it("does not leak the date's own suffix into the separator", () => {
-    // Ukrainian places "р." (an abbreviation of "року") after the year, which
-    // must not be mistaken for part of the separator.
-    expect(dateToReadable("2020-02-03T13:00", "uk_UA")).toContain(" о ");
-    expect(dateToReadable("2020-02-03T13:00", "uk_UA")).not.toContain("р.");
+    const result = dateToReadable("2020-02-03T13:00", "zh_CN");
+    expect(result).toContain("二月");
+    expect(result).toContain("下午");
+    expect(result.match(/日/g)).toHaveLength(1);
+  });
+
+  it("falls back to English for a removed language preference", () => {
+    expect(dateToReadable("2020-02-03T13:00", "de_DE")).toBe(
+      dateToReadable("2020-02-03T13:00", "en_US")
+    );
   });
 });
 

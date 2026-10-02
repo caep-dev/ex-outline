@@ -1,3 +1,4 @@
+import { resolveLanguage } from "@shared/i18n";
 import useCurrentUser from "./useCurrentUser";
 
 /**
@@ -7,5 +8,5 @@ import useCurrentUser from "./useCurrentUser";
  */
 export default function useUserLocale() {
   const user = useCurrentUser({ rejectOnEmpty: false });
-  return user?.language;
+  return user?.language ? resolveLanguage(user.language) : undefined;
 }

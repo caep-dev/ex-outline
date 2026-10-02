@@ -1,7 +1,7 @@
 import i18n from "i18next";
 import backend from "i18next-http-backend";
 import { initReactI18next } from "react-i18next";
-import { languages } from "@shared/i18n";
+import { languages, resolveLanguage } from "@shared/i18n";
 import { unicodeCLDRtoBCP47, unicodeBCP47toCLDR } from "@shared/utils/date";
 import { isRTLLanguage } from "@shared/utils/rtl";
 import { cdnPath } from "@shared/utils/urls";
@@ -16,12 +16,11 @@ import Logger from "./Logger";
  * @returns A promise resolving to the i18n instance
  */
 export function initI18n(defaultLanguage = "en_US") {
-  const lng = unicodeCLDRtoBCP47(defaultLanguage);
+  const language = resolveLanguage(defaultLanguage);
+  const lng = unicodeCLDRtoBCP47(language);
 
   if (typeof document !== "undefined") {
-    document.documentElement.dir = isRTLLanguage(defaultLanguage)
-      ? "rtl"
-      : "ltr";
+    document.documentElement.dir = isRTLLanguage(language) ? "rtl" : "ltr";
   }
 
   void i18n
