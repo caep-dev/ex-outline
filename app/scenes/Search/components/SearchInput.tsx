@@ -39,7 +39,7 @@ function SearchInput(
 
   return (
     <Wrapper align="center">
-      <StyledIcon size={46} color={theme.placeholder} onClick={focusInput} />
+      <StyledIcon color={theme.placeholder} onClick={focusInput} />
       <StyledInput
         {...rest}
         defaultValue={defaultValue}
@@ -59,9 +59,12 @@ const Wrapper = styled(Flex)`
 
 const StyledInput = styled.input`
   width: 100%;
-  padding-block: 10px 10px;
-  padding-inline: 60px 10px;
-  font-size: 1.875rem;
+  height: ${(props) => props.theme.exui.components.formControl.base.height};
+  box-sizing: border-box;
+  padding-block: 6px;
+  padding-inline: 40px 12px;
+  font-size: 1rem;
+  line-height: 24px;
   font-weight: ${(props) => props.theme.exui.typography.fontWeightRegular};
   outline: none;
   border: 0;
@@ -86,7 +89,7 @@ const StyledInput = styled.input`
 
 const StyledIcon = styled(SearchIcon)`
   position: absolute;
-  inset-inline-start: 8px;
+  inset-inline-start: 12px;
 `;
 
 export default React.forwardRef(SearchInput);

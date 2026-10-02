@@ -7,7 +7,7 @@ import { s } from "@shared/styles";
 import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";
 import Heading from "~/components/Heading";
-import InputSearchPage from "~/components/InputSearchPage";
+import { SearchButton } from "~/components/SearchButton";
 import LanguagePrompt from "~/components/LanguagePrompt";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
@@ -66,9 +66,7 @@ function Home() {
     <Scene
       icon={<HomeIcon />}
       title={t("Home")}
-      left={
-        <InputSearchPage source="dashboard" label={t("Search documents")} />
-      }
+      left={<SearchButton />}
       actions={
         <Action>
           <NewDocumentMenu />

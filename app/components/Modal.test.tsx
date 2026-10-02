@@ -8,6 +8,30 @@ vi.mock("~/hooks/useMobile", () => ({
 }));
 
 describe("Modal", () => {
+  it("centers dialogs that opt into centered placement", () => {
+    const { getByRole } = renderWithTheme(
+      <Modal centered isOpen title="Search" onRequestClose={vi.fn()}>
+        Search content
+      </Modal>
+    );
+    const dialog = getByRole("dialog", { name: "Search" });
+    expect(dialog).toHaveStyle({ alignItems: "center" });
+    expect(dialog.firstElementChild).toHaveStyle({ margin: "auto" });
+  });
+
+  it("closes when the area outside the dialog surface is pressed", () => {
+    const onRequestClose = vi.fn();
+    const { getByRole, getByText } = renderWithTheme(
+      <Modal isOpen centered title="Search" onRequestClose={onRequestClose}>
+        Search content
+      </Modal>
+    );
+    fireEvent.pointerDown(getByText("Search content"));
+    expect(onRequestClose).not.toHaveBeenCalled();
+    fireEvent.pointerDown(getByRole("dialog", { name: "Search" }));
+    expect(onRequestClose).toHaveBeenCalled();
+  });
+
   it("binds the dialog surface to the dialog recipe", () => {
     const { getByRole, getByText } = renderWithTheme(
       <Modal isOpen title="Settings" onRequestClose={vi.fn()}>

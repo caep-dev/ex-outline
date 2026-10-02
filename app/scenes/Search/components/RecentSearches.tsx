@@ -12,10 +12,12 @@ import RecentSearchListItem from "./RecentSearchListItem";
 type Props = {
   /** Callback when the Escape key is pressed while navigating the list */
   onEscape?: (ev: React.KeyboardEvent<HTMLDivElement>) => void;
+  /** Runs a recent query within the current search interface. */
+  onSelect?: (query: string) => void;
 };
 
 function RecentSearches(
-  { onEscape }: Props,
+  { onEscape, onSelect }: Props,
   ref: React.RefObject<HTMLDivElement>
 ) {
   const { searches } = useStores();
@@ -41,6 +43,7 @@ function RecentSearches(
             <RecentSearchListItem
               key={searchQuery.id}
               searchQuery={searchQuery}
+              onSelect={onSelect}
             />
           ))
         }

@@ -1,6 +1,5 @@
 import { observer } from "mobx-react";
 import { useState, useEffect } from "react";
-import { useTranslation } from "react-i18next";
 import {
   useParams,
   Switch,
@@ -20,7 +19,6 @@ import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
-import InputSearchPage from "~/components/InputSearchPage";
 import PlaceholderList from "~/components/List/Placeholder";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import PinnedDocuments from "~/components/PinnedDocuments";
@@ -50,6 +48,7 @@ import Notices from "./components/Notices";
 import Overview from "./components/Overview";
 import { CollectionMeta } from "./components/CollectionMeta";
 import { Header } from "./components/Header";
+import { CollectionSearchButton } from "./components/SearchButton";
 import usePersistedState from "~/hooks/usePersistedState";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { ProsemirrorDataHelper } from "@shared/utils/ProsemirrorDataHelper";
@@ -59,7 +58,6 @@ const CollectionScene = observer(function CollectionScene_() {
   const history = useHistory();
   const match = useRouteMatch();
   const location = useLocation();
-  const { t } = useTranslation();
   const user = useCurrentUser();
   const { documents, collections, shares, ui } = useStores();
   const [error, setError] = useState<Error | undefined>();
@@ -150,12 +148,7 @@ const CollectionScene = observer(function CollectionScene_() {
         collection.isArchived ? (
           <CollectionBreadcrumb collection={collection} />
         ) : (
-          <InputSearchPage
-            source="collection"
-            placeholder={`${t("Search in collection")}…`}
-            label={t("Search in collection")}
-            collectionId={collection.id}
-          />
+          <CollectionSearchButton collectionId={collection.id} />
         )
       }
       title={

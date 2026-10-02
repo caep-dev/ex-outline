@@ -22,9 +22,11 @@ import { searchPath } from "~/utils/routeHelpers";
 
 type Props = {
   searchQuery: SearchQuery;
+  /** Runs a query without navigating to the search page. */
+  onSelect?: (query: string) => void;
 };
 
-function RecentSearchListItem({ searchQuery }: Props) {
+function RecentSearchListItem({ searchQuery, onSelect }: Props) {
   const { t } = useTranslation();
 
   const ref = useRef<HTMLAnchorElement>(null);
@@ -37,6 +39,20 @@ function RecentSearchListItem({ searchQuery }: Props) {
       to={searchPath({ query: searchQuery.query })}
       ref={ref}
       {...rovingTabIndex}
+      onClick={(event) => {
+        if (
+          onSelect &&
+          !event.defaultPrevented &&
+          !event.metaKey &&
+          !event.ctrlKey &&
+          !event.shiftKey &&
+          !event.altKey
+        ) {
+          event.preventDefault();
+          onSelect(searchQuery.query);
+        }
+        rovingTabIndex.onClick?.(event);
+      }}
     >
       {searchQuery.query}
       <Tooltip content={t("Remove search")}>

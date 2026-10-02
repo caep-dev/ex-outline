@@ -42,22 +42,58 @@ import { DocumentFilter } from "./components/DocumentFilter";
 import DocumentTypeFilter from "./components/DocumentTypeFilter";
 import RecentSearches from "./components/RecentSearches";
 import SearchInput from "./components/SearchInput";
+import { SearchLoading } from "./components/SearchLoading";
 import { SortInput } from "./components/SortInput";
 import UserFilter from "./components/UserFilter";
 import { HStack } from "~/components/primitives/HStack";
 import useMobile from "~/hooks/useMobile";
 
-function Search() {
+/**
+ * Renders shared search controls, filters, and results as a page or modal content.
+ *
+ * @param props the search presentation and initial scope.
+ * @returns the search interface.
+ */
+export const SearchContent = observer(Search);
+
+interface Props {
+  /** Renders the search controls without the page layout or URL updates. */
+  embedded?: boolean;
+  /** The collection selected when an embedded search opens. */
+  initialCollectionId?: string;
+  /** Closes the enclosing modal for an embedded search. */
+  onRequestClose?: () => void;
+}
+
+function Search({
+  embedded = false,
+  initialCollectionId,
+  onRequestClose,
+}: Props) {
   const { t } = useTranslation();
   const { documents, searches, policies } = useStores();
   const isMobile = useMobile();
 
   // routing
-  const params = useQuery();
+  const routeParams = useQuery();
+  const [localSearch, setLocalSearch] = React.useState(() =>
+    queryString.stringify({ collectionId: initialCollectionId })
+  );
+  const localParams = React.useMemo(
+    () => new URLSearchParams(localSearch),
+    [localSearch]
+  );
+  const params = embedded ? localParams : routeParams;
   const location = useLocation();
   const history = useHistory();
   const routeMatch = useRouteMatch<{ query: string }>();
-  const handleGoBack = React.useCallback(() => history.goBack(), [history]);
+  const handleGoBack = React.useCallback(() => {
+    if (embedded) {
+      onRequestClose?.();
+      return;
+    }
+    history.goBack();
+  }, [embedded, history, onRequestClose]);
 
   // refs
   const searchInputRef = React.useRef<HTMLInputElement | null>(null);
@@ -66,7 +102,10 @@ function Search() {
 
   // filters
   const decodedQuery = decodeURIComponentSafe(
-    routeMatch.params.query ?? params.get("q") ?? params.get("query") ?? ""
+    (!embedded ? routeMatch.params.query : undefined) ??
+      params.get("q") ??
+      params.get("query") ??
+      ""
   ).trim();
   const query = decodedQuery !== "" ? decodedQuery : undefined;
   const collectionId = params.get("collectionId") ?? "";
@@ -220,6 +259,15 @@ function Search() {
   );
 
   const updateLocation = (query: string) => {
+    if (embedded) {
+      setLocalSearch((previous) =>
+        queryString.stringify(
+          { ...queryString.parse(previous), q: query },
+          { skipEmptyString: true }
+        )
+      );
+      return;
+    }
     // If query came from route params, navigate to base search path
     const pathname = routeMatch.params.query ? searchPath() : location.pathname;
 
@@ -251,6 +299,16 @@ function Search() {
       search.direction = undefined;
     }
 
+    if (embedded) {
+      setLocalSearch((previous) =>
+        queryString.stringify(
+          { ...queryString.parse(previous), ...search },
+          { skipEmptyString: true }
+        )
+      );
+      return;
+    }
+
     history.replace({
       pathname: location.pathname,
       search: queryString.stringify(
@@ -268,13 +326,14 @@ function Search() {
     }
 
     if (ev.key === "Enter") {
+      ev.preventDefault();
       updateLocation(ev.currentTarget.value);
       return;
     }
 
     if (ev.key === "Escape") {
       ev.preventDefault();
-      return history.goBack();
+      return handleGoBack();
     }
 
     if (ev.key === "ArrowUp") {
@@ -320,19 +379,23 @@ function Search() {
     />
   ) : null;
 
-  return (
-    <Scene
-      textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
-      actions={isMobile ? sortInput : null}
-    >
-      <RegisterKeyDown trigger="Escape" handler={handleGoBack} />
-      {loading && <LoadingIndicator />}
-      <ResultsWrapper column auto>
-        <form method="GET" action={searchPath()} onSubmit={preventDefault}>
+  const content = (
+    <>
+      {loading && !embedded && <LoadingIndicator />}
+      <ResultsWrapper $embedded={embedded} column auto>
+        <form
+          method="GET"
+          action={embedded ? undefined : searchPath()}
+          onSubmit={(event) => {
+            preventDefault(event);
+            updateLocation(searchInputRef.current?.value ?? "");
+          }}
+        >
           <SearchInput
             name="query"
-            key={query ? "search" : "recent"}
+            key={query ?? ""}
             ref={searchInputRef}
+            aria-label={t("Search")}
             placeholder={`${
               documentId
                 ? t("Search in document")
@@ -394,14 +457,14 @@ function Search() {
                 />
               )}
             </Flex>
-            {isMobile ? null : sortInput}
+            {isMobile && !embedded ? null : sortInput}
           </Filters>
         </form>
         {isSearchable ? (
           <>
             {error ? (
               <Fade>
-                <Centered column>
+                <Centered $embedded={embedded} column>
                   <Text as="h1">{t("Something went wrong")}</Text>
                   <Text as="p" type="secondary">
                     {t(
@@ -413,7 +476,7 @@ function Search() {
               </Fade>
             ) : showEmpty ? (
               <Fade>
-                <Centered column>
+                <Centered $embedded={embedded} column>
                   <Text as="p" type="secondary">
                     {t("No documents found for your search filters.")}
                   </Text>
@@ -424,7 +487,7 @@ function Search() {
               items={itemIds}
               toolbar={<DocumentSelectionToolbar />}
             >
-              <ResultList column>
+              <ResultList $embedded={embedded} column>
                 <StyledArrowKeyNavigation
                   ref={resultListRef}
                   onEscape={handleEscape}
@@ -445,6 +508,9 @@ function Search() {
                       : null
                   }
                 </StyledArrowKeyNavigation>
+                {embedded && loading && (
+                  <SearchLoading compact={!!data?.length} />
+                )}
                 <Waypoint
                   key={data?.length}
                   onEnter={end || loading ? undefined : next}
@@ -454,28 +520,47 @@ function Search() {
             </ModelSelectionProvider>
           </>
         ) : documentId ? null : (
-          <RecentSearches ref={recentSearchesRef} onEscape={handleEscape} />
+          <RecentSearches
+            ref={recentSearchesRef}
+            onEscape={handleEscape}
+            onSelect={embedded ? updateLocation : undefined}
+          />
         )}
       </ResultsWrapper>
+    </>
+  );
+
+  if (embedded) {
+    return content;
+  }
+
+  return (
+    <Scene
+      textTitle={query ? `${query} – ${t("Search")}` : t("Search")}
+      actions={isMobile ? sortInput : null}
+    >
+      <RegisterKeyDown trigger="Escape" handler={handleGoBack} />
+      {content}
     </Scene>
   );
 }
 
-const Centered = styled(Flex)`
+const Centered = styled(Flex)<{ $embedded: boolean }>`
   text-align: center;
-  margin: 30vh auto 0;
+  margin: ${(props) => (props.$embedded ? "48px auto" : "30vh auto 0")};
   max-width: 380px;
-  transform: translateY(-50%);
+  transform: ${(props) => (props.$embedded ? "none" : "translateY(-50%)")};
 `;
 
-const ResultsWrapper = styled(Flex)`
+const ResultsWrapper = styled(Flex)<{ $embedded: boolean }>`
   ${breakpoint("tablet")`
-    margin-top: 40px;
+    margin-top: ${(props: { $embedded: boolean }) =>
+      props.$embedded ? "0" : "40px"};
   `};
 `;
 
-const ResultList = styled(Flex)`
-  margin-bottom: 150px;
+const ResultList = styled(Flex)<{ $embedded: boolean }>`
+  margin-bottom: ${(props) => (props.$embedded ? "16px" : "150px")};
 `;
 
 const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
@@ -504,4 +589,4 @@ const SearchTitlesFilter = styled(Switch)`
   height: 28px;
 `;
 
-export default observer(Search);
+export default SearchContent;

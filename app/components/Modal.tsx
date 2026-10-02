@@ -31,6 +31,14 @@ type Props = {
   style?: React.CSSProperties;
   width?: number | string;
   height?: number | string;
+  /** Uses width and height as fixed desktop dimensions, bounded by the viewport. */
+  fixedSize?: boolean;
+  /** Whether to center the desktop dialog vertically. */
+  centered?: boolean;
+  /** Overrides the spacing in pixels between the title and content. */
+  contentGap?: number;
+  /** Overrides focus restoration when the dialog closes. */
+  onCloseAutoFocus?: Dialog.DialogContentProps["onCloseAutoFocus"];
   onRequestClose: () => void;
 };
 
@@ -41,6 +49,10 @@ const Modal: React.FC<Props> = ({
   style,
   width,
   height,
+  fixedSize = false,
+  centered = false,
+  contentGap,
+  onCloseAutoFocus,
   onRequestClose,
 }: Props) => {
   const wasOpen = usePrevious(isOpen);
@@ -63,14 +75,31 @@ const Modal: React.FC<Props> = ({
       <Dialog.Portal>
         <StyledOverlay />
         <StyledContent
-          onEscapeKeyDown={onClose}
+          $centered={centered}
+          onCloseAutoFocus={onCloseAutoFocus}
+          onEscapeKeyDown={(event) => {
+            if (event.isComposing) {
+              event.preventDefault();
+              return;
+            }
+            onClose();
+          }}
           onPointerDownOutside={onClose}
+          onPointerDown={(event) => {
+            if (event.target === event.currentTarget) {
+              onClose();
+            }
+          }}
           aria-describedby={undefined}
         >
           {isMobile ? (
             <Mobile>
               <MobileContent>
-                <Centered onClick={(ev) => ev.stopPropagation()} column>
+                <Centered
+                  $contentGap={contentGap}
+                  onClick={(ev) => ev.stopPropagation()}
+                  column
+                >
                   <Dialog.Title asChild>
                     <Text size="xlarge" weight="bold">
                       {resolvedTitle}
@@ -88,15 +117,26 @@ const Modal: React.FC<Props> = ({
               </Back>
             </Mobile>
           ) : (
-            <Wrapper $width={width} $height={height}>
+            <Wrapper
+              $width={width}
+              $height={height}
+              $centered={centered}
+              $fixedSize={fixedSize}
+            >
               <Centered
+                $contentGap={contentGap}
                 onClick={(ev) => ev.stopPropagation()}
                 // maxHeight needed for proper overflow behavior in Safari
-                style={{ maxHeight: "65vh" }}
+                style={{
+                  maxHeight: fixedSize ? "100%" : "65vh",
+                  height: fixedSize ? "100%" : undefined,
+                  width: centered ? "100%" : undefined,
+                }}
                 column
                 reverse
               >
                 <DesktopContent
+                  $fixedSize={fixedSize}
                   style={style}
                   topShadow
                   overflow={dialog.animating ? "hidden" : undefined}
@@ -142,7 +182,7 @@ const StyledOverlay = styled(Dialog.Overlay)`
     ${(props) => props.theme.exui.components.dialog.overlay.duration} ease;
 `;
 
-const StyledContent = styled(Dialog.Content)`
+const StyledContent = styled(Dialog.Content)<{ $centered: boolean }>`
   position: fixed;
   top: 0;
   left: 0;
@@ -151,7 +191,7 @@ const StyledContent = styled(Dialog.Content)`
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;
-  align-items: flex-start;
+  align-items: ${(props) => (props.$centered ? "center" : "flex-start")};
   outline: none;
 `;
 
@@ -180,17 +220,23 @@ const MobileContent = styled(Scrollable)`
   `};
 `;
 
-const DesktopContent = styled(Scrollable)`
-  padding: 0;
+const DesktopContent = styled(Scrollable)<{ $fixedSize: boolean }>`
+  /* Leave room for field focus shadows without shifting content alignment. */
+  margin: -4px;
+  padding: 4px;
+  ${(props) => props.$fixedSize && "flex: 1; min-height: 0; height: auto;"}
   color: ${(props) => props.theme.exui.components.dialog.surface.foreground};
 `;
 
-const Centered = styled(Flex)`
+const Centered = styled(Flex)<{ $contentGap?: number }>`
   width: 640px;
   max-width: 100%;
   position: relative;
   margin: 0 auto;
-  gap: ${(props) => props.theme.exui.components.dialog.surface.gap};
+  gap: ${(props) =>
+    props.$contentGap !== undefined
+      ? `${props.$contentGap}px`
+      : props.theme.exui.components.dialog.surface.gap};
 `;
 
 const Close = styled(NudeButton)`
@@ -338,14 +384,22 @@ const DesktopCloseButton = styled(NudeButton)`
 const Wrapper = styled.div<{
   $width?: number | string;
   $height?: number | string;
+  $centered: boolean;
+  $fixedSize: boolean;
 }>`
   animation: ${fadeAndScaleIn} 250ms ease;
 
-  margin: 25vh auto auto auto;
-  width: 75vw;
-  min-width: 350px;
-  max-width: ${(props) => props.$width || "450px"};
-  max-height: ${(props) => props.$height || "70vh"};
+  margin: ${(props) => (props.$centered ? "auto" : "25vh auto auto auto")};
+  ${(props) => props.$fixedSize && "box-sizing: border-box;"}
+  width: ${(props) =>
+    props.$fixedSize ? formatSize(props.$width) || "450px" : "75vw"};
+  height: ${(props) =>
+    props.$fixedSize ? formatSize(props.$height) || "auto" : "auto"};
+  min-width: ${(props) => (props.$fixedSize ? "0" : "350px")};
+  max-width: ${(props) =>
+    props.$fixedSize ? "calc(100vw - 48px)" : props.$width || "450px"};
+  max-height: ${(props) =>
+    props.$fixedSize ? "calc(100dvh - 64px)" : props.$height || "70vh"};
   z-index: ${depths.modal};
   display: flex;
   justify-content: center;
@@ -361,10 +415,9 @@ const Wrapper = styled.div<{
     props.theme.exui.components.dialog.surface.radius};
   font-family: ${(props) => props.theme.exui.typography.fontFamily};
   outline: none;
-
-  ${Header} {
-    align-items: start;
-  }
 `;
+
+const formatSize = (value?: number | string) =>
+  typeof value === "number" ? `${value}px` : value;
 
 export default observer(Modal);

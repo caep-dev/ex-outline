@@ -10,7 +10,7 @@ import { Action } from "~/components/Actions";
 import Empty from "~/components/Empty";
 import Flex from "~/components/Flex";
 import Heading from "~/components/Heading";
-import InputSearchPage from "~/components/InputSearchPage";
+import { SearchButton } from "~/components/SearchButton";
 import PaginatedDocumentList from "~/components/PaginatedDocumentList";
 import Scene from "~/components/Scene";
 import Subheading from "~/components/Subheading";
@@ -52,7 +52,7 @@ function Drafts() {
     <Scene
       icon={<DraftsIcon />}
       title={t("Drafts")}
-      left={<InputSearchPage source="drafts" label={t("Search documents")} />}
+      left={<SearchButton />}
       actions={
         <Action>
           <NewDocumentMenu />
