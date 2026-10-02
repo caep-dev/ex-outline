@@ -27,10 +27,8 @@ import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import TeamMenu from "~/menus/TeamMenu";
 import * as Scenes from "~/routes/scenes";
 import { homePath, searchPath } from "~/utils/routeHelpers";
-import TeamLogo from "../TeamLogo";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
 import ArchiveLink from "./components/ArchiveLink";
@@ -44,7 +42,7 @@ import { DismissableSidebarAction } from "./components/DismissableSidebarAction"
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
-import SidebarButton from "./components/SidebarButton";
+import { SidebarBrand } from "./components/SidebarBrand";
 import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
@@ -101,34 +99,29 @@ function AppSidebar() {
       <DragActiveProvider>
         <DragPlaceholder />
 
-        <TeamMenu>
-          <SidebarButton
-            title={team.name}
-            image={<TeamLogo model={team} size={24} alt={t("Logo")} />}
-          >
-            {isMobile ? null : (
-              <Tooltip
-                content={t("Toggle sidebar")}
-                shortcut={`${metaDisplay}+.`}
-              >
-                <ToggleButton
-                  position="bottom"
-                  image={<SidebarIcon />}
-                  aria-label={
-                    ui.sidebarCollapsed
-                      ? t("Expand sidebar")
-                      : t("Collapse sidebar")
-                  }
-                  style={{ paddingInline: 4 }}
-                  onClick={() => {
-                    ui.toggleCollapsedSidebar();
-                    (document.activeElement as HTMLElement)?.blur();
-                  }}
-                />
-              </Tooltip>
-            )}
-          </SidebarButton>
-        </TeamMenu>
+        <SidebarBrand>
+          {isMobile ? null : (
+            <Tooltip
+              content={t("Toggle sidebar")}
+              shortcut={`${metaDisplay}+.`}
+            >
+              <ToggleButton
+                position="bottom"
+                image={<SidebarIcon />}
+                aria-label={
+                  ui.sidebarCollapsed
+                    ? t("Expand sidebar")
+                    : t("Collapse sidebar")
+                }
+                style={{ paddingInline: 4 }}
+                onClick={() => {
+                  ui.toggleCollapsedSidebar();
+                  (document.activeElement as HTMLElement)?.blur();
+                }}
+              />
+            </Tooltip>
+          )}
+        </SidebarBrand>
         <Overflow>
           <Section>
             <SidebarLink
