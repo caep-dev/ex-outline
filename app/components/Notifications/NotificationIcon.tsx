@@ -16,12 +16,24 @@ const NotificationIcon = () => {
   const count = notifications.approximateUnreadCount;
 
   return (
-    <Relative style={{ height: 24 }}>
+    <IconWrapper>
       <SubscribeIcon />
       {count > 0 && <Badge />}
-    </Relative>
+    </IconWrapper>
   );
 };
+
+const IconWrapper = styled(Relative)`
+  width: ${(props) => props.theme.exui.components.sidebarItem.default.iconSize};
+  height: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.iconSize};
+  flex-shrink: 0;
+
+  > svg {
+    width: inherit;
+    height: inherit;
+  }
+`;
 
 const Badge = styled.div`
   position: absolute;

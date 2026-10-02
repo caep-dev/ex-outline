@@ -530,7 +530,7 @@ function ColumnVisibilityButton<TData>(props: ColumnVisibilityProps<TData>) {
         <Tooltip content={label} placement="bottom">
           <MenuTrigger aria-label={label}>
             <ColumnOptions>
-              <SettingsIcon size={18} />
+              <SettingsIcon />
             </ColumnOptions>
           </MenuTrigger>
         </Tooltip>

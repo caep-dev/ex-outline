@@ -21,7 +21,7 @@ export default function DisabledEmbed(
       context={props.href.replace(/^https?:\/\//, "")}
       isSelected={props.isSelected}
     >
-      <OpenIcon size={20} />
+      <OpenIcon />
     </Widget>
   );
 }

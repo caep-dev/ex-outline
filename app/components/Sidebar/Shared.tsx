@@ -96,7 +96,7 @@ function SharedSidebar({ share }: Props) {
       <ScrollContainer topShadow flex>
         <TopSection>
           <SearchButton onClick={handleOpenSearch}>
-            <SearchIcon size={20} />
+            <SearchIcon />
             <SearchLabel>{t("Search")}</SearchLabel>
             <Shortcut>
               {metaDisplay}

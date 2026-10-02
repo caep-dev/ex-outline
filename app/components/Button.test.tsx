@@ -1,9 +1,11 @@
 import { fireEvent } from "@testing-library/react";
 import { light } from "@shared/styles/theme";
+import { MoreIcon } from "@shared/components/LucideIcon";
 import ActionButton from "~/components/ActionButton";
 import Button from "~/components/Button";
 import ButtonLarge from "~/components/ButtonLarge";
 import ButtonSmall from "~/components/ButtonSmall";
+import NudeButton from "~/components/NudeButton";
 import { getInjectedCss, renderWithTheme } from "~/test/renderWithTheme";
 
 describe("ActionButton", () => {
@@ -132,5 +134,26 @@ describe("ButtonLarge and ButtonSmall", () => {
     expect(getByRole("button", { name: "Close" })).toHaveStyle(
       `height: ${light.exui.components.button.small.height}`
     );
+  });
+});
+
+describe("NudeButton", () => {
+  it("centers a standard-sized more icon while preserving the hit area", () => {
+    const onClick = vi.fn();
+    const { getByRole } = renderWithTheme(
+      <NudeButton aria-label="More" size={32} onClick={onClick}>
+        <MoreIcon size={24} />
+      </NudeButton>
+    );
+    const button = getByRole("button", { name: "More" });
+
+    expect(button).toHaveStyle(
+      "display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px"
+    );
+    expect(button.querySelector("svg")).toHaveStyle(
+      `width: ${light.exui.components.button.icon.iconSize}; height: ${light.exui.components.button.icon.iconSize}`
+    );
+    fireEvent.click(button);
+    expect(onClick).toHaveBeenCalledOnce();
   });
 });

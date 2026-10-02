@@ -43,7 +43,7 @@ export function DismissableSidebarAction({ id, ...rest }: Props) {
         <Fade>
           <Tooltip content={t("Hide")} delay={500}>
             <DismissButton aria-label={t("Hide")} onClick={handleDismiss}>
-              <CloseIcon size={18} />
+              <CloseIcon />
             </DismissButton>
           </Tooltip>
         </Fade>

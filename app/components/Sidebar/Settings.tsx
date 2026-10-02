@@ -49,7 +49,7 @@ function SettingsSidebar() {
     <Sidebar canCollapse={false}>
       <SidebarButton
         title={t("Return to App")}
-        image={<StyledBackIcon />}
+        image={<StyledBackIcon aria-hidden />}
         onClick={returnToApp}
       />
 
@@ -90,6 +90,10 @@ function SettingsSidebar() {
 }
 
 const StyledBackIcon = styled(BackIcon)`
+  flex-shrink: 0;
+  width: ${(props) => props.theme.exui.components.sidebarItem.default.iconSize};
+  height: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.iconSize};
   margin-inline-start: 4px;
 
   [dir="rtl"] & {

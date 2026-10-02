@@ -310,7 +310,7 @@ const MenuButton = React.forwardRef<
         <Components.MenuLabel>{label}</Components.MenuLabel>
         {selected !== undefined && (
           <Components.SelectedIconWrapper aria-hidden>
-            {selected ? <CheckmarkIcon size={18} /> : null}
+            {selected ? <CheckmarkIcon /> : null}
           </Components.SelectedIconWrapper>
         )}
         <MenuItemShortcut shortcut={shortcut} />

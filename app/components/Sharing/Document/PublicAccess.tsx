@@ -141,7 +141,7 @@ function PublicAccess(
     <Tooltip content={t("Copy public link")} placement="top">
       <CopyToClipboard text={shareUrl} onCopy={handleCopied}>
         <NudeButton type="button" disabled={!share} style={{ marginRight: 3 }}>
-          <CopyIcon color={theme.placeholder} size={18} />
+          <CopyIcon color={theme.placeholder} />
         </NudeButton>
       </CopyToClipboard>
     </Tooltip>
@@ -181,7 +181,7 @@ function PublicAccess(
         }
         image={
           <Squircle color={theme.text} size={AvatarSize.Medium}>
-            <GlobeIcon color={theme.background} size={18} />
+            <GlobeIcon color={theme.background} />
           </Squircle>
         }
         actions={

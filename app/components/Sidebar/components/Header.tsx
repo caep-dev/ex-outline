@@ -49,7 +49,7 @@ export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
       <H3 ref={dragRef}>
         <Button onClick={handleClick} disabled={!id}>
           {title}
-          {id && <Disclosure $expanded={expanded} size={20} />}
+          {id && <Disclosure $expanded={expanded} />}
         </Button>
       </H3>
       {expanded && (firstRender ? children : <Fade>{children}</Fade>)}
@@ -108,6 +108,9 @@ const Button = styled.button`
 `;
 
 const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
+  width: ${(props) => props.theme.exui.components.sidebarItem.default.iconSize};
+  height: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.iconSize};
   transition:
     opacity 100ms ease,
     transform 100ms ease,

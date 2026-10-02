@@ -1,5 +1,5 @@
 import * as VisuallyHidden from "@radix-ui/react-visually-hidden";
-import { QuestionMarkIcon } from "outline-icons";
+import { QuestionMarkIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import styled from "styled-components";
 
@@ -353,7 +353,7 @@ function Label({
       {help ? (
         <Tooltip content={help}>
           <TooltipButton size={18}>
-            <QuestionMarkIcon size={18} />
+            <QuestionMarkIcon />
           </TooltipButton>
         </Tooltip>
       ) : null}
@@ -417,6 +417,11 @@ const IconWrapper = styled.span`
   margin-inline-end: 4px;
   overflow: hidden;
   flex-shrink: 0;
+
+  > svg {
+    width: ${(props) => props.theme.exui.density.compact.iconSize};
+    height: ${(props) => props.theme.exui.density.compact.iconSize};
+  }
 `;
 
 const IconSpacer = styled.div`

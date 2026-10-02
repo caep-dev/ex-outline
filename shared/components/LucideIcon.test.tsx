@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { render, cleanup } from "@testing-library/react";
+import { exuiTokens } from "@exre/exui/tokens";
 import { Search } from "lucide-react";
 import { createRef } from "react";
 import { describe, it, expect, afterEach } from "vitest";
@@ -17,6 +18,26 @@ import {
 afterEach(cleanup);
 
 describe("LucideIcon", () => {
+  it("uses the shared control icon size by default", () => {
+    const { container } = render(<LucideIcon icon={Search} />);
+    const svg = container.querySelector("svg");
+
+    expect(svg?.getAttribute("width")).toBe(
+      exuiTokens.density.standard.iconSize
+    );
+    expect(svg?.getAttribute("height")).toBe(
+      exuiTokens.density.standard.iconSize
+    );
+  });
+
+  it("preserves explicit sizes for larger graphics", () => {
+    const { container } = render(<LucideIcon icon={Search} size={48} />);
+    const svg = container.querySelector("svg");
+
+    expect(svg?.getAttribute("width")).toBe("48");
+    expect(svg?.getAttribute("height")).toBe("48");
+  });
+
   it("preserves SVG refs, sizes and inherited colors for interactive controls", () => {
     const ref = createRef<SVGSVGElement>();
     const { container } = render(

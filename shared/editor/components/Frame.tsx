@@ -109,7 +109,7 @@ const Frame = ({
               target="_blank"
               rel="noopener noreferrer"
             >
-              <OpenIcon size={18} /> Open
+              <OpenIcon /> Open
             </Open>
           )}
         </Bar>

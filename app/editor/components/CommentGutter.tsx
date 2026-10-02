@@ -43,7 +43,7 @@ const CommentGutterIcon = observer(function CommentGutterIcon({
       onFocus={() => setHovered(true)}
       onBlur={() => setHovered(false)}
     >
-      <CommentIcon size={18} />
+      <CommentIcon />
       {count > 0 && <span>{count}</span>}
     </Icon>
   );

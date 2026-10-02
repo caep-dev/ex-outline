@@ -29,37 +29,37 @@ export const SortInput = ({ sort, direction, onSelect }: Props) => {
       {
         key: "relevance-DESC",
         label: t("Relevance"),
-        icon: <SortDescendingIcon size={20} />,
+        icon: <SortDescendingIcon />,
       },
       {
         key: "updatedAt-DESC",
         label: t("Recently updated"),
-        icon: <SortDescendingIcon size={20} />,
+        icon: <SortDescendingIcon />,
       },
       {
         key: "updatedAt-ASC",
         label: t("Least recently updated"),
-        icon: <SortAscendingIcon size={20} />,
+        icon: <SortAscendingIcon />,
       },
       {
         key: "createdAt-DESC",
         label: t("Newest"),
-        icon: <SortDescendingIcon size={20} />,
+        icon: <SortDescendingIcon />,
       },
       {
         key: "createdAt-ASC",
         label: t("Oldest"),
-        icon: <SortAscendingIcon size={20} />,
+        icon: <SortAscendingIcon />,
       },
       {
         key: "title-ASC",
         label: t("A → Z"),
-        icon: <SortAscendingIcon size={20} />,
+        icon: <SortAscendingIcon />,
       },
       {
         key: "title-DESC",
         label: t("Z → A"),
-        icon: <SortDescendingIcon size={20} />,
+        icon: <SortDescendingIcon />,
       },
     ],
     [t]

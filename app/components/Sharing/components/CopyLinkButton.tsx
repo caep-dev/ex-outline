@@ -40,7 +40,7 @@ export function CopyLinkButton({
     <Tooltip content={t("Copy link")} placement="top">
       <CopyToClipboard text={url} onCopy={handleCopied}>
         <NudeButton type="button">
-          <LinkIcon size={20} />
+          <LinkIcon />
         </NudeButton>
       </CopyToClipboard>
     </Tooltip>

@@ -160,7 +160,7 @@ export default class Attachment extends Node {
         context={context}
         isSelected={isSelected}
       >
-        {node.attrs.href && !isEditable && <DownloadIcon size={20} />}
+        {node.attrs.href && !isEditable && <DownloadIcon />}
       </Widget>
     );
   };

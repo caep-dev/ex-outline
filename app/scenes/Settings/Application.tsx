@@ -281,7 +281,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
               value={oauthClient.clientId}
               success={t("Copied to clipboard")}
               tooltip={t("Copy")}
-              icon={<CopyIcon size={20} />}
+              icon={<CopyIcon />}
             />
           </Input>
         </SettingRow>
@@ -301,7 +301,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
             >
               <Tooltip content={t("Rotate secret")} placement="top">
                 <NudeButton type="button" onClick={handleRotateSecret}>
-                  <ReplaceIcon size={20} />
+                  <ReplaceIcon />
                 </NudeButton>
               </Tooltip>
 
@@ -309,7 +309,7 @@ const Application = observer(function Application({ oauthClient }: Props) {
                 value={oauthClient.clientSecret}
                 success={t("Copied to clipboard")}
                 tooltip={t("Copy")}
-                icon={<CopyIcon size={20} />}
+                icon={<CopyIcon />}
               />
             </Input>
           </SettingRow>

@@ -9,6 +9,23 @@ import {
 import { renderWithTheme } from "~/test/renderWithTheme";
 
 describe("InputSelect", () => {
+  it("sizes a selected checkmark like other menu icons", async () => {
+    const { getByRole } = renderWithTheme(
+      <InputSelectRoot open value="all" onValueChange={vi.fn()}>
+        <InputSelectTrigger placeholder="Filter" />
+        <InputSelectContent>
+          <InputSelectItem value="all">All</InputSelectItem>
+        </InputSelectContent>
+      </InputSelectRoot>
+    );
+    const option = await waitFor(() => getByRole("option", { name: "All" }));
+
+    expect(option).toHaveAttribute("aria-selected", "true");
+    expect(option.querySelector("svg")).toHaveStyle(
+      `width: ${light.exui.density.compact.iconSize}; height: ${light.exui.density.compact.iconSize}`
+    );
+  });
+
   it("binds the trigger to the standard control metrics", () => {
     const { getByRole } = renderWithTheme(
       <InputSelectRoot open onOpenChange={vi.fn()}>

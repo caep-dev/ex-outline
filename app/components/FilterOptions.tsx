@@ -96,9 +96,7 @@ const FilterOptions = ({
             {icon}
             <MenuComponents.MenuLabel>{option.label}</MenuComponents.MenuLabel>
             <MenuComponents.SelectedIconWrapper aria-hidden>
-              {selectedKeys.includes(option.key) ? (
-                <CheckmarkIcon size={18} />
-              ) : null}
+              {selectedKeys.includes(option.key) ? <CheckmarkIcon /> : null}
             </MenuComponents.SelectedIconWrapper>
           </MenuComponents.MenuButton>
         );

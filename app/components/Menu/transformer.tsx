@@ -189,7 +189,7 @@ export function toMobileMenuItems(
             <Components.MenuLabel>{item.title}</Components.MenuLabel>
             {item.selected !== undefined && (
               <Components.SelectedIconWrapper aria-hidden>
-                {item.selected ? <CheckmarkIcon size={18} /> : null}
+                {item.selected ? <CheckmarkIcon /> : null}
               </Components.SelectedIconWrapper>
             )}
           </Components.MenuButton>

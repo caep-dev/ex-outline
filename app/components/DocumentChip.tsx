@@ -81,7 +81,7 @@ export const DocumentChip = observer(function DocumentChip_({
         {pin && canUnpin && (
           <Tooltip content={t("Unpin")}>
             <PinButton onClick={handleUnpin} aria-label={t("Unpin")}>
-              <CloseIcon size={18} />
+              <CloseIcon />
             </PinButton>
           </Tooltip>
         )}

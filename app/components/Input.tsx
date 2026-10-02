@@ -136,8 +136,17 @@ export const Wrapper = styled.div<{
 
 const IconWrapper = styled.span`
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
   width: 24px;
   height: 24px;
+
+  > svg {
+    width: ${(props) => props.theme.exui.density.standard.iconSize};
+    height: ${(props) => props.theme.exui.density.standard.iconSize};
+  }
 `;
 
 export const Outline = styled(Flex)<{

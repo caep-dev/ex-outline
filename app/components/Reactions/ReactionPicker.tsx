@@ -72,7 +72,7 @@ const ReactionPicker: React.FC<Props> = ({ onSelect, className, size }) => {
             onClick={(e) => e.stopPropagation()}
             size={size}
           >
-            <ReactionIcon size={22} />
+            <ReactionIcon />
           </NudeButton>
         </PopoverTrigger>
       </Tooltip>

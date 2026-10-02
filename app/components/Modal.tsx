@@ -79,11 +79,11 @@ const Modal: React.FC<Props> = ({
                   <ErrorBoundary>{children}</ErrorBoundary>
                 </Centered>
               </MobileContent>
-              <Close onClick={onClose}>
-                <CloseIcon size={32} />
+              <Close onClick={onClose} aria-label={t("Close")}>
+                <CloseIcon />
               </Close>
               <Back onClick={onClose}>
-                <BackIcon size={32} />
+                <BackIcon />
                 <Text>{t("Back")} </Text>
               </Back>
             </Mobile>
@@ -201,8 +201,8 @@ const Close = styled(NudeButton)`
   margin: 12px;
   opacity: 0.75;
   color: ${(props) => props.theme.exui.surface.foreground};
-  width: auto;
-  height: auto;
+  width: ${(props) => props.theme.exui.density.compact.controlHeight};
+  height: ${(props) => props.theme.exui.density.compact.controlHeight};
 
   &:hover {
     opacity: 1;

@@ -100,7 +100,7 @@ function Features() {
                   <Tooltip content={t("Copy URL")} placement="top">
                     <CopyToClipboard text={mcpEndpoint} onCopy={handleCopied}>
                       <NudeButton type="button" style={{ marginRight: 3 }}>
-                        <CopyIcon color={theme.placeholder} size={18} />
+                        <CopyIcon color={theme.placeholder} />
                       </NudeButton>
                     </CopyToClipboard>
                   </Tooltip>

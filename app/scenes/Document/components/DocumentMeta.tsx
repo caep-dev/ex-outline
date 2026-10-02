@@ -82,7 +82,7 @@ function TitleDocumentMeta({ to, document, revision, rtl, ...rest }: Props) {
         <>
           <Separator />
           <MetaButton onClick={handleClickComment} aria-expanded={commentsOpen}>
-            <CommentIcon size={18} />
+            <CommentIcon />
             {commentsCount
               ? t("{{ count }} comment", { count: commentsCount })
               : t("Comment")}

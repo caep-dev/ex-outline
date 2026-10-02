@@ -30,7 +30,7 @@ export function CopyButton({
   value,
   success,
   tooltip,
-  icon = <LinkIcon size={20} />,
+  icon = <LinkIcon />,
 }: Props) {
   const timeout = React.useRef<ReturnType<typeof setTimeout>>();
 

@@ -47,8 +47,8 @@ export const SelectItemIndicator = forwardRef<
 SelectItemIndicator.displayName = "SelectItemIndicator";
 
 const IconSpacer = styled.div`
-  width: 24px;
-  height: 24px;
+  width: ${(props) => props.theme.exui.density.compact.iconSize};
+  height: ${(props) => props.theme.exui.density.compact.iconSize};
   flex-shrink: 0;
 `;
 
@@ -140,6 +140,8 @@ const ItemContainer = styled(Flex)`
 
   svg {
     flex-shrink: 0;
+    width: ${(props) => props.theme.exui.density.compact.iconSize};
+    height: ${(props) => props.theme.exui.density.compact.iconSize};
   }
 
   &[data-highlighted] {
@@ -170,6 +172,10 @@ const ItemContainer = styled(Flex)`
 `;
 
 const IndicatorContainer = styled.span`
-  width: 24px;
-  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: ${(props) => props.theme.exui.density.compact.iconSize};
+  height: ${(props) => props.theme.exui.density.compact.iconSize};
 `;

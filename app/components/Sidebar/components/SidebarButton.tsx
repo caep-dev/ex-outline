@@ -69,6 +69,9 @@ const SidebarButton = observer(
 
 const StyledMoreIcon = styled(MoreIcon)`
   flex-shrink: 0;
+  width: ${(props) => props.theme.exui.components.sidebarItem.default.iconSize};
+  height: ${(props) =>
+    props.theme.exui.components.sidebarItem.default.iconSize};
 `;
 
 const Container = styled(Flex)<{ $position: "top" | "bottom" }>`

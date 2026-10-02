@@ -116,9 +116,7 @@ export function SplitButton({
                     )}
                   </MenuItemContent>
                   <CheckmarkWrapper>
-                    {option.value === selectedValue && (
-                      <CheckmarkIcon size={18} />
-                    )}
+                    {option.value === selectedValue && <CheckmarkIcon />}
                   </CheckmarkWrapper>
                 </MenuItem>
               </DropdownMenuPrimitive.Item>
@@ -300,10 +298,15 @@ const MenuItemDescription = styled.span`
 `;
 
 const CheckmarkWrapper = styled.span`
-  width: 18px;
-  height: 18px;
+  width: ${(props) => props.theme.exui.density.compact.iconSize};
+  height: ${(props) => props.theme.exui.density.compact.iconSize};
   flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+
+  > svg {
+    width: 100%;
+    height: 100%;
+  }
 `;

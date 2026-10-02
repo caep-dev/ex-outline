@@ -1,3 +1,4 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import {
   AlignCenter,
   AlignLeft,
@@ -136,7 +137,7 @@ import type { DefaultTheme } from "styled-components";
 
 /** SVG props accepted by interactive icons while migrating Outline controls. */
 export interface InteractionIconProps extends Omit<LucideProps, "size"> {
-  /** The icon size in pixels, matching existing Outline control props. */
+  /** An explicit size in pixels; otherwise follows the shared control icon token. */
   size?: number;
   /** Selects the open folder graphic for expanded collection controls. */
   expanded?: boolean;
@@ -165,7 +166,7 @@ export const LucideIcon = forwardRef<SVGSVGElement, LucideIconProps>(
   function LucideIcon(
     {
       icon: Component,
-      size = 24,
+      size,
       strokeWidth = 2,
       color = "currentColor",
       expanded: _expanded,
@@ -179,7 +180,7 @@ export const LucideIcon = forwardRef<SVGSVGElement, LucideIconProps>(
     return (
       <Component
         ref={ref}
-        size={size}
+        size={size ?? exuiTokens.density.standard.iconSize}
         strokeWidth={strokeWidth}
         color={color}
         {...props}

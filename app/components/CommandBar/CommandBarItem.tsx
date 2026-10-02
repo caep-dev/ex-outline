@@ -56,17 +56,17 @@ function CommandBarItem(
           {action.icon ? (
             // @ts-expect-error no icon on ActionImpl
             React.cloneElement(action.icon, {
-              size: 22,
+              size: 16,
             })
           ) : (
-            <ArrowIcon />
+            <ArrowIcon size={16} />
           )}
         </Icon>
 
         {ancestors.map((ancestor) => (
           <React.Fragment key={ancestor.id}>
             <Ancestor>{ancestor.name}</Ancestor>
-            <ForwardIcon color={theme.textSecondary} size={22} />
+            <ForwardIcon color={theme.textSecondary} size={16} />
           </React.Fragment>
         ))}
         {action.name}

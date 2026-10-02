@@ -44,7 +44,7 @@ function UserFilter(props: Props) {
       {
         key: "",
         label: anyLabel,
-        icon: <UserIcon size={20} />,
+        icon: <UserIcon />,
       },
       ...userOptions,
     ];

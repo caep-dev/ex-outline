@@ -922,7 +922,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
             ) && (
               <Nav dir="left" $hidden={isIdle} animation={animation.current}>
                 <NavButton onClick={prev} size={32} aria-label={t("Previous")}>
-                  <BackIcon size={32} />
+                  <BackIcon />
                 </NavButton>
               </Nav>
             )}
@@ -967,7 +967,7 @@ function Lightbox({ images, activeImage, onUpdate, onClose, readOnly }: Props) {
                 $commentsOpen={canShowComments && commentsOpen}
               >
                 <NavButton onClick={next} size={32} aria-label={t("Next")}>
-                  <NextIcon size={32} />
+                  <NextIcon />
                 </NavButton>
               </Nav>
             )}

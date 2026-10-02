@@ -333,7 +333,7 @@ const ResolveButton = ({
         })}
         $rounded
       >
-        <DoneIcon size={22} outline />
+        <DoneIcon outline />
       </Action>
     </Tooltip>
   );

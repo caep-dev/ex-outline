@@ -27,13 +27,22 @@ const NudeButton = styled(ActionButton).attrs((props: Props) => ({
         : "1.5rem"};
   background: none;
   border-radius: ${(props) => props.theme.exui.components.button.action.radius};
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   line-height: 0;
   border: 0;
   padding: 0;
   cursor: var(--pointer);
   user-select: none;
   color: inherit;
+
+  > svg.lucide {
+    width: ${(props) => props.theme.exui.components.button.icon.iconSize};
+    height: ${(props) => props.theme.exui.components.button.icon.iconSize};
+    flex-shrink: 0;
+  }
+
   &:focus-visible {
     outline: none;
     box-shadow: ${(props) =>

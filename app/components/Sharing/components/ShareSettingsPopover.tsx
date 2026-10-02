@@ -233,7 +233,7 @@ function ShareSettingsPopover({ share, children }: Props) {
         <PopoverTrigger>
           {children ?? (
             <SettingsTrigger type="button">
-              <SettingsIcon color={theme.placeholder} size={24} />
+              <SettingsIcon color={theme.placeholder} />
             </SettingsTrigger>
           )}
         </PopoverTrigger>

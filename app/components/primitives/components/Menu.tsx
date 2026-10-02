@@ -90,6 +90,11 @@ const BaseMenuItemCSS = css<BaseMenuItemProps>`
     opacity: ${(props) => (props.disabled ? ".5" : 1)};
   }
 
+  svg.lucide {
+    width: ${(props) => props.theme.exui.density.compact.iconSize};
+    height: ${(props) => props.theme.exui.density.compact.iconSize};
+  }
+
   svg:not([data-fixed-color]) {
     color: inherit;
     /**

@@ -126,7 +126,7 @@ function InnerPublicAccess(
     <Tooltip content={t("Copy public link")} placement="top">
       <CopyToClipboard text={share?.url ?? ""} onCopy={handleCopied}>
         <NudeButton type="button" disabled={!share} style={{ marginRight: 3 }}>
-          <CopyIcon color={theme.placeholder} size={18} />
+          <CopyIcon color={theme.placeholder} />
         </NudeButton>
       </CopyToClipboard>
     </Tooltip>
@@ -139,7 +139,7 @@ function InnerPublicAccess(
         subtitle={<>{t("Allow anyone with the link to access")}</>}
         image={
           <Squircle color={theme.text} size={AvatarSize.Medium}>
-            <GlobeIcon color={theme.background} size={18} />
+            <GlobeIcon color={theme.background} />
           </Squircle>
         }
         actions={
