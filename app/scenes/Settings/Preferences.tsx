@@ -13,7 +13,6 @@ import {
   UserPreference,
 } from "@shared/types";
 import { Theme } from "~/stores/UiStore";
-import Button from "~/components/Button";
 import Heading from "~/components/Heading";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
@@ -22,18 +21,15 @@ import Switch from "~/components/Switch";
 import Text from "~/components/Text";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
-import usePolicy from "~/hooks/usePolicy";
 import useStores from "~/hooks/useStores";
-import UserDelete from "../UserDelete";
 import { AutoLaunchSetting } from "./components/AutoLaunchSetting";
 import SettingRow from "./components/SettingRow";
 
 function Preferences() {
   const { t } = useTranslation();
-  const { ui, dialogs } = useStores();
+  const { ui } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
-  const can = usePolicy(user.id);
 
   const languageOptions: Option[] = React.useMemo(
     () =>
@@ -169,13 +165,6 @@ function Preferences() {
     },
     [t, ui]
   );
-
-  const showDeleteAccount = () => {
-    dialogs.openModal({
-      title: t("Delete account"),
-      content: <UserDelete onSubmit={dialogs.closeAllModals} />,
-    });
-  };
 
   return (
     <Scene title={t("Preferences")} icon={<SettingsIcon />}>
@@ -347,25 +336,6 @@ function Preferences() {
           labelHidden
         />
       </SettingRow>
-
-      {can.delete && (
-        <>
-          <Heading as="h2">{t("Danger")}</Heading>
-          <SettingRow
-            name="delete"
-            label={t("Delete account")}
-            description={t(
-              "You may delete your account at any time, note that this is unrecoverable"
-            )}
-          >
-            <span>
-              <Button onClick={showDeleteAccount} neutral>
-                {t("Delete account")}…
-              </Button>
-            </span>
-          </SettingRow>
-        </>
-      )}
     </Scene>
   );
 }

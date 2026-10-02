@@ -25,7 +25,6 @@ import {
   SearchIcon,
   ArchiveIcon,
   TrashIcon,
-  OpenIcon,
   SettingsIcon,
   KeyboardIcon,
   EmailIcon,
@@ -34,10 +33,8 @@ import {
   BrowserIcon,
   ShapesIcon,
   DraftsIcon,
-  BugIcon,
   ImportIcon,
 } from "@shared/components/LucideIcon";
-import { UrlHelper } from "@shared/utils/UrlHelper";
 import { isMac } from "@shared/utils/browser";
 import stores from "~/stores";
 import type SearchQuery from "~/models/SearchQuery";
@@ -189,62 +186,12 @@ export const navigateToAccountPreferences = createInternalLinkAction({
   to: settingsPath("preferences"),
 });
 
-export const openDocumentation = createExternalLinkAction({
-  name: ({ t }) => t("Documentation"),
-  analyticsName: "Open documentation",
-  section: NavigationSection,
-  iconInContextMenu: false,
-  icon: <OpenIcon />,
-  url: UrlHelper.guide,
-  target: "_blank",
-});
-
-export const openAPIDocumentation = createExternalLinkAction({
-  name: ({ t }) => t("API documentation"),
-  analyticsName: "Open API documentation",
-  section: NavigationSection,
-  iconInContextMenu: false,
-  icon: <OpenIcon />,
-  url: UrlHelper.developers,
-  target: "_blank",
-});
-
 export const toggleSidebar = createAction({
   name: ({ t }) => t("Toggle sidebar"),
   analyticsName: "Toggle sidebar",
   keywords: "hide show navigation",
   section: NavigationSection,
   perform: () => stores.ui.toggleCollapsedSidebar(),
-});
-
-export const openFeedbackUrl = createExternalLinkAction({
-  name: ({ t }) => t("Send us feedback"),
-  analyticsName: "Open feedback",
-  section: NavigationSection,
-  iconInContextMenu: false,
-  icon: <EmailIcon />,
-  url: UrlHelper.contact,
-  target: "_blank",
-});
-
-export const openBugReportUrl = createExternalLinkAction({
-  name: ({ t }) => t("Report a bug"),
-  analyticsName: "Open bug report",
-  section: NavigationSection,
-  iconInContextMenu: false,
-  icon: <BugIcon />,
-  url: UrlHelper.github,
-  target: "_blank",
-});
-
-export const openChangelog = createExternalLinkAction({
-  name: ({ t }) => t("Changelog"),
-  analyticsName: "Open changelog",
-  section: NavigationSection,
-  iconInContextMenu: false,
-  icon: <OpenIcon />,
-  url: UrlHelper.changelog,
-  target: "_blank",
 });
 
 export const openKeyboardShortcuts = createAction({
@@ -295,11 +242,6 @@ export const rootNavigationActions = [
   navigateToArchive,
   navigateToTrash,
   downloadApp,
-  openDocumentation,
-  openAPIDocumentation,
-  openFeedbackUrl,
-  openBugReportUrl,
-  openChangelog,
   openKeyboardShortcuts,
   toggleSidebar,
   logout,
