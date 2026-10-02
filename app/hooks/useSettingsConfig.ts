@@ -137,7 +137,7 @@ const useSettingsConfig = () => {
         path: settingsPath("api-and-access"),
         component: APIAndAccess.Component,
         preload: APIAndAccess.preload,
-        enabled: true,
+        enabled: user.isAdmin,
         group: t("Account"),
         icon: PadlockIcon,
       },
@@ -308,7 +308,14 @@ const useSettingsConfig = () => {
     });
 
     return items;
-  }, [t, can.createApiKey, can.update, can.createImport, can.createExport]);
+  }, [
+    t,
+    user,
+    can.createApiKey,
+    can.update,
+    can.createImport,
+    can.createExport,
+  ]);
 
   return config.filter((item) => item.enabled);
 };

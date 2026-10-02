@@ -19,7 +19,7 @@ PluginManager.add([
       description:
         "Manage your passkeys for passwordless authentication using biometrics or security keys.",
       component: createLazyComponent(() => import("./Settings")),
-      enabled: () => true,
+      enabled: (_team, user) => user.isAdmin,
     },
   },
 ]);
