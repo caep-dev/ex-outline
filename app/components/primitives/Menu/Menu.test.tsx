@@ -136,7 +136,7 @@ describe("menu interaction", () => {
     expect(onClick).toHaveBeenCalled();
   });
 
-  it("binds a selected real menu item to the checked recipe", async () => {
+  it("indicates selection with a checkmark without a selected background", async () => {
     const { getByRole } = renderWithTheme(
       <Menu open onOpenChange={vi.fn()}>
         <MenuTrigger asChild>
@@ -150,7 +150,34 @@ describe("menu interaction", () => {
 
     const item = await waitFor(() => getByRole("menuitem", { name: "Pinned" }));
     expect(item).toHaveStyle(
-      `background: ${light.exui.components.menu.checkedItem.background}`
+      `background: ${light.exui.components.menu.item.default.background}`
+    );
+    expect(item.querySelector("svg")).toBeInTheDocument();
+    expect(item).toHaveStyle(
+      `color: ${light.exui.components.menu.item.default.foreground}`
+    );
+  });
+
+  it("keeps hover feedback on a selected menu item", async () => {
+    const { getByRole } = renderWithTheme(
+      <Menu open onOpenChange={vi.fn()}>
+        <MenuTrigger asChild>
+          <button>Open menu</button>
+        </MenuTrigger>
+        <MenuContent>
+          <MenuButton
+            label="Pinned"
+            selected
+            data-highlighted=""
+            onClick={vi.fn()}
+          />
+        </MenuContent>
+      </Menu>
+    );
+
+    const item = await waitFor(() => getByRole("menuitem", { name: "Pinned" }));
+    expect(item).toHaveStyle(
+      `background: ${light.exui.components.menu.item.hover.background}`
     );
   });
 

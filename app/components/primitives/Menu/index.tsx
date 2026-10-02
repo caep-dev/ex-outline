@@ -302,7 +302,6 @@ const MenuButton = React.forwardRef<
     <Item ref={ref} disabled={disabled} {...rest} asChild>
       <Components.MenuButton
         disabled={disabled}
-        $active={selected}
         $dangerous={dangerous}
         onClick={onClick}
       >
