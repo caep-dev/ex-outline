@@ -94,7 +94,12 @@ export default defineConfig({
           setupFiles: ["./__mocks__/window.js", "./app/test/setup.ts"],
           server: {
             deps: {
-              inline: ["@radix-ui"],
+              inline: [
+                /@radix-ui/,
+                "vaul",
+                "react-dnd",
+                "react-dnd-html5-backend",
+              ],
             },
           },
         },
