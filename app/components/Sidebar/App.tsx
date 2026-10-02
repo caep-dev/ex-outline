@@ -8,7 +8,7 @@ import { observer } from "mobx-react";
 import {
   SearchIcon,
   HomeIcon,
-  SidebarIcon,
+  SidebarToggleIcon,
 } from "@shared/components/LucideIcon";
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
@@ -22,7 +22,6 @@ import { SidebarSection, UserPreference } from "@shared/types";
 import { metaDisplay } from "@shared/utils/keyboard";
 import Scrollable from "~/components/Scrollable";
 import { navigateToImport } from "~/actions/definitions/navigation";
-import { inviteUser } from "~/actions/definitions/users";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import usePolicy from "~/hooks/usePolicy";
@@ -105,15 +104,15 @@ function AppSidebar() {
               content={t("Toggle sidebar")}
               shortcut={`${metaDisplay}+.`}
             >
-              <ToggleButton
-                position="bottom"
-                image={<SidebarIcon />}
+              <CollapseButton
+                icon={<SidebarToggleIcon aria-hidden />}
                 aria-label={
                   ui.sidebarCollapsed
                     ? t("Expand sidebar")
                     : t("Collapse sidebar")
                 }
-                style={{ paddingInline: 4 }}
+                aria-controls="sidebar"
+                aria-expanded={!ui.sidebarIsClosed}
                 onClick={() => {
                   ui.toggleCollapsedSidebar();
                   (document.activeElement as HTMLElement)?.blur();
@@ -142,31 +141,29 @@ function AppSidebar() {
             {can.createDocument && <DraftsLink />}
           </Section>
         </Overflow>
-        <Scrollable flex shadow ref={scrollRef}>
+        <SidebarScrollable flex shadow ref={scrollRef}>
           <SidebarScrollProvider value={scrollArea}>
             {sectionOrder.map((section) => (
               <DraggableSection key={section} section={section}>
                 {sectionContent[section]}
               </DraggableSection>
             ))}
-            {can.createDocument && (
-              <Section auto>
-                <ArchiveLink />
-              </Section>
-            )}
-            <Section>
-              {can.createDocument && <TrashLink />}
-              <DismissableSidebarAction
-                id="sidebar-import-hidden"
-                action={navigateToImport}
-              />
-              <DismissableSidebarAction
-                id="sidebar-invite-hidden"
-                action={inviteUser}
-              />
-            </Section>
           </SidebarScrollProvider>
-        </Scrollable>
+        </SidebarScrollable>
+        <Section>
+          <DismissableSidebarAction
+            id="sidebar-import-hidden"
+            action={navigateToImport}
+          />
+          {can.createDocument && (
+            <>
+              <ArchiveArea>
+                <ArchiveLink />
+              </ArchiveArea>
+              <TrashLink />
+            </>
+          )}
+        </Section>
       </DragActiveProvider>
       <HistoryNavigation />
     </Sidebar>
@@ -176,6 +173,28 @@ function AppSidebar() {
 const Overflow = styled.div`
   overflow: hidden;
   flex-shrink: 0;
+`;
+
+const SidebarScrollable = styled(Scrollable)`
+  flex: 1;
+  min-height: 0;
+  height: auto;
+`;
+
+const ArchiveArea = styled.div`
+  max-height: 35vh;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+`;
+
+const CollapseButton = styled(ToggleButton)`
+  &:not(:hover):not(:focus-visible):not(:active) {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
 `;
 
 export default observer(AppSidebar);

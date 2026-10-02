@@ -522,6 +522,10 @@ export const ShuffleIcon = /* @__PURE__ */ createInteractionIcon(Shuffle);
 export const SidebarIcon =
   /* @__PURE__ */ createInteractionIcon(PanelLeftClose);
 
+/** Lucide graphic shared by sidebar expand and collapse controls. */
+export const SidebarToggleIcon =
+  /* @__PURE__ */ createInteractionIcon(PanelLeft);
+
 /** Lucide graphic for opening the sidebar. */
 export const PanelLeftOpenIcon =
   /* @__PURE__ */ createInteractionIcon(PanelLeftOpen);

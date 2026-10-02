@@ -1,15 +1,18 @@
 import styled from "styled-components";
-import { hover } from "@shared/styles";
-import SidebarButton from "./SidebarButton";
+import { glassSurface } from "@shared/styles/glass";
+import Button from "~/components/Button";
 
-const ToggleButton = styled(SidebarButton)`
-  opacity: 0;
-  transition: opacity 100ms ease-in-out;
-
-  &:${hover},
-  &:active {
-    opacity: 1;
-  }
+const ToggleButton = styled(Button).attrs({
+  neutral: true,
+  borderOnHover: true,
+})`
+  flex-shrink: 0;
+  opacity: 1;
+  ${glassSurface}
+  box-shadow:
+    ${(props) => props.theme.exui.glass.shadow},
+    inset 0 1px 1px rgba(255, 255, 255, 0.3),
+    ${(props) => props.theme.exui.shadow.medium};
 
   [dir="rtl"] & svg {
     transform: scaleX(-1);

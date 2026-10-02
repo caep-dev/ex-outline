@@ -1,5 +1,6 @@
 import { throttle } from "es-toolkit/compat";
 import { observer } from "mobx-react";
+import { SidebarToggleIcon } from "@shared/components/LucideIcon";
 /**
  *
  * OUTLINE ICON BLOCK
@@ -7,7 +8,6 @@ import { observer } from "mobx-react";
  * import { CloseIcon, MenuIcon } from "outline-icons";
  */
 import { CloseIcon, MenuIcon } from "@shared/components/LucideIcon";
-import { glassSurface } from "@shared/styles/glass";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
@@ -15,12 +15,14 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import useMeasure from "react-use-measure";
 import { HEADER_HEIGHT } from "@shared/constants";
-import { depths, s } from "@shared/styles";
+import { depths } from "@shared/styles";
+import ToggleButton from "~/components/Sidebar/components/ToggleButton";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
 import { useSplitView } from "~/components/SplitView/context";
+import { SidebarToggleContext } from "~/components/SidebarToggleContext";
 import Tooltip from "~/components/Tooltip";
 import useEventListener from "~/hooks/useEventListener";
 import useMobile from "~/hooks/useMobile";
@@ -32,6 +34,12 @@ import { closeSplitPane } from "~/utils/splitView";
 import { TooltipProvider } from "./TooltipContext";
 
 export { HEADER_HEIGHT };
+
+const GLASS_LAYER_COUNT = 8;
+const glassLayers = Array.from(
+  { length: GLASS_LAYER_COUNT },
+  (_, index) => index + 1
+);
 
 type Props = {
   left?: React.ReactNode;
@@ -52,9 +60,17 @@ function Header(
   const { pane, isSplitView } = useSplitView();
   const isMobile = useMobile();
   const hasMobileSidebar = hasSidebar && isMobile;
+  const canToggleSidebar = React.useContext(SidebarToggleContext);
+  const hasDesktopSidebar =
+    hasSidebar && canToggleSidebar && !isMobile && pane === "primary";
   const [internalMeasureRef, size] = useMeasure();
   const [breadcrumbsMeasureRef, breadcrumbsSize] = useMeasure();
-  const passThrough = !actions && !left && !title && !isSplitView;
+  const passThrough =
+    !actions && !left && !title && !isSplitView && !hasDesktopSidebar;
+
+  const handleOpenSidebar = React.useCallback(() => {
+    ui.expandSidebar();
+  }, [ui]);
 
   const handleCloseSplitPane = React.useCallback(() => {
     closeSplitPane(history, pane);
@@ -102,6 +118,31 @@ function Header(
         $passThrough={passThrough}
         $insetTitleAdjust={ui.sidebarIsClosed && Desktop.hasInsetTitlebar()}
       >
+        {!passThrough && (
+          <GlassBackground aria-hidden="true">
+            {glassLayers.map((step) => (
+              <GlassBlurLayer key={step} $step={step} />
+            ))}
+          </GlassBackground>
+        )}
+        {hasDesktopSidebar && (
+          <SidebarToggleSlot
+            $visible={ui.sidebarIsClosed}
+            aria-hidden={!ui.sidebarIsClosed}
+          >
+            <Tooltip content={t("Expand sidebar")} side="bottom">
+              <ToggleButton
+                onClick={handleOpenSidebar}
+                icon={<SidebarToggleIcon aria-hidden />}
+                aria-label={t("Expand sidebar")}
+                aria-controls="sidebar"
+                aria-expanded={!ui.sidebarIsClosed}
+                disabled={!ui.sidebarIsClosed}
+                tabIndex={ui.sidebarIsClosed ? 0 : -1}
+              />
+            </Tooltip>
+          </SidebarToggleSlot>
+        )}
         {left || hasMobileSidebar ? (
           <Breadcrumbs ref={setBreadcrumbRef}>
             {hasMobileSidebar && (
@@ -141,6 +182,34 @@ function Header(
   );
 }
 
+interface SidebarToggleSlotProps {
+  $visible: boolean;
+}
+
+const SidebarToggleSlot = styled.div<SidebarToggleSlotProps>`
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  width: ${(props) => (props.$visible ? "40px" : "0")};
+  opacity: ${(props) => (props.$visible ? 1 : 0)};
+  transform: translateX(${(props) => (props.$visible ? 0 : "-6px")});
+  visibility: ${(props) => (props.$visible ? "visible" : "hidden")};
+  pointer-events: ${(props) => (props.$visible ? "auto" : "none")};
+  overflow: ${(props) => (props.$visible ? "visible" : "hidden")};
+  transition:
+    width 180ms ease-out,
+    opacity 180ms ease-out,
+    transform 180ms ease-out,
+    visibility 0s ${(props) => (props.$visible ? "0s" : "180ms")};
+
+  [dir="rtl"] & {
+    transform: translateX(${(props) => (props.$visible ? 0 : "6px")});
+    svg {
+      transform: scaleX(-1);
+    }
+  }
+`;
+
 const Breadcrumbs = styled("div")`
   flex-grow: 1;
   flex-basis: 0;
@@ -172,19 +241,82 @@ type WrapperProps = {
   $insetTitleAdjust?: boolean;
 };
 
+const GlassBackground = styled("div")`
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: ${(props) => props.theme.exui.glass.fallbackBackground};
+
+  @supports (backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px)) {
+    background: transparent;
+
+    &::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: ${(props) => props.theme.exui.glass.background};
+      /* Fade the tint along the same quadratic curve as the blur. */
+      -webkit-mask-image: linear-gradient(
+        to top,
+        transparent,
+        rgba(0, 0, 0, 0.0625) 25%,
+        rgba(0, 0, 0, 0.25) 50%,
+        rgba(0, 0, 0, 0.5625) 75%,
+        black
+      );
+      mask-image: linear-gradient(
+        to top,
+        transparent,
+        rgba(0, 0, 0, 0.0625) 25%,
+        rgba(0, 0, 0, 0.25) 50%,
+        rgba(0, 0, 0, 0.5625) 75%,
+        black
+      );
+    }
+  }
+`;
+
+const GlassBlurLayer = styled("div")<{ $step: number }>`
+  position: absolute;
+  inset: 0;
+
+  @supports (backdrop-filter: blur(4px)) or (-webkit-backdrop-filter: blur(4px)) {
+    /* Gaussian variances add; incremental radii produce a quadratic ramp. */
+    --header-glass-blur: calc(
+      ${(props) => props.theme.exui.glass.blur} *
+        ${(props) =>
+          Math.sqrt(
+            (props.$step / GLASS_LAYER_COUNT) ** 4 -
+              ((props.$step - 1) / GLASS_LAYER_COUNT) ** 4
+          )}
+    );
+    --header-glass-mask: linear-gradient(
+      to top,
+      transparent ${(props) => ((props.$step - 1) / GLASS_LAYER_COUNT) * 100}%,
+      black ${(props) => (props.$step / GLASS_LAYER_COUNT) * 100}%
+    );
+    backdrop-filter: blur(var(--header-glass-blur))
+      saturate(
+        ${(props) =>
+          props.theme.exui.glass.saturation ** (1 / GLASS_LAYER_COUNT)}
+      );
+    -webkit-backdrop-filter: blur(var(--header-glass-blur))
+      saturate(
+        ${(props) =>
+          props.theme.exui.glass.saturation ** (1 / GLASS_LAYER_COUNT)}
+      );
+    -webkit-mask-image: var(--header-glass-mask);
+    mask-image: var(--header-glass-mask);
+  }
+`;
+
 const Wrapper = styled(Flex)<WrapperProps>`
   top: 0;
   z-index: ${depths.header};
   position: sticky;
-  background: ${s("background")};
-
-  ${(props) =>
-    props.$passThrough
-      ? `
-      background: transparent;
-      pointer-events: none;
-      `
-      : glassSurface};
+  background: transparent;
+  pointer-events: ${(props) => (props.$passThrough ? "none" : "auto")};
 
   padding: 12px 16px;
   transform: translate3d(0, 0, 0);

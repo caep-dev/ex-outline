@@ -12,27 +12,48 @@ import usePersistedState from "~/hooks/usePersistedState";
 import { undraggableOnDesktop } from "~/styles";
 import { SectionDragContext } from "./DraggableSection";
 
-type Props = {
-  /** Unique header id – if passed the header will become toggleable */
+interface Props {
+  /** Unique header id used to persist the expanded state. */
   id?: string;
+  /** Whether the section can be collapsed, defaults to true when an id is set. */
+  collapsible?: boolean;
   title: React.ReactNode;
+  /** Controls displayed at the end of the title row. */
+  actions?: React.ReactNode;
   children?: React.ReactNode;
-};
+}
 
+/**
+ * Returns the storage key for a sidebar section's expanded state.
+ *
+ * @param id the section identifier.
+ * @returns the storage key.
+ */
 export function getHeaderExpandedKey(id: string) {
   return `sidebar-header-${id}`;
 }
 
 /**
- * Toggleable sidebar header
+ * Renders a sidebar section heading with optional disclosure and actions.
+ *
+ * @param props the section heading properties.
+ * @returns the heading and its visible section content.
  */
-export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
+export const Header: React.FC<Props> = ({
+  id,
+  collapsible = true,
+  title,
+  actions,
+  children,
+}: Props) => {
   const [firstRender, setFirstRender] = React.useState(true);
   const dragRef = React.useContext(SectionDragContext);
   const [expanded, setExpanded] = usePersistedState<boolean>(
     getHeaderExpandedKey(id ?? ""),
     true
   );
+  const canCollapse = !!id && collapsible;
+  const isExpanded = !canCollapse || expanded;
 
   React.useEffect(() => {
     if (!expanded) {
@@ -47,12 +68,18 @@ export const Header: React.FC<Props> = ({ id, title, children }: Props) => {
   return (
     <>
       <H3 ref={dragRef}>
-        <Button onClick={handleClick} disabled={!id}>
+        <Button
+          as={canCollapse ? "button" : "span"}
+          onClick={canCollapse ? handleClick : undefined}
+          aria-expanded={canCollapse ? expanded : undefined}
+        >
           {title}
-          {id && <Disclosure $expanded={expanded} />}
+          {canCollapse && <Disclosure $expanded={expanded} />}
         </Button>
+        {actions}
       </H3>
-      {expanded && (firstRender ? children : <Fade>{children}</Fade>)}
+      {isExpanded &&
+        (!canCollapse || firstRender ? children : <Fade>{children}</Fade>)}
     </>
   );
 };
@@ -76,6 +103,8 @@ const Fade = styled.span`
 const Button = styled.button`
   display: flex;
   align-items: center;
+  flex: 1;
+  min-width: 0;
   width: 100%;
   font-size: ${(props) => props.theme.exui.typography.smallFontSize};
   font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
@@ -94,14 +123,14 @@ const Button = styled.button`
   transition: all 100ms ease;
   ${undraggableOnDesktop()}
 
-  &:not(:disabled):hover,
-  &:not(:disabled):active {
+  &:is(button):not(:disabled):hover,
+  &:is(button):not(:disabled):active {
     background: ${s("sidebarHoverBackground")};
     cursor: var(--pointer);
   }
 
   @media (hover: hover) {
-    &:not(:disabled):hover {
+    &:is(button):not(:disabled):hover {
       color: ${s("text")};
     }
   }
@@ -124,6 +153,8 @@ const Disclosure = styled(CollapsedIcon)<{ $expanded?: boolean }>`
 `;
 
 const H3 = styled.h3`
+  display: flex;
+  align-items: center;
   margin: 0;
 
   &:hover,

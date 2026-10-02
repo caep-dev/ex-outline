@@ -5,10 +5,13 @@ import { useMemo } from "react";
 import { useDrop } from "react-dnd";
 import { useTranslation } from "react-i18next";
 import styled from "styled-components";
+import { PlusIcon } from "@shared/components/LucideIcon";
+import { s } from "@shared/styles";
 import type Collection from "~/models/Collection";
 import Flex from "~/components/Flex";
 import Error from "~/components/List/Error";
 import PaginatedList from "~/components/PaginatedList";
+import NudeButton from "~/components/NudeButton";
 import { createCollection } from "~/actions/definitions/collections";
 import useStores from "~/hooks/useStores";
 import type { DragObject } from "../hooks/useDragAndDrop";
@@ -17,7 +20,6 @@ import DropCursor from "./DropCursor";
 import Header from "./Header";
 import PlaceholderCollections from "./PlaceholderCollections";
 import Relative from "./Relative";
-import SidebarAction from "./SidebarAction";
 import SidebarContext from "./SidebarContext";
 import SidebarLink from "./SidebarLink";
 import Text from "@shared/components/Text";
@@ -59,7 +61,21 @@ function Collections() {
   return (
     <SidebarContext.Provider value="collections">
       <Flex column>
-        <Header id="collections" title={t("Collections")}>
+        <Header
+          id="collections"
+          title={t("Collections")}
+          collapsible={false}
+          actions={
+            <CreateButton
+              action={createCollection}
+              hideOnActionDisabled
+              aria-label={t("New collection")}
+              tooltip={{ content: t("New collection") }}
+            >
+              <PlusIcon aria-hidden />
+            </CreateButton>
+          }
+        >
           <Relative>
             <PaginatedList<Collection>
               options={params}
@@ -76,7 +92,7 @@ function Collections() {
                 ) : undefined
               }
               empty={
-                // No need for empty state if we're displaying the createCollection action
+                // The heading already offers a create action when permitted.
                 can.createCollection ? null : (
                   <SidebarLink
                     label={
@@ -99,7 +115,6 @@ function Collections() {
                 />
               )}
             />
-            <SidebarAction action={createCollection} depth={0} />
           </Relative>
         </Header>
       </Flex>
@@ -110,6 +125,27 @@ function Collections() {
 export const StyledError = styled(Error)`
   font-size: ${exuiTokens.typography.bodyFontSize};
   padding: 0 8px;
+`;
+
+const CreateButton = styled(NudeButton)`
+  flex-shrink: 0;
+  margin-inline-end: 8px;
+  color: ${s("textTertiary")};
+
+  @media (hover: hover) {
+    opacity: 0;
+    pointer-events: none;
+
+    #sidebar:hover &,
+    &:focus-visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+
+  &:hover {
+    background: ${s("sidebarHoverBackground")};
+  }
 `;
 
 export default observer(Collections);

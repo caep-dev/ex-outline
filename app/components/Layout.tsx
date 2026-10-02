@@ -11,6 +11,7 @@ import { LoadingIndicatorBar } from "~/components/LoadingIndicator";
 import { useRightSidebarContent } from "~/components/RightSidebarContext";
 import SkipNavContent from "~/components/SkipNavContent";
 import SkipNavLink from "~/components/SkipNavLink";
+import { SidebarToggleContext } from "~/components/SidebarToggleContext";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
 
@@ -36,40 +37,42 @@ const Layout = React.forwardRef(function Layout_(
   const sidebarRight = useRightSidebarContent();
 
   return (
-    <Container column auto ref={ref}>
-      <Helmet>
-        <title>{title ? title : env.APP_NAME}</title>
-      </Helmet>
+    <SidebarToggleContext.Provider value={showSidebar && sidebarCanCollapse}>
+      <Container column auto ref={ref}>
+        <Helmet>
+          <title>{title ? title : env.APP_NAME}</title>
+        </Helmet>
 
-      <SkipNavLink />
+        <SkipNavLink />
 
-      {ui.progressBarVisible && <LoadingIndicatorBar />}
+        {ui.progressBarVisible && <LoadingIndicatorBar />}
 
-      <Container auto>
-        {showSidebar && sidebar}
+        <Container auto>
+          {showSidebar && sidebar}
 
-        <SkipNavContent />
-        <Content
-          auto
-          justify="center"
-          role="main"
-          $isResizing={ui.sidebarIsResizing}
-          $sidebarCollapsed={sidebarCollapsed}
-          $hasSidebar={showSidebar}
-          style={
-            sidebarCollapsed
-              ? undefined
-              : {
-                  marginInlineStart: `${ui.sidebarWidth}px`,
-                }
-          }
-        >
-          {children}
-        </Content>
+          <SkipNavContent />
+          <Content
+            auto
+            justify="center"
+            role="main"
+            $isResizing={ui.sidebarIsResizing}
+            $sidebarCollapsed={sidebarCollapsed}
+            $hasSidebar={showSidebar}
+            style={
+              sidebarCollapsed
+                ? undefined
+                : {
+                    marginInlineStart: `${ui.sidebarWidth}px`,
+                  }
+            }
+          >
+            {children}
+          </Content>
 
-        <AnimatePresence initial={false}>{sidebarRight}</AnimatePresence>
+          <AnimatePresence initial={false}>{sidebarRight}</AnimatePresence>
+        </Container>
       </Container>
-    </Container>
+    </SidebarToggleContext.Provider>
   );
 });
 
