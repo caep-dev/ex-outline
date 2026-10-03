@@ -24,6 +24,6 @@ data/*
 .yarn/releases
 !.yarn/sdks
 
-
+output
 .playwright-cli
 .vitest-attachments
