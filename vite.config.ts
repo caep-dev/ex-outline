@@ -47,6 +47,11 @@ export default ({ mode }: ConfigEnv) =>
       origin: `${httpsConfig ? "https" : "http"}://${host ?? "localhost"}:3101`,
       allowedHosts: host ? [host] : undefined,
       cors: true,
+      watch: {
+        // Local ExUI builds remove and recreate dist/tokens. Wait for the
+        // replacement before emitting HMR for a temporarily missing module.
+        atomic: 5000,
+      },
       fs:
         environment.NODE_ENV === "development"
           ? {

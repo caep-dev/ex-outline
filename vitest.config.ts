@@ -178,7 +178,7 @@ export default defineConfig({
           name: "shared-node",
           globals: true,
           environment: "node",
-          include: ["shared/**/*.test.{ts,tsx}"],
+          include: ["shared/**/*.test.{ts,tsx}", "vite.config.test.ts"],
           setupFiles: ["./__mocks__/console.js", "./shared/test/setup.ts"],
         },
       },
