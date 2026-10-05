@@ -1,7 +1,7 @@
 import type { WhereOptions } from "sequelize";
 import { Op } from "sequelize";
 import isUUID from "validator/lib/isUUID";
-import type { NavigationNode } from "@shared/types";
+import { NavigationNodeType, type NavigationNode } from "@shared/types";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import {
   AuthorizationError,
@@ -11,6 +11,12 @@ import {
 } from "@server/errors";
 import type { User } from "@server/models";
 import { Collection, Document, Share } from "@server/models";
+import {
+  isPublicCollection,
+  listPublicDocuments,
+  resolvePublicDocument,
+} from "@server/commands/publicAccess";
+import env from "@server/env";
 import { authorize, can } from "@server/policies";
 
 type LoadPublicShareProps = {
@@ -26,6 +32,9 @@ export async function loadPublicShare({
   documentId,
   teamId,
 }: LoadPublicShareProps) {
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return loadIntegratedPublicShare({ id, collectionId, documentId, teamId });
+  }
   const urlId =
     !isUUID(id) && UrlHelper.SHARE_URL_SLUG_REGEX.test(id) ? id : undefined;
 
@@ -135,6 +144,81 @@ export async function loadPublicShare({
     collection: share.collection,
     document,
   };
+}
+
+async function loadIntegratedPublicShare({
+  id,
+  collectionId,
+  documentId,
+  teamId,
+}: LoadPublicShareProps) {
+  const urlId =
+    !isUUID(id) && UrlHelper.SHARE_URL_SLUG_REGEX.test(id) ? id : undefined;
+  if (urlId && !teamId) {
+    throw NotFoundError();
+  }
+  const share = await Share.findOne({
+    where: {
+      ...(urlId ? { urlId: id, teamId } : { id }),
+      published: true,
+      revokedAt: { [Op.is]: null },
+      documentId: { [Op.is]: null },
+    },
+  });
+  if (
+    !share?.collectionId ||
+    !share.collection ||
+    share.domain ||
+    (collectionId && collectionId !== share.collectionId) ||
+    !(await isPublicCollection(share.collectionId))
+  ) {
+    throw NotFoundError();
+  }
+  const document = documentId ? await resolvePublicDocument(documentId) : null;
+  if (
+    documentId &&
+    (!document || document.collectionId !== share.collectionId)
+  ) {
+    throw NotFoundError();
+  }
+
+  const sharedTree: NavigationNode = {
+    id: share.collection.id,
+    title: share.collection.name,
+    url: `/public/collection/${share.collection.id}`,
+    type: NavigationNodeType.Collection,
+    children: [],
+  };
+  const nodes = new Map<string, NavigationNode>();
+  const parents = new Map<string, string | null>();
+  let offset = 0;
+  while (true) {
+    const page = await listPublicDocuments(share.collectionId, {
+      offset,
+      limit: 100,
+    });
+    for (const item of page.data) {
+      nodes.set(item.id, {
+        id: item.id,
+        title: item.title,
+        url: item.url,
+        type: NavigationNodeType.Document,
+        collectionId: share.collectionId,
+        children: [],
+      });
+      parents.set(item.id, item.parentDocumentId);
+    }
+    if (!page.pagination.hasMore) {
+      break;
+    }
+    offset += page.data.length;
+  }
+  for (const [nodeId, node] of nodes) {
+    const parentId = parents.get(nodeId);
+    const parent = parentId ? nodes.get(parentId) : undefined;
+    (parent ?? sharedTree).children.push(node);
+  }
+  return { share, sharedTree, collection: share.collection, document };
 }
 
 type LoadShareWithParentProps = {

@@ -10,6 +10,7 @@ import enforceHttps, {
   xForwardedProtoResolver,
 } from "koa-sslify";
 import { Second } from "@shared/utils/time";
+import { startExpiredWebsiteAccessTokenCleanup } from "@server/identity/expiredAccessTokens";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import Metrics from "@server/logging/Metrics";
@@ -20,6 +21,7 @@ import { initI18n } from "@server/utils/i18n";
 import routes from "../routes";
 import api from "../routes/api";
 import auth from "../routes/auth";
+import internalIdentity from "../routes/internalIdentity";
 import mcp from "../routes/mcp";
 import oauth from "../routes/oauth";
 import type { UserAgentContext } from "koa-useragent";
@@ -27,6 +29,9 @@ import userAgent from "koa-useragent";
 
 export default function init(app: Koa = new Koa(), server?: Server) {
   void initI18n();
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    startExpiredWebsiteAccessTokenCleanup();
+  }
 
   if (env.isProduction) {
     // Trust the X-Forwarded-* headers set by an upstream proxy, eg
@@ -88,7 +93,12 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   });
 
   app.use(mount("/api", api));
-  app.use(mount("/mcp", mcp));
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    app.use(mount("/internal/identity", internalIdentity));
+  }
+  if (!env.WEBSITE_INTEGRATION_ENABLED) {
+    app.use(mount("/mcp", mcp));
+  }
 
   // Generate and attach a CSRF token to the session on non-API requests
   app.use(attachCSRFToken());
@@ -110,7 +120,9 @@ export default function init(app: Koa = new Koa(), server?: Server) {
   );
 
   app.use(mount("/auth", auth));
-  app.use(mount("/oauth", oauth));
+  if (!env.WEBSITE_INTEGRATION_ENABLED) {
+    app.use(mount("/oauth", oauth));
+  }
   app.use(mount(routes));
 
   return app;

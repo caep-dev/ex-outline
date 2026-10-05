@@ -2,6 +2,7 @@ import { faker } from "@faker-js/faker";
 import { errToString } from "@shared/utils/error";
 import { CollectionPermission, UserRole } from "@shared/types";
 import { createContext } from "@server/context";
+import env from "@server/env";
 import { Event } from "@server/models";
 import { sequelize } from "@server/storage/database";
 import {
@@ -201,18 +202,86 @@ describe("user model", () => {
   });
 
   describe("collectionIds", () => {
+    it("reports only current editable collections for integrated draft queries", async () => {
+      const previous = env.WEBSITE_INTEGRATION_ENABLED;
+      env.WEBSITE_INTEGRATION_ENABLED = true;
+      try {
+        const team = await buildTeam();
+        const viewer = await buildViewer({ teamId: team.id });
+        const admin = await buildAdmin({ teamId: team.id });
+        const read = await buildCollection({
+          teamId: team.id,
+          permission: null,
+        });
+        const write = await buildCollection({
+          teamId: team.id,
+          permission: null,
+        });
+        await UserMembership.create({
+          createdById: admin.id,
+          collectionId: read.id,
+          userId: viewer.id,
+          permission: CollectionPermission.Read,
+        });
+        const membership = await UserMembership.create({
+          createdById: admin.id,
+          collectionId: write.id,
+          userId: viewer.id,
+          permission: CollectionPermission.ReadWrite,
+        });
+        expect(await viewer.editableCollectionIds()).toEqual([write.id]);
+        expect(new Set(await admin.editableCollectionIds())).toEqual(
+          new Set([read.id, write.id])
+        );
+        await membership.destroy();
+        expect(await viewer.editableCollectionIds()).toEqual([]);
+      } finally {
+        env.WEBSITE_INTEGRATION_ENABLED = previous;
+      }
+    });
+    it("ignores workspace-wide collection permissions in integration mode", async () => {
+      const previous = env.WEBSITE_INTEGRATION_ENABLED;
+      env.WEBSITE_INTEGRATION_ENABLED = true;
+      try {
+        const team = await buildTeam();
+        const user = await buildViewer({ teamId: team.id });
+        await buildCollection({
+          teamId: team.id,
+          permission: CollectionPermission.Read,
+        });
+        const privateCollection = await buildCollection({
+          teamId: team.id,
+          permission: null,
+        });
+        await UserMembership.create({
+          createdById: user.id,
+          collectionId: privateCollection.id,
+          userId: user.id,
+          permission: CollectionPermission.Read,
+        });
+        expect(await user.collectionIds()).toEqual([privateCollection.id]);
+      } finally {
+        env.WEBSITE_INTEGRATION_ENABLED = previous;
+      }
+    });
     it("should return read_write collections", async () => {
-      const team = await buildTeam();
-      const user = await buildUser({
-        teamId: team.id,
-      });
-      const collection = await buildCollection({
-        teamId: team.id,
-        permission: CollectionPermission.ReadWrite,
-      });
-      const response = await user.collectionIds();
-      expect(response.length).toEqual(1);
-      expect(response[0]).toEqual(collection.id);
+      const previous = env.WEBSITE_INTEGRATION_ENABLED;
+      env.WEBSITE_INTEGRATION_ENABLED = false;
+      try {
+        const team = await buildTeam();
+        const user = await buildUser({
+          teamId: team.id,
+        });
+        const collection = await buildCollection({
+          teamId: team.id,
+          permission: CollectionPermission.ReadWrite,
+        });
+        const response = await user.collectionIds();
+        expect(response.length).toEqual(1);
+        expect(response[0]).toEqual(collection.id);
+      } finally {
+        env.WEBSITE_INTEGRATION_ENABLED = previous;
+      }
     });
 
     it("should return read collections", async () => {

@@ -16,7 +16,13 @@ import { rateLimiter } from "@server/middlewares/rateLimiter";
 import timeout from "@server/middlewares/timeout";
 import validate from "@server/middlewares/validate";
 import { Attachment } from "@server/models";
+import { FileOperation } from "@server/models";
 import AttachmentHelper from "@server/models/helpers/AttachmentHelper";
+import {
+  isPublicAttachment,
+  authorizePrivateIntegratedAttachment,
+} from "@server/routes/api/attachments/access";
+import { authenticateExternalSession } from "@server/identity/authenticateExternalSession";
 import { authorize } from "@server/policies";
 import FileStorage from "@server/storage/files";
 import type LocalStorage from "@server/storage/files/LocalStorage";
@@ -48,8 +54,15 @@ router.post(
       throw ValidationError("Request must include a file parameter");
     }
 
-    // A short-lived signature authorizes the upload to this key without a session.
-    if (sig) {
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      // The upload signature only identifies a key. A current Website session
+      // must also own the attachment, including after a user has logged out.
+      if (!sig || !actor || !ctx.state.externalSession) {
+        throw AuthenticationError("Authentication required");
+      }
+      verifyUploadSignature(sig, key);
+    } else if (sig) {
+      // Upstream signed uploads do not require a session.
       verifyUploadSignature(sig, key);
     } else if (!actor) {
       throw AuthenticationError("Authentication required");
@@ -60,8 +73,11 @@ router.post(
       rejectOnEmpty: true,
     });
 
-    // For session-based uploads, ensure the attachment belongs to the actor.
-    if (!sig && actor && attachment.userId !== actor.id) {
+    if (
+      env.WEBSITE_INTEGRATION_ENABLED
+        ? attachment.userId !== actor?.id || attachment.teamId !== actor?.teamId
+        : !sig && actor && attachment.userId !== actor.id
+    ) {
       throw AuthorizationError("Invalid key");
     }
 
@@ -98,29 +114,62 @@ router.post(
 
 router.get(
   "files.get",
-  auth({ optional: true }),
+  async (ctx, next) =>
+    env.WEBSITE_INTEGRATION_ENABLED
+      ? next()
+      : auth({ optional: true })(ctx, next),
   validate(T.FilesGetSchema),
   async (ctx: APIContext<T.FilesGetReq>) => {
-    const actor = ctx.state.auth.user;
+    const actor = ctx.state.auth?.user;
     const key = getKeyFromContext(ctx);
     const forceDownload = !!ctx.input.query.download;
     const isSignedRequest = !!ctx.input.query.sig;
     const { isPublicBucket, fileName } = AttachmentHelper.parseKey(key);
-    const cacheHeader = "max-age=604800, immutable";
+    const cacheHeader = env.WEBSITE_INTEGRATION_ENABLED
+      ? "no-store"
+      : "max-age=604800, immutable";
     const attachment = await Attachment.findByKey(key);
 
-    // Skip authorization for public bucket, signed requests, or public-read ACL attachments
-    const skipAuthorize =
-      isPublicBucket ||
-      isSignedRequest ||
-      (attachment && !attachment.isPrivate);
-
-    if (!skipAuthorize) {
-      if (!attachment && !!ctx.input.query.key) {
-        throw NotFoundError();
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      ctx.set("Cache-Control", "no-store");
+      if (attachment) {
+        if (!(await isPublicAttachment(attachment))) {
+          await authorizePrivateIntegratedAttachment(ctx, attachment);
+        }
+      } else {
+        const identity = await authenticateExternalSession(ctx);
+        if (!identity) {
+          throw NotFoundError();
+        }
+        const operation = await FileOperation.scope({
+          method: ["withSource", identity.user.id],
+        }).findOne({
+          where: {
+            key,
+            teamId: identity.user.teamId,
+            userId: identity.user.id,
+            state: "complete",
+          },
+        });
+        if (!operation) {
+          throw NotFoundError();
+        }
+        authorize(identity.user, "read", operation);
       }
+    } else {
+      // Skip authorization for public bucket, signed requests, or public-read ACL attachments
+      const skipAuthorize =
+        isPublicBucket ||
+        isSignedRequest ||
+        (attachment && !attachment.isPrivate);
 
-      authorize(actor, "read", attachment);
+      if (!skipAuthorize) {
+        if (!attachment && !!ctx.input.query.key) {
+          throw NotFoundError();
+        }
+
+        authorize(actor, "read", attachment);
+      }
     }
 
     const contentType =

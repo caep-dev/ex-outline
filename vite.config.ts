@@ -7,6 +7,16 @@ import type { ConfigEnv, ServerOptions } from "vite";
 import { defineConfig, searchForWorkspaceRoot } from "vite";
 import { VitePWA } from "vite-plugin-pwa";
 import environment from "./server/utils/environment";
+import { createWebsiteIntegrationConfig } from "./server/identity/config";
+
+const integration =
+  environment.WEBSITE_INTEGRATION_ENABLED === "true"
+    ? createWebsiteIntegrationConfig(environment)
+    : undefined;
+const localIntegration = integration?.mode === "local";
+const staticBase = integration
+  ? "/docs/static/"
+  : (environment.CDN_URL ?? "") + "/static/";
 
 let httpsConfig: ServerOptions["https"] | undefined;
 let host: string | undefined;
@@ -14,14 +24,16 @@ let host: string | undefined;
 if (environment.NODE_ENV === "development") {
   host = host = new URL(environment.URL!).hostname;
 
-  try {
-    httpsConfig = {
-      key: fs.readFileSync("./server/config/certs/private.key"),
-      cert: fs.readFileSync("./server/config/certs/public.cert"),
-    };
-  } catch (_err) {
-    // oxlint-disable-next-line no-console
-    console.warn("No local SSL certs found, HTTPS will not be available");
+  if (!localIntegration) {
+    try {
+      httpsConfig = {
+        key: fs.readFileSync("./server/config/certs/private.key"),
+        cert: fs.readFileSync("./server/config/certs/public.cert"),
+      };
+    } catch (_err) {
+      // oxlint-disable-next-line no-console
+      console.warn("No local SSL certs found, HTTPS will not be available");
+    }
   }
 }
 
@@ -38,14 +50,27 @@ export default ({ mode }: ConfigEnv) =>
     },
     root: "./",
     publicDir: "./server/static",
-    base: (environment.CDN_URL ?? "") + "/static/",
+    base: staticBase,
     server: {
-      port: 3101,
+      port: Number(environment.INTEGRATION_OUTLINE_VITE_PORT ?? 3101),
       strictPort: true,
-      host: true,
+      host: localIntegration ? "127.0.0.1" : true,
       https: httpsConfig,
-      origin: `${httpsConfig ? "https" : "http"}://${host ?? "localhost"}:3101`,
-      allowedHosts: host ? [host] : undefined,
+      origin:
+        integration?.websiteOrigin ??
+        `${httpsConfig ? "https" : "http"}://${host ?? "localhost"}:3101`,
+      hmr: integration
+        ? {
+            protocol: "ws",
+            host: new URL(integration.websiteOrigin).hostname,
+            clientPort: Number(new URL(integration.websiteOrigin).port),
+          }
+        : undefined,
+      allowedHosts: integration
+        ? [new URL(integration.websiteOrigin).hostname]
+        : host
+          ? [host]
+          : undefined,
       cors: true,
       watch: {
         // Local ExUI builds remove and recreate dist/tokens. Wait for the
@@ -76,7 +101,7 @@ export default ({ mode }: ConfigEnv) =>
           globPatterns: ["**/*.{css,ico,png,svg}"],
           navigateFallback: null,
           modifyURLPrefix: {
-            "": `${environment.CDN_URL ?? ""}/static/`,
+            "": staticBase,
           },
           skipWaiting: true,
           clientsClaim: true,
@@ -86,7 +111,7 @@ export default ({ mode }: ConfigEnv) =>
               // Chunks are content-hashed and immutable, so cache them on
               // first use rather than precaching the entire build.
               urlPattern: ({ url }) =>
-                url.pathname.startsWith("/static/assets/") &&
+                url.pathname.startsWith(`${staticBase}assets/`) &&
                 url.pathname.endsWith(".js"),
               handler: "CacheFirst",
               options: {

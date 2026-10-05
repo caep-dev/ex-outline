@@ -31,6 +31,12 @@ export function attachCSRFToken() {
         httpOnly: false,
         sameSite: "lax",
         secure: ctx.request.secure,
+        // __Host- cookies require Path=/; HTTP development cookies stay within
+        // the mounted docs application so Website sibling paths do not receive them.
+        path:
+          env.WEBSITE_INTEGRATION_ENABLED && !ctx.request.secure
+            ? "/docs"
+            : "/",
       });
     }
 
@@ -46,6 +52,21 @@ export function verifyCSRFToken() {
    * Determines if a request requires CSRF protection
    */
   const shouldProtectRequest = (ctx: AppContext): boolean => {
+    // These four POST endpoints are anonymous reads. A stale login cookie must
+    // not turn a public document request into a CSRF-protected write.
+    if (
+      env.WEBSITE_INTEGRATION_ENABLED &&
+      ctx.method === "POST" &&
+      ctx.mountPath === "/api" &&
+      [
+        "/public.collections.list",
+        "/public.documents.list",
+        "/public.documents.info",
+        "/public.documents.search",
+      ].includes(ctx.path)
+    ) {
+      return false;
+    }
     // Skip if not a potentially mutating method
     if (["GET", "HEAD", "OPTIONS"].includes(ctx.method)) {
       return false;
@@ -55,6 +76,10 @@ export function verifyCSRFToken() {
     const { transport } = parseAuthentication(ctx);
     if (transport !== "cookie") {
       return false;
+    }
+
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      return true;
     }
 
     // For API routes, use AuthenticationHelper to determine if the operation is read-only
@@ -77,6 +102,13 @@ export function verifyCSRFToken() {
     if (!shouldProtectRequest(ctx)) {
       await next();
       return;
+    }
+
+    if (
+      env.WEBSITE_INTEGRATION_ENABLED &&
+      ctx.get("Origin") !== new URL(env.URL).origin
+    ) {
+      throw CSRFError("Request origin is invalid");
     }
 
     // Get token from cookie

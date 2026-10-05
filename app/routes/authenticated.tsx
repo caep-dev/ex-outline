@@ -11,6 +11,7 @@ import Route from "~/components/ProfiledRoute";
 import { SplitView } from "~/components/SplitView";
 import WebsocketProvider from "~/components/WebsocketProvider";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
+import useStores from "~/hooks/useStores";
 import usePolicy from "~/hooks/usePolicy";
 import useQueryNotices from "~/hooks/useQueryNotices";
 import useKeyboardShortcutsQuery from "~/hooks/useKeyboardShortcutsQuery";
@@ -54,6 +55,12 @@ function AuthenticatedRoutes() {
   useKeyboardShortcutsQuery();
   const team = useCurrentTeam();
   const can = usePolicy(team);
+  const { auth, collections, policies } = useStores();
+  const canCreateAny = auth.websiteIntegrationEnabled
+    ? collections.allActive.some(
+        (collection) => policies.abilities(collection.id).createDocument
+      )
+    : can.createDocument;
 
   return (
     <WebsocketProvider>
@@ -67,21 +74,21 @@ function AuthenticatedRoutes() {
         >
           <SplitView>
             <Switch>
-              {can.createDocument && (
+              {canCreateAny && (
                 <Route
                   exact
                   path={draftsPath()}
                   component={Scenes.Drafts.Component}
                 />
               )}
-              {can.createDocument && (
+              {canCreateAny && (
                 <Route
                   exact
                   path={archivePath()}
                   component={Scenes.Archive.Component}
                 />
               )}
-              {can.createDocument && (
+              {canCreateAny && (
                 <Route
                   exact
                   path={trashPath()}
@@ -105,11 +112,13 @@ function AuthenticatedRoutes() {
                 path={`/collection/${collectionSlug}/new`}
                 component={DocumentNew}
               />
-              <Route
-                exact
-                path={`/collection/${collectionSlug}/overview/edit`}
-                component={Scenes.Collection.Component}
-              />
+              {(!auth.websiteIntegrationEnabled || auth.user?.isAdmin) && (
+                <Route
+                  exact
+                  path={`/collection/${collectionSlug}/overview/edit`}
+                  component={Scenes.Collection.Component}
+                />
+              )}
               <Route
                 exact
                 path={`/collection/${collectionSlug}/:tab?`}

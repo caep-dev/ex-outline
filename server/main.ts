@@ -9,6 +9,11 @@ import Router from "koa-router";
 import stoppable from "stoppable";
 import { toError } from "@shared/utils/error";
 import env from "./env";
+import { websiteIntegrationConfig } from "@server/identity/config";
+import {
+  assertIntegrationReady,
+  assertIntegrationModeSafe,
+} from "@server/identity/readiness";
 import Metrics from "@server/logging/Metrics";
 import Redis from "@server/storage/redis";
 import Logger from "./logging/Logger";
@@ -35,6 +40,23 @@ import { checkUpdates } from "./utils/updates";
  * @param disconnect callback used to signal the worker has stopped.
  */
 export async function start(id: number, disconnect: () => void) {
+  try {
+    await assertIntegrationModeSafe();
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      await assertIntegrationReady();
+    }
+  } catch (error) {
+    const code =
+      error instanceof Error && /^INTEGRATION_[A-Z_]+$/.test(error.message)
+        ? error.message
+        : "INTEGRATION_CHECK_FAILED";
+    throw new Error(
+      `${code}: verify configuration and explicit initialization`
+    );
+  }
+  const localIntegration =
+    env.WEBSITE_INTEGRATION_ENABLED &&
+    websiteIntegrationConfig().mode === "local";
   // Ensure plugins are loaded
   PluginManager.loadPlugins();
 
@@ -44,7 +66,9 @@ export async function start(id: number, disconnect: () => void) {
   }
 
   // Find if SSL certs are available
-  const ssl = getSSLOptions();
+  const ssl = localIntegration
+    ? { key: undefined, cert: undefined }
+    : getSSLOptions();
   const useHTTPS = !!ssl.key && !!ssl.cert;
 
   // If a --port flag is passed then it takes priority over the env variable
@@ -142,8 +166,46 @@ export async function start(id: number, disconnect: () => void) {
     );
   });
 
-  server.listen(normalizedPort);
+  if (localIntegration) {
+    server.listen(Number(normalizedPort), "127.0.0.1");
+  } else {
+    server.listen(normalizedPort);
+  }
   server.setTimeout(env.REQUEST_TIMEOUT);
+
+  // A loopback-only development transport lets the Website HTTP gateway reuse
+  // this app while the existing direct HTTPS document entry remains available.
+  if (
+    env.isDevelopment &&
+    !localIntegration &&
+    env.SERVICES.includes("web") &&
+    process.env.OUTLINE_DEV_HTTP_PORT
+  ) {
+    const port = Number(process.env.OUTLINE_DEV_HTTP_PORT);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) {
+      throw new Error("OUTLINE_DEV_HTTP_PORT must be a valid port");
+    }
+    const entry = stoppable(
+      http.createServer(app.callback()),
+      ShutdownHelper.connectionGraceTimeout
+    );
+    entry.on("upgrade", (request, socket, head) =>
+      server.emit("upgrade", request, socket, head)
+    );
+    entry.on("error", (error) => {
+      Logger.error("Development document transport failed", error);
+      process.exit(1);
+    });
+    entry.listen(port, "127.0.0.1");
+    ShutdownHelper.add(
+      "development-http",
+      ShutdownOrder.normal,
+      () =>
+        new Promise((resolve, reject) => {
+          entry.stop((error) => (error ? reject(error) : resolve(true)));
+        })
+    );
+  }
 
   // Run telemetry from a single worker only. This keeps the supervising master
   // process free of the models graph that the update check requires, while

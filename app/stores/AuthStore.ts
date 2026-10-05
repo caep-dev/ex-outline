@@ -5,8 +5,11 @@ import { observable, action, computed, autorun, runInAction } from "mobx";
 import { getCookie, setCookie } from "tiny-cookie";
 import { toError } from "@shared/utils/error";
 import type { CustomTheme } from "@shared/types";
+import type { WebsiteIntegrationMode } from "@shared/types/websiteIntegration";
+import type { WebsiteIntegrationSignOut } from "@shared/types/websiteIntegration";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import { publicBasePath } from "@shared/utils/publicPath";
 import type RootStore from "~/stores/RootStore";
 import Team from "~/models/Team";
 import env from "~/env";
@@ -15,6 +18,8 @@ import { client } from "~/utils/ApiClient";
 import Desktop from "~/utils/Desktop";
 import { deleteAllDatabases } from "~/utils/developer";
 import Logger from "~/utils/Logger";
+import { clearWebsiteOidcAttempt } from "~/utils/websiteOidcAttempt";
+import { AuthorizationError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
 import Store from "./base/Store";
 
@@ -29,7 +34,7 @@ type Provider = {
   authUrl: string;
 };
 
-export type Config = {
+export type Config = WebsiteIntegrationMode & {
   name?: string;
   logo?: string;
   customTheme?: Partial<CustomTheme>;
@@ -74,6 +79,10 @@ export default class AuthStore extends Store<Team> {
   @observable
   public isSuspended = false;
 
+  /** True when a protected session could not be verified, rather than absent. */
+  @observable
+  public integrationAuthUnavailable = false;
+
   /* The email address to contact if the user is suspended. */
   @observable
   public suspendedContactEmail?: string | null;
@@ -94,11 +103,18 @@ export default class AuthStore extends Store<Team> {
 
     this.rehydrate(data);
 
-    client.setUnauthorizedHandler((reason) =>
-      reason === "user_suspended"
+    client.setUnauthorizedHandler((reason) => {
+      if (reason === "unavailable" && this.websiteIntegrationEnabled) {
+        return this.clearUnavailableSession();
+      }
+      return reason === "user_suspended"
         ? this.logout({ savePath: false, revokeToken: false, clearCache: true })
-        : this.logout({ savePath: true, revokeToken: false, clearCache: false })
-    );
+        : this.logout({
+            savePath: true,
+            revokeToken: false,
+            clearCache: false,
+          });
+    });
 
     void this.fetchAuth();
 
@@ -182,6 +198,24 @@ export default class AuthStore extends Store<Team> {
     return !!this.user && !!this.team;
   }
 
+  /** Whether this browser is using the Website-owned identity integration. */
+  @computed
+  get websiteIntegrationEnabled(): boolean {
+    if (this.config) {
+      return this.config.websiteIntegrationEnabled;
+    }
+    return (
+      env.WEBSITE_INTEGRATION_ENABLED === true ||
+      env.WEBSITE_INTEGRATION_ENABLED === "true"
+    );
+  }
+
+  /** Whether the integrated document workspace has completed bootstrap. */
+  @computed
+  get websiteIntegrationInitialized(): boolean {
+    return this.config?.initialized ?? false;
+  }
+
   @computed
   get asJson(): PersistedData {
     return {
@@ -203,12 +237,17 @@ export default class AuthStore extends Store<Team> {
   @action
   fetchAuth = async () => {
     this.isFetching = true;
+    this.integrationAuthUnavailable = false;
 
     try {
       const res = await client.post("/auth.info", undefined, {
         credentials: "same-origin",
       });
       invariant(res?.data, "Auth not available");
+
+      if (this.websiteIntegrationEnabled) {
+        clearWebsiteOidcAttempt();
+      }
 
       runInAction("AuthStore#refresh", () => {
         const { data } = res;
@@ -275,10 +314,27 @@ export default class AuthStore extends Store<Team> {
         }
         return;
       }
+      if (this.websiteIntegrationEnabled) {
+        // Persisted user/policy data is not proof of a live Website session.
+        // Keep anonymous public reading available when verification fails.
+        await this.logout({ revokeToken: false, clearCache: false });
+        this.integrationAuthUnavailable = !(err instanceof AuthorizationError);
+      }
       throw err;
     } finally {
       this.isFetching = false;
     }
+  };
+
+  /** Hides persisted protected content while identity verification is unavailable. */
+  @action
+  clearUnavailableSession = async () => {
+    this.integrationAuthUnavailable = true;
+    await this.logout({
+      savePath: true,
+      revokeToken: false,
+      clearCache: false,
+    });
   };
 
   requestDeleteUser = () => client.post(`/users.requestDelete`);
@@ -349,14 +405,40 @@ export default class AuthStore extends Store<Team> {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
     if (savePath) {
-      setPostLoginPath(window.location.pathname + window.location.search);
+      const { pathname, search } = window.location;
+      const basePath = this.websiteIntegrationEnabled
+        ? publicBasePath(env.URL)
+        : "";
+      const logicalPath =
+        basePath && pathname === basePath
+          ? "/"
+          : basePath && pathname.startsWith(`${basePath}/`)
+            ? pathname.slice(basePath.length) + search
+            : pathname + search;
+      setPostLoginPath(logicalPath);
     }
 
+    let websiteSignOut: WebsiteIntegrationSignOut | undefined;
     if (revokeToken) {
       try {
         // invalidate authentication token on server and unset auth cookie
-        await client.post(`/auth.delete`);
+        if (this.websiteIntegrationEnabled) {
+          const response =
+            await client.post<WebsiteIntegrationSignOut>(`/auth.delete`);
+          if (
+            response.success !== true ||
+            response.redirectUrl !== "/identity/signed-out"
+          ) {
+            throw new Error("Invalid integrated sign-out response");
+          }
+          websiteSignOut = response;
+        } else {
+          await client.post(`/auth.delete`);
+        }
       } catch (err) {
+        if (this.websiteIntegrationEnabled) {
+          throw err;
+        }
         Logger.error("Failed to delete authentication", toError(err));
       }
     }
@@ -374,6 +456,7 @@ export default class AuthStore extends Store<Team> {
 
     if (
       userInitiated &&
+      !this.websiteIntegrationEnabled &&
       (env.OIDC_LOGOUT_URI || this.lastSignedIn === "oidc")
     ) {
       // Route through the server so it can build a spec-compliant RP-initiated
@@ -381,7 +464,18 @@ export default class AuthStore extends Store<Team> {
       this.logoutRedirectUri = "/auth/oidc.logout";
     }
 
-    if (clearCache) {
+    if (clearCache && websiteSignOut) {
+      // The Website session has already been revoked; local cleanup must not
+      // leave a usable-looking Outline session if IndexedDB removal fails.
+      try {
+        await deleteAllDatabases();
+      } catch (err) {
+        Logger.error(
+          "Failed to clear document cache after sign-out",
+          toError(err)
+        );
+      }
+    } else if (clearCache) {
       // clear IndexedDB databases used for document caching
       await deleteAllDatabases();
     }
@@ -391,6 +485,10 @@ export default class AuthStore extends Store<Team> {
     this.currentTeamId = null;
     this.collaborationToken = null;
     this.rootStore.clear();
+
+    if (websiteSignOut) {
+      window.location.assign(websiteSignOut.redirectUrl);
+    }
 
     // Tell the host application we logged out, if any – allows window cleanup.
     if (Desktop.isElectron()) {

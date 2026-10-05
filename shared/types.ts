@@ -135,6 +135,7 @@ export enum MentionType {
 }
 
 export type PublicEnv = {
+  WEBSITE_INTEGRATION_ENABLED?: boolean;
   /** ID of the share mounted at the root of a custom domain, if any. */
   ROOT_SHARE_ID?: string;
   /** Whether the page is a publicly shared view. */

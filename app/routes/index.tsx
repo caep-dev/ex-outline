@@ -1,4 +1,5 @@
 import { Suspense } from "react";
+import { observer } from "mobx-react";
 import { Switch, Redirect } from "react-router-dom";
 import DesktopRedirect from "~/scenes/DesktopRedirect";
 import DelayedMount from "~/components/DelayedMount";
@@ -8,6 +9,7 @@ import env from "~/env";
 import lazy from "~/utils/lazyWithRetry";
 import { matchDocumentSlug as documentSlug } from "~/utils/routeHelpers";
 import useAutoRefresh from "~/hooks/useAutoRefresh";
+import useStores from "~/hooks/useStores";
 
 const Authenticated = lazy(() => import("~/components/Authenticated"));
 const AuthenticatedRoutes = lazy(() => import("./authenticated"));
@@ -15,9 +17,17 @@ const Shared = lazy(() => import("~/scenes/Shared"));
 const Login = lazy(() => import("~/scenes/Login"));
 const Logout = lazy(() => import("~/scenes/Logout"));
 const OAuthAuthorize = lazy(() => import("~/scenes/Login/OAuthAuthorize"));
+const WebsitePublic = lazy(() => import("~/scenes/WebsitePublic"));
 
-export default function Routes() {
+const PublicDirectory = () => <WebsitePublic kind="directory" />;
+const PublicDocument = () => <WebsitePublic kind="document" />;
+const PublicSearch = () => <WebsitePublic kind="search" />;
+
+function Routes() {
   useAutoRefresh();
+  const { auth } = useStores();
+  const integrated = auth.websiteIntegrationEnabled;
+  const signedIn = auth.authenticated && !auth.isFetching;
 
   return (
     <Suspense
@@ -27,7 +37,33 @@ export default function Routes() {
         </DelayedMount>
       }
     >
-      {env.ROOT_SHARE_ID ? (
+      {integrated ? (
+        <Switch>
+          {signedIn ? (
+            <Redirect exact from="/" to="/home" />
+          ) : (
+            <Route exact path="/" component={PublicDirectory} />
+          )}
+          <Route
+            exact
+            path="/public/collection/:collectionId"
+            component={PublicDirectory}
+          />
+          <Redirect exact from="/create" to="/" />
+          <Route exact path="/logout" component={Logout} />
+          {!signedIn && <Route exact path="/search" component={PublicSearch} />}
+          {!signedIn && (
+            <Route
+              exact
+              path={`/doc/${documentSlug}`}
+              component={PublicDocument}
+            />
+          )}
+          <Authenticated>
+            <AuthenticatedRoutes />
+          </Authenticated>
+        </Switch>
+      ) : env.ROOT_SHARE_ID ? (
         <Switch>
           <Route exact path="/" component={Shared} />
           <Route exact path={`/doc/${documentSlug}`} component={Shared} />
@@ -68,3 +104,5 @@ export default function Routes() {
     </Suspense>
   );
 }
+
+export default observer(Routes);

@@ -5,6 +5,7 @@ import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { authorize } from "@server/policies";
 import type { APIContext } from "@server/types";
+import env from "@server/env";
 import { assertPresent } from "@server/validation";
 
 type Props = Optional<
@@ -78,6 +79,12 @@ export async function authorizeDocumentCreate(
           transaction,
         })
       : undefined;
+    if (env.WEBSITE_INTEGRATION_ENABLED && !collection) {
+      assertPresent(
+        collection,
+        "A collection is required in Website integration mode"
+      );
+    }
     authorize(user, "createChildDocument", parentDocument, { collection });
     return { collection, parentDocument };
   }
@@ -91,6 +98,12 @@ export async function authorizeDocumentCreate(
     return { collection };
   }
 
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    assertPresent(
+      collectionId,
+      "A collection is required in Website integration mode"
+    );
+  }
   authorize(user, "createDocument", user.team);
   return {};
 }
@@ -179,6 +192,13 @@ export default async function documentCreator(
   const { transaction } = ctx.state;
   const templateId = template ? template.id : undefined;
   const eventData = importId || apiImportId ? { source: "import" } : undefined;
+
+  if (env.WEBSITE_INTEGRATION_ENABLED && !collectionId) {
+    assertPresent(
+      collectionId,
+      "A collection is required in Website integration mode"
+    );
+  }
 
   if (state && template) {
     throw new Error(

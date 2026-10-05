@@ -8,6 +8,8 @@ import tracer, {
   getRootSpanFromRequestContext,
 } from "@server/logging/tracer";
 import { User, Team, ApiKey, OAuthAuthentication } from "@server/models";
+import env from "@server/env";
+import { authenticateExternalSession } from "@server/identity/authenticateExternalSession";
 import type { AppContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { getJWTPayload, getUserForJWT } from "@server/utils/jwt";
@@ -37,6 +39,22 @@ type AuthInput = {
 
 export default function auth(options: AuthenticationOptions = {}) {
   return async function authMiddleware(ctx: AppContext, next: Next) {
+    if (
+      env.WEBSITE_INTEGRATION_ENABLED &&
+      options.optional &&
+      !ctx.cookies.get("exdocs_access") &&
+      !ctx.cookies.get("accessToken") &&
+      !ctx.request.get("authorization") &&
+      !(
+        ctx.request.body &&
+        typeof ctx.request.body === "object" &&
+        "token" in ctx.request.body
+      ) &&
+      !ctx.request.query?.token
+    ) {
+      ctx.state.auth = {};
+      return next();
+    }
     try {
       const { type, token, user, service, scope } =
         await validateAuthentication(ctx, options);
@@ -67,7 +85,11 @@ export default function auth(options: AuthenticationOptions = {}) {
     } catch (err) {
       // Credentials that are valid but insufficient are always surfaced,
       // otherwise the request would be silently downgraded to anonymous.
-      if (options.optional && !(err instanceof httpErrors.Forbidden)) {
+      if (
+        options.optional &&
+        !env.WEBSITE_INTEGRATION_ENABLED &&
+        !(err instanceof httpErrors.Forbidden)
+      ) {
         ctx.state.auth = {};
       } else {
         throw err;
@@ -85,6 +107,14 @@ export default function auth(options: AuthenticationOptions = {}) {
  * @returns An object containing the token and its transport method.
  */
 export function parseAuthentication(ctx: AppContext): AuthInput {
+  // Integrated API authorization always uses this browser cookie. Inspect it
+  // before headers/body/query so another supplied token cannot bypass CSRF.
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    const integratedCookie = ctx.cookies.get("exdocs_access");
+    if (integratedCookie) {
+      return { token: integratedCookie, transport: "cookie" };
+    }
+  }
   const authorizationHeader = ctx.request.get("authorization");
 
   if (authorizationHeader) {
@@ -145,6 +175,32 @@ async function validateAuthentication(
   service?: string;
   scope?: string[];
 }> {
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    const result = await authenticateExternalSession(ctx);
+    if (!result) {
+      throw AuthenticationError("Authentication required");
+    }
+    const { user, session, websiteSubject } = result;
+    if (options.role && UserRoleHelper.isRoleLower(user.role, options.role)) {
+      throw AuthorizationError(`${capitalize(options.role)} role required`);
+    }
+    if (
+      options.type &&
+      (Array.isArray(options.type)
+        ? !options.type.includes(AuthenticationType.APP)
+        : options.type !== AuthenticationType.APP)
+    ) {
+      throw AuthorizationError("Invalid authentication type");
+    }
+    ctx.state.externalSession = session;
+    ctx.state.websiteSubject = websiteSubject;
+    return {
+      user,
+      token: ctx.cookies.get("exdocs_access")!,
+      type: AuthenticationType.APP,
+      service: "website",
+    };
+  }
   const { token, transport } = parseAuthentication(ctx);
 
   if (!token) {

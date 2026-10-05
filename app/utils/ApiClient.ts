@@ -2,6 +2,7 @@ import retry from "fetch-retry";
 import { chunk, trim } from "es-toolkit/compat";
 import queryString from "query-string";
 import EDITOR_VERSION from "@shared/editor/version";
+import { publicBasePath, publicPath } from "@shared/utils/publicPath";
 import type { JSONObject } from "@shared/types";
 import { Scope } from "@shared/types";
 import { version } from "../../package.json";
@@ -32,7 +33,7 @@ type Options = {
 };
 
 /** An HTTP method supported by the API client. */
-type Method = "GET" | "POST" | "PUT";
+type Method = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
 
 /** Shape of an error payload returned by the API. */
 interface ApiErrorResponse {
@@ -42,7 +43,10 @@ interface ApiErrorResponse {
 }
 
 /** Reason the server rejected a request as unauthenticated. */
-export type UnauthorizedReason = "unauthorized" | "user_suspended";
+export type UnauthorizedReason =
+  | "unauthorized"
+  | "user_suspended"
+  | "unavailable";
 
 /** Handler invoked when a request is rejected as unauthenticated. */
 type UnauthorizedHandler = (reason: UnauthorizedReason) => void | Promise<void>;
@@ -92,7 +96,9 @@ class ApiClient {
   private onUnauthorized?: UnauthorizedHandler;
 
   constructor(options: Options = {}) {
-    this.baseUrl = options.baseUrl || "/api";
+    this.baseUrl =
+      options.baseUrl ||
+      publicPath(publicBasePath(env.URL || window.location.origin), "/api");
   }
 
   /**
@@ -157,7 +163,7 @@ class ApiClient {
       } else {
         modifiedPath = path;
       }
-    } else if (method === "POST" || method === "PUT") {
+    } else {
       if (data instanceof FormData || typeof data === "string") {
         body = data;
       } else {
@@ -191,12 +197,22 @@ class ApiClient {
       ...options?.headers,
     };
 
-    // Mutating requests require a CSRF token, unless exempt server-side.
-    const isModifyingRequest = method === "POST" || method === "PUT";
+    // Integrated cookie sessions protect every non-safe method, including
+    // read-only RPCs that use POST. Upstream scope-based behavior is retained.
+    const isModifyingRequest = method !== "GET";
+    const isSameOrigin =
+      new URL(urlToFetch, window.location.href).origin ===
+      window.location.origin;
+    const isWebsiteIntegration =
+      env.WEBSITE_INTEGRATION_ENABLED === true ||
+      env.WEBSITE_INTEGRATION_ENABLED === "true";
     const canAccessWithReadOnly = AuthenticationHelper.canAccess(path, [
       Scope.Read,
     ]);
-    const requiresCsrfToken = isModifyingRequest && !canAccessWithReadOnly;
+    const requiresCsrfToken =
+      isSameOrigin &&
+      isModifyingRequest &&
+      (isWebsiteIntegration || !canAccessWithReadOnly);
 
     // for multipart forms or other non JSON requests fetch
     // populates the Content-Type without needing to explicitly
@@ -206,12 +222,16 @@ class ApiClient {
     }
 
     const headers = new Headers(headerOptions);
+    if (!isSameOrigin) {
+      headers.delete(CSRF.headerName);
+    }
 
     // The token is read before each attempt so that retries reflect any
     // rotation of the cookie since the request was prepared.
     const fetchWithFreshCsrfToken: typeof fetch = (input, init) => {
       if (requiresCsrfToken) {
         const csrfToken = getCSRFToken();
+        headers.delete(CSRF.headerName);
         if (csrfToken) {
           headers.set(CSRF.headerName, csrfToken);
         }
@@ -299,7 +319,12 @@ class ApiClient {
       // we're trying to parse an error so JSON may not be valid
     }
 
-    const err = await this.toError(response.status, error.error, error.message);
+    const err = await this.toError(
+      response.status,
+      error.error,
+      error.message,
+      path
+    );
 
     // Log failures that aren't mapped to a specific error type.
     if (err.constructor === RequestError) {
@@ -324,10 +349,18 @@ class ApiClient {
   private toError = async (
     status: number,
     code: string | undefined,
-    message: string | undefined
+    message: string | undefined,
+    path: string
   ): Promise<Error> => {
     if (status === 401) {
-      if (!this.shareId) {
+      if (
+        !this.shareId &&
+        !(
+          (env.WEBSITE_INTEGRATION_ENABLED === true ||
+            env.WEBSITE_INTEGRATION_ENABLED === "true") &&
+          /^\/?auth\.delete$/.test(path)
+        )
+      ) {
         await this.onUnauthorized?.("unauthorized");
       }
       return new AuthorizationError();
@@ -347,7 +380,14 @@ class ApiClient {
     }
 
     if (status === 403) {
-      if (code === "user_suspended") {
+      if (
+        code === "user_suspended" &&
+        !(
+          (env.WEBSITE_INTEGRATION_ENABLED === true ||
+            env.WEBSITE_INTEGRATION_ENABLED === "true") &&
+          /^\/?auth\.delete$/.test(path)
+        )
+      ) {
         await this.onUnauthorized?.("user_suspended");
       }
 
@@ -365,6 +405,16 @@ class ApiClient {
     }
 
     if (status === 503) {
+      if (
+        (env.WEBSITE_INTEGRATION_ENABLED === true ||
+          env.WEBSITE_INTEGRATION_ENABLED === "true") &&
+        !/^\/?auth\.delete$/.test(path) &&
+        !/^\/?public\.(?:collections\.list|documents\.(?:list|info|search))$/.test(
+          path
+        )
+      ) {
+        await this.onUnauthorized?.("unavailable");
+      }
       return new ServiceUnavailableError(message);
     }
 
@@ -537,7 +587,8 @@ class ApiClient {
               await this.toError(
                 result?.status ?? 500,
                 result?.error,
-                result?.message
+                result?.message,
+                request.method
               )
             );
           }

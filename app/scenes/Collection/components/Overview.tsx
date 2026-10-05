@@ -29,10 +29,12 @@ type Props = {
 };
 
 function Overview({ collection, readOnly }: Props) {
-  const { documents, collections } = useStores();
+  const { auth, documents, collections } = useStores();
   const { t } = useTranslation();
   const user = useCurrentUser({ rejectOnEmpty: false });
   const can = usePolicy(collection);
+  const canEdit =
+    can.update && (!auth.websiteIntegrationEnabled || auth.user?.isAdmin);
 
   const handleSave = useMemo(
     () =>
@@ -88,7 +90,7 @@ function Overview({ collection, readOnly }: Props) {
   return (
     <>
       {collections.isSaving && <LoadingIndicator />}
-      {(can.update || readOnly) && (
+      {(canEdit || readOnly) && (
         <Suspense fallback={<Placeholder>Loading…</Placeholder>}>
           <MeasuredContainer name="document">
             <Editor
@@ -98,8 +100,8 @@ function Overview({ collection, readOnly }: Props) {
               extensions={extensions}
               maxLength={CollectionValidation.maxDescriptionLength}
               onCreateLink={onCreateLink}
-              canUpdate={can.update}
-              readOnly={!can.update || readOnly}
+              canUpdate={canEdit}
+              readOnly={!canEdit || readOnly}
               userId={user?.id}
               editorStyle={editorStyle}
             />

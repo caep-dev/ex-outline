@@ -1,7 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { AttachmentPreset, CollectionPermission } from "@shared/types";
 import env from "@server/env";
-import { UserMembership } from "@server/models";
+import { UserMembership, WebsiteIntegration } from "@server/models";
 import Attachment from "@server/models/Attachment";
 import {
   buildUser,
@@ -9,9 +9,12 @@ import {
   buildCollection,
   buildAttachment,
   buildDocument,
+  buildTeam,
+  buildShare,
   buildViewer,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
+import { parser } from "@server/editor";
 
 vi.mock("@server/storage/files");
 
@@ -631,5 +634,84 @@ describe("#attachments.redirect", () => {
     const body = await res.json();
     expect(res.status).toEqual(400);
     expect(body.message).toEqual("id is required");
+  });
+});
+
+describe("integrated attachment redirects", () => {
+  it("uses the owning public document and current reference, then denies a revoked share", async () => {
+    const team = await buildTeam({ sharing: true });
+    const user = await buildUser({ teamId: team.id });
+    await WebsiteIntegration.create({
+      key: "website",
+      teamId: team.id,
+      issuer: "http://identity.exwebsite.test:8090/",
+      initialAdminSubject: randomUUID(),
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      sharing: true,
+      permission: null,
+    });
+    const share = await buildShare({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      documentId: null,
+      published: true,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const attachment = await buildAttachment({
+      teamId: team.id,
+      userId: user.id,
+      documentId: document.id,
+      acl: "private",
+    });
+    const url = `/api/attachments.redirect?id=${attachment.id}`;
+    await document.update({
+      text: `![image](${url})`,
+      content: parser.parse(`![image](${url})`)?.toJSON(),
+    });
+
+    const visible = await server.get(url, { redirect: "manual" });
+    expect(visible.status).toBe(302);
+    expect(visible.headers.get("cache-control")).toBe("no-store");
+    expect(visible.headers.get("location")).toContain("/api/files.get?key=");
+
+    const privateCollection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      sharing: false,
+      permission: null,
+    });
+    const privateDocument = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: privateCollection.id,
+    });
+    const foreignAttachment = await buildAttachment({
+      teamId: team.id,
+      userId: user.id,
+      documentId: privateDocument.id,
+      acl: "public-read",
+    });
+    const pastedUrl = `/api/attachments.redirect?id=${foreignAttachment.id}`;
+    await document.update({
+      text: `![image](${url})\n![pasted](${pastedUrl})`,
+      content: parser
+        .parse(`![image](${url})\n![pasted](${pastedUrl})`)
+        ?.toJSON(),
+    });
+    expect((await server.get(pastedUrl, { redirect: "manual" })).status).toBe(
+      404
+    );
+
+    await share.update({ revokedAt: new Date() });
+    const revoked = await server.get(url, { redirect: "manual" });
+    expect(revoked.status).toBe(404);
   });
 });

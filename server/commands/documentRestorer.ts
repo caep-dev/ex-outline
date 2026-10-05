@@ -1,4 +1,5 @@
 import { traceFunction } from "@server/logging/tracing";
+import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import { Collection, Revision } from "@server/models";
 import type { Document } from "@server/models";
@@ -69,13 +70,21 @@ async function documentRestorer(
 
   if (document.deletedAt) {
     authorize(user, "restore", document);
-    authorize(user, "updateDocument", destCollection);
+    authorize(
+      user,
+      env.WEBSITE_INTEGRATION_ENABLED ? "createDocument" : "updateDocument",
+      destCollection
+    );
 
     // restore a previously deleted document
     await document.restoreTo(ctx, { collectionId: destCollection.id });
   } else if (document.archivedAt) {
     authorize(user, "unarchive", document);
-    authorize(user, "updateDocument", destCollection);
+    authorize(
+      user,
+      env.WEBSITE_INTEGRATION_ENABLED ? "createDocument" : "updateDocument",
+      destCollection
+    );
 
     // restore a previously archived document
     await document.restoreTo(ctx, { collectionId: destCollection.id });

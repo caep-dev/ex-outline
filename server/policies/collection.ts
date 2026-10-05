@@ -1,16 +1,19 @@
 import invariant from "invariant";
 import { CollectionPermission, TeamPreference } from "@shared/types";
 import { Collection, User, Team } from "@server/models";
+import env from "@server/env";
 import { allow, can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
 allow(User, "createCollection", Team, (actor, team) =>
   and(
     !actor.isGuest,
-    !actor.isViewer,
+    env.WEBSITE_INTEGRATION_ENABLED ? actor.isAdmin : !actor.isViewer,
     isTeamModel(actor, team),
     isTeamMutable(actor),
-    or(actor.isAdmin, !!team?.memberCollectionCreate)
+    env.WEBSITE_INTEGRATION_ENABLED
+      ? actor.isAdmin
+      : or(actor.isAdmin, !!team?.memberCollectionCreate)
   )
 );
 
@@ -37,6 +40,10 @@ allow(User, "read", Collection, (user, collection) => {
   }
   if (user.isAdmin) {
     return true;
+  }
+
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return includesMembership(collection, Object.values(CollectionPermission));
   }
 
   if (collection.isPrivate || user.isGuest) {
@@ -73,6 +80,13 @@ allow(
       return false;
     }
 
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      return (
+        user.isAdmin ||
+        includesMembership(collection, Object.values(CollectionPermission))
+      );
+    }
+
     if (collection.isPrivate || user.isGuest) {
       return includesMembership(
         collection,
@@ -85,6 +99,14 @@ allow(
 );
 
 allow(User, "share", Collection, (user, collection) => {
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return (
+      !!collection?.isActive &&
+      isTeamAdmin(user, collection) &&
+      isTeamMutable(user) &&
+      !!collection.sharing
+    );
+  }
   if (
     !collection ||
     user.isGuest ||
@@ -118,6 +140,16 @@ allow(User, "updateDocument", Collection, (user, collection) => {
     return false;
   }
 
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return (
+      user.isAdmin ||
+      includesMembership(collection, [
+        CollectionPermission.ReadWrite,
+        CollectionPermission.Admin,
+      ])
+    );
+  }
+
   if (
     collection.permission !== CollectionPermission.ReadWrite ||
     user.isViewer ||
@@ -144,6 +176,16 @@ allow(
       !isTeamMutable(user)
     ) {
       return false;
+    }
+
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      return (
+        user.isAdmin ||
+        includesMembership(collection, [
+          CollectionPermission.ReadWrite,
+          CollectionPermission.Admin,
+        ])
+      );
     }
 
     if (
@@ -196,10 +238,12 @@ allow(User, ["update", "archive"], Collection, (user, collection) =>
   and(
     !!collection,
     !!collection?.isActive,
-    or(
-      isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
-    )
+    env.WEBSITE_INTEGRATION_ENABLED
+      ? isTeamAdmin(user, collection)
+      : or(
+          isTeamAdmin(user, collection),
+          includesMembership(collection, [CollectionPermission.Admin])
+        )
   )
 );
 
@@ -219,10 +263,12 @@ allow(User, "delete", Collection, (user, collection) =>
   and(
     !!collection,
     !collection?.deletedAt,
-    or(
-      isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
-    )
+    env.WEBSITE_INTEGRATION_ENABLED
+      ? isTeamAdmin(user, collection)
+      : or(
+          isTeamAdmin(user, collection),
+          includesMembership(collection, [CollectionPermission.Admin])
+        )
   )
 );
 
@@ -230,10 +276,12 @@ allow(User, "restore", Collection, (user, collection) =>
   and(
     !!collection,
     !collection?.isActive,
-    or(
-      isTeamAdmin(user, collection),
-      includesMembership(collection, [CollectionPermission.Admin])
-    )
+    env.WEBSITE_INTEGRATION_ENABLED
+      ? isTeamAdmin(user, collection)
+      : or(
+          isTeamAdmin(user, collection),
+          includesMembership(collection, [CollectionPermission.Admin])
+        )
   )
 );
 

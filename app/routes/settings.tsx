@@ -5,6 +5,7 @@ import Route from "~/components/ProfiledRoute";
 import useSettingsConfig from "~/hooks/useSettingsConfig";
 import { settingsPath } from "~/utils/routeHelpers";
 import { observer } from "mobx-react";
+import useStores from "~/hooks/useStores";
 
 const Application = lazy(() => import("~/scenes/Settings/Application"));
 const GroupMembers = lazy(() => import("~/scenes/Settings/GroupMembers"), {
@@ -15,6 +16,23 @@ const TemplateNew = lazy(() => import("~/scenes/Settings/TemplateNew"));
 
 function SettingsRoutes() {
   const configs = useSettingsConfig();
+  const { auth } = useStores();
+
+  if (auth.websiteIntegrationEnabled) {
+    return (
+      <Switch>
+        {configs.map((config) => (
+          <Route
+            exact
+            key={config.path}
+            path={config.path}
+            component={config.component}
+          />
+        ))}
+        <Route component={Error404} />
+      </Switch>
+    );
+  }
 
   return (
     <Switch>

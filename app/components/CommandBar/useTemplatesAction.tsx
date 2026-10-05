@@ -43,6 +43,14 @@ const useTemplatesAction = () => {
           ),
           keywords: "create",
           visible: ({ currentTeamId, activeCollectionId, stores }) => {
+            if (stores.auth.websiteIntegrationEnabled) {
+              return (
+                !!activeCollectionId &&
+                stores.policies.abilities(activeCollectionId).createDocument &&
+                (!template.collectionId ||
+                  template.collectionId === activeCollectionId)
+              );
+            }
             if (activeCollectionId) {
               return (
                 stores.policies.abilities(activeCollectionId).createDocument &&
@@ -84,6 +92,12 @@ const useTemplatesAction = () => {
         section: DocumentSection,
         icon: <ShapesIcon />,
         visible: ({ currentTeamId, activeCollectionId, stores }) => {
+          if (stores.auth.websiteIntegrationEnabled) {
+            return (
+              !!activeCollectionId &&
+              stores.policies.abilities(activeCollectionId).createDocument
+            );
+          }
           if (activeCollectionId) {
             return stores.policies.abilities(activeCollectionId).createDocument;
           }

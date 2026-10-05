@@ -24,6 +24,7 @@ import ScrollToTop from "~/components/ScrollToTop";
 import Theme from "~/components/Theme";
 import Toasts from "~/components/Toasts";
 import env from "~/env";
+import { publicBasePath, publicPath } from "@shared/utils/publicPath";
 import { initI18n } from "~/utils/i18n";
 import Desktop from "./components/DesktopEventHandler";
 import LazyPolyfill from "./components/LazyPolyfills";
@@ -128,9 +129,13 @@ if (
   window.addEventListener("load", () => {
     // see: https://bugs.chromium.org/p/chromium/issues/detail?id=1097616
     // In some rare (<0.1% of cases) this call can return `undefined`
-    const maybePromise = navigator.serviceWorker.register("/static/sw.js", {
-      scope: "/",
-    });
+    const basePath = publicBasePath(env.URL);
+    const maybePromise = navigator.serviceWorker.register(
+      publicPath(basePath, "/static/sw.js"),
+      {
+        scope: `${basePath}/`,
+      }
+    );
 
     if (maybePromise?.then) {
       maybePromise

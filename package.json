@@ -25,6 +25,7 @@
     "db:create-migration": "sequelize migration:create",
     "db:create": "sequelize db:create",
     "db:migrate": "sequelize db:migrate",
+    "integration:bootstrap": "node build/server/scripts/integration-bootstrap.js",
     "db:rollback": "sequelize db:migrate:undo",
     "db:reset": "sequelize db:drop && sequelize db:create && sequelize db:migrate",
     "upgrade": "git fetch && git pull && yarn install && yarn heroku-postbuild",
@@ -36,7 +37,11 @@
     "test:watch": "TZ=UTC vitest",
     "vite:dev": "VITE_CJS_IGNORE_WARNING=true vite",
     "vite:build": "VITE_CJS_IGNORE_WARNING=true vite build",
-    "vite:preview": "VITE_CJS_IGNORE_WARNING=true vite preview"
+    "vite:preview": "VITE_CJS_IGNORE_WARNING=true vite preview",
+    "integration:check": "node build/server/scripts/integration-check.js",
+    "dev:integration": "NODE_ENV=development node build/server/index.js --no-migrate --services=cron,collaboration,websockets,admin,web,worker",
+    "dev:backend:integration": "NODE_ENV=development nodemon --quiet --exec \"yarn build:server && yarn dev:integration\" -e js,ts,tsx --watch server --watch shared --watch plugins --watch .env --watch .env.local --watch .env.development --ignore \"shared/components/**/*.tsx?\" --ignore \"plugins/client/**/*.tsx?\" --ignore \"**/*.test.ts\" --ignore data/ --ignore build/ --ignore app/ --ignore \"shared/editor/**\" --ignore server/migrations",
+    "dev:watch:integration": "NODE_ENV=development yarn concurrently -n backend,frontend \"yarn dev:backend:integration\" \"yarn vite:dev\""
   },
   "funding": {
     "type": "GitHub Sponsors ❤",
@@ -189,6 +194,7 @@
     "node-fetch": "2.7.0",
     "nodemailer": "^9.0.5",
     "octokit": "^5.0.5",
+    "openid-client": "6.8.8",
     "outline-icons": "^4.6.0",
     "oy-vey": "^0.12.1",
     "pako": "^2.1.0",

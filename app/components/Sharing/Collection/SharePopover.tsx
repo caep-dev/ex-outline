@@ -12,7 +12,9 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { CollectionPermission } from "@shared/types";
+import { publicUrl } from "@shared/utils/publicPath";
 import type Collection from "~/models/Collection";
+import env from "~/env";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import { Avatar, AvatarSize } from "~/components/Avatar";
@@ -46,7 +48,7 @@ type Props = {
   loading?: boolean;
 };
 
-function SharePopover({
+function LegacySharePopover({
   collection,
   visible,
   onRequestClose,
@@ -403,6 +405,32 @@ function SharePopover({
       </div>
     </Wrapper>
   );
+}
+
+function IntegratedReadOnlySharePopover(props: Props) {
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
+  React.useLayoutEffect(() => {
+    if (props.visible) {
+      wrapperRef.current?.focus();
+    }
+  }, [props.visible]);
+  return (
+    <Wrapper ref={wrapperRef} tabIndex={-1}>
+      <p>Only document administrators can manage collection access.</p>
+      <CopyLinkButton
+        url={publicUrl(env.URL, collectionPath(props.collection))}
+        onCopy={props.onRequestClose}
+      />
+    </Wrapper>
+  );
+}
+
+function SharePopover(props: Props) {
+  const { auth } = useStores();
+  if (auth.websiteIntegrationEnabled && !auth.user?.isAdmin) {
+    return <IntegratedReadOnlySharePopover {...props} />;
+  }
+  return <LegacySharePopover {...props} />;
 }
 
 export default observer(SharePopover);

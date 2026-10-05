@@ -50,10 +50,15 @@ import useMobile from "~/hooks/useMobile";
 
 function AppSidebar() {
   const { t } = useTranslation();
-  const { documents, ui, collections } = useStores();
+  const { auth, documents, ui, collections, policies } = useStores();
   const team = useCurrentTeam();
   const user = useCurrentUser();
   const can = usePolicy(team);
+  const canCreateAny = auth.websiteIntegrationEnabled
+    ? collections.allActive.some(
+        (collection) => policies.abilities(collection.id).createDocument
+      )
+    : can.createDocument;
   const history = useHistory();
   const isMobile = useMobile();
 
@@ -68,10 +73,16 @@ function AppSidebar() {
   useEffect(() => {
     void collections.fetchAll();
 
-    if (!user.isViewer) {
+    if (auth.websiteIntegrationEnabled ? canCreateAny : !user.isViewer) {
       void documents.fetchDrafts();
     }
-  }, [documents, collections, user.isViewer]);
+  }, [
+    documents,
+    collections,
+    user.isViewer,
+    auth.websiteIntegrationEnabled,
+    canCreateAny,
+  ]);
 
   // Scrollable reads ref.current internally for its shadow/ResizeObserver
   // logic, so we must pass an object ref — a callback ref would leave those
@@ -138,7 +149,7 @@ function AppSidebar() {
               onClick={handleSearchClick}
               onClickIntent={Scenes.Search.preload}
             />
-            {can.createDocument && <DraftsLink />}
+            {canCreateAny && <DraftsLink />}
           </Section>
         </Overflow>
         <SidebarScrollable flex shadow ref={scrollRef}>

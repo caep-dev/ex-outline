@@ -19,7 +19,7 @@ import SettingRow from "./components/SettingRow";
 
 const Profile = () => {
   const user = useCurrentUser();
-  const { dialogs } = useStores();
+  const { auth, dialogs } = useStores();
   const form = React.useRef<HTMLFormElement>(null);
   const [name, setName] = React.useState<string>(user.name);
   const { t } = useTranslation();
@@ -59,6 +59,32 @@ const Profile = () => {
 
   const isValid = form.current?.checkValidity();
   const { isSaving } = user;
+
+  if (auth.websiteIntegrationEnabled) {
+    return (
+      <Scene title={t("Profile")} icon={<ProfileIcon />}>
+        <Heading>{t("Profile")}</Heading>
+        <SettingRow label={t("Photo")} name="avatarUrl">
+          <img
+            src={user.avatarUrl}
+            alt={t("Profile picture")}
+            width={64}
+            height={64}
+          />
+        </SettingRow>
+        <SettingRow label={t("Name")} name="name">
+          <Text>{user.name}</Text>
+        </SettingRow>
+        <SettingRow label={t("Email address")} name="email">
+          <Text>{user.email}</Text>
+        </SettingRow>
+        <p>Your account details are managed by Website.</p>
+        <a href={`${window.location.origin}/account/profile`}>
+          Open Website settings
+        </a>
+      </Scene>
+    );
+  }
 
   return (
     <Scene title={t("Profile")} icon={<ProfileIcon />}>

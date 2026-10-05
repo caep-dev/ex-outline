@@ -12,7 +12,9 @@ import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { DocumentPermission } from "@shared/types";
+import { publicUrl } from "@shared/utils/publicPath";
 import type Document from "~/models/Document";
+import env from "~/env";
 import Group from "~/models/Group";
 import User from "~/models/User";
 import { Avatar, GroupAvatar, AvatarSize } from "~/components/Avatar";
@@ -46,7 +48,7 @@ type Props = {
   loading?: boolean;
 };
 
-function SharePopover({
+function LegacySharePopover({
   document,
   onRequestClose,
   visible,
@@ -412,6 +414,34 @@ function SharePopover({
       </div>
     </Wrapper>
   );
+}
+
+function IntegratedSharePopover(props: Props) {
+  const wrapperRef = React.useRef<HTMLDivElement>(null);
+  React.useLayoutEffect(() => {
+    if (props.visible) {
+      wrapperRef.current?.focus();
+    }
+  }, [props.visible]);
+  return (
+    <Wrapper ref={wrapperRef} tabIndex={-1}>
+      <p>
+        Copy a link to this document. Access follows collection permissions.
+      </p>
+      <CopyLinkButton
+        url={publicUrl(env.URL, documentPath(props.document))}
+        onCopy={props.onRequestClose}
+      />
+    </Wrapper>
+  );
+}
+
+function SharePopover(props: Props) {
+  const { auth } = useStores();
+  if (auth.websiteIntegrationEnabled) {
+    return <IntegratedSharePopover {...props} />;
+  }
+  return <LegacySharePopover {...props} />;
 }
 
 export default observer(SharePopover);

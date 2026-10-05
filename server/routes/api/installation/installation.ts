@@ -2,7 +2,8 @@ import Router from "koa-router";
 import { Client, UserRole } from "@shared/types";
 import slugify from "@shared/utils/slugify";
 import teamCreator from "@server/commands/teamCreator";
-import { ValidationError } from "@server/errors";
+import env from "@server/env";
+import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
@@ -20,6 +21,9 @@ router.post(
   validate(T.InstallationCreateSchema),
   transaction(),
   async (ctx: APIContext<T.InstallationCreateSchemaReq>) => {
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      throw NotFoundError();
+    }
     const { teamName, userName, userEmail } = ctx.input.body;
     const { transaction } = ctx.state;
 

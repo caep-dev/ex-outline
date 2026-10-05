@@ -11,6 +11,7 @@ import { changeTheme } from "~/actions/definitions/settings";
 import { ActionSeparator } from "~/actions";
 import { useMenuAction } from "~/hooks/useMenuAction";
 import { DropdownMenu } from "~/components/Menu/DropdownMenu";
+import useStores from "~/hooks/useStores";
 
 type Props = {
   children?: React.ReactNode;
@@ -18,17 +19,21 @@ type Props = {
 
 const AccountMenu: React.FC = ({ children }: Props) => {
   const { t } = useTranslation();
+  const { auth } = useStores();
 
   const actions = React.useMemo(
-    () => [
-      openKeyboardShortcuts,
-      changeTheme,
-      navigateToProfileSettings,
-      navigateToAccountPreferences,
-      ActionSeparator,
-      logout,
-    ],
-    []
+    () =>
+      auth.websiteIntegrationEnabled
+        ? [changeTheme, navigateToProfileSettings, ActionSeparator, logout]
+        : [
+            openKeyboardShortcuts,
+            changeTheme,
+            navigateToProfileSettings,
+            navigateToAccountPreferences,
+            ActionSeparator,
+            logout,
+          ],
+    [auth.websiteIntegrationEnabled]
   );
 
   const rootAction = useMenuAction(actions);

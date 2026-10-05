@@ -1,11 +1,15 @@
 import { existsSync, copyFileSync } from "node:fs";
 import { readFile } from "node:fs/promises";
+import { randomUUID } from "node:crypto";
 import path from "node:path";
 import FormData from "form-data";
 import { ensureDirSync } from "fs-extra";
 import JWT from "jsonwebtoken";
+import { CSRF } from "@shared/constants";
 import { FileOperationState, FileOperationType } from "@shared/types";
 import env from "@server/env";
+import WebsiteIdentityClient from "@server/identity/WebsiteIdentityClient";
+import { issueExternalSessionToken } from "@server/identity/authenticateExternalSession";
 import AttachmentHelper, {
   Buckets,
 } from "@server/models/helpers/AttachmentHelper";
@@ -16,7 +20,19 @@ import {
   buildUser,
 } from "@server/test/factories";
 import { getTestServer } from "@server/test/support";
-import { randomUUID } from "node:crypto";
+import {
+  ExternalIdentity,
+  ExternalSession,
+  WebsiteIntegration,
+} from "@server/models";
+import { parser } from "@server/editor";
+import { bundleToken, generateRawToken } from "@server/utils/csrf";
+import {
+  buildCollection,
+  buildDocument,
+  buildShare,
+  buildTeam,
+} from "@server/test/factories";
 
 const server = getTestServer();
 
@@ -288,6 +304,179 @@ describe("#files.create", () => {
       body: form,
     });
     expect(res.status).toEqual(401);
+  });
+});
+
+describe("integrated local uploads", () => {
+  async function fixture() {
+    const issuer = "http://identity.exwebsite.test:8090/";
+    process.env.HYDRA_PUBLIC_URL = issuer;
+    process.env.WEBSITE_INTERNAL_URL = "http://127.0.0.1:18766/";
+    process.env.OUTLINE_INTEGRATION_KEY = "isolated-test-key";
+    env.WEBSITE_INTEGRATION_ENABLED = true;
+    const team = await buildTeam({ sharing: true });
+    const user = await buildUser({ teamId: team.id });
+    await WebsiteIntegration.create({
+      key: "website",
+      teamId: team.id,
+      issuer,
+      initialAdminSubject: randomUUID(),
+    });
+    const websiteSessionId = randomUUID();
+    const subject = randomUUID();
+    await ExternalIdentity.create({ issuer, subject, userId: user.id });
+    const session = await ExternalSession.create({
+      userId: user.id,
+      websiteSessionId,
+      hydraSid: "safe-test-sid",
+      clientId: "ex-outline",
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    vi.spyOn(WebsiteIdentityClient.prototype, "check").mockResolvedValue({
+      active: true,
+      sessionId: websiteSessionId,
+      userId: subject,
+      expiresAt: Date.now() + 60_000,
+      profile: {
+        nickname: user.name,
+        email: user.email ?? "uploader@example.test",
+        avatarUrl: null,
+        version: 0,
+      },
+    });
+    const fileName = "avatar.jpg";
+    const content = await readFile(
+      path.resolve(__dirname, "..", "test", "fixtures", fileName)
+    );
+    const attachment = await buildAttachment(
+      {
+        teamId: team.id,
+        userId: user.id,
+        size: content.byteLength,
+        contentType: "image/jpeg",
+      },
+      fileName
+    );
+    const sig = JWT.sign(
+      { key: attachment.key, type: "attachment-upload" },
+      env.SECRET_KEY,
+      { expiresIn: 3600 }
+    );
+    const csrf = bundleToken(generateRawToken(16), env.SECRET_KEY);
+    const form = () => {
+      const body = new FormData();
+      body.append("key", attachment.key);
+      body.append("file", content, fileName);
+      body.append("sig", sig);
+      body.append(CSRF.fieldName, csrf);
+      return body;
+    };
+    const cookie = `exdocs_access=${issueExternalSessionToken(session)}; ${CSRF.cookieName}=${csrf}`;
+    return { attachment, session, team, fileName, content, form, cookie, csrf };
+  }
+
+  it("rejects an integrated signed upload without a Website cookie", async () => {
+    const { attachment, form } = await fixture();
+    const body = form();
+    const response = await server.post("/api/files.create", {
+      headers: body.getHeaders(),
+      body,
+    });
+    expect(response.status).toBe(401);
+    expect(
+      existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+    ).toBe(false);
+  });
+
+  it("rejects a signed upload replayed after Website logout", async () => {
+    const { attachment, session, form, cookie } = await fixture();
+    await session.update({ revokedAt: new Date() });
+    const body = form();
+    const response = await server.post("/api/files.create", {
+      headers: {
+        ...body.getHeaders(),
+        Cookie: cookie,
+        Origin: new URL(env.URL).origin,
+      },
+      body,
+    });
+    expect(response.status).toBe(401);
+    expect(
+      existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+    ).toBe(false);
+  });
+
+  it("accepts a signed upload for its owner with a current Website session", async () => {
+    const { attachment, form, cookie } = await fixture();
+    const body = form();
+    const response = await server.post("/api/files.create", {
+      headers: {
+        ...body.getHeaders(),
+        Cookie: cookie,
+        Origin: new URL(env.URL).origin,
+      },
+      body,
+    });
+    expect(response.status).toBe(200);
+    expect((await response.json()).success).toBe(true);
+    expect(
+      existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+    ).toBe(true);
+  });
+
+  it("rejects a signed upload for another attachment owner", async () => {
+    const { team, fileName, content, cookie, csrf } = await fixture();
+    const other = await buildUser({ teamId: team.id });
+    const attachment = await buildAttachment(
+      {
+        teamId: team.id,
+        userId: other.id,
+        size: content.byteLength,
+        contentType: "image/jpeg",
+      },
+      fileName
+    );
+    const sig = JWT.sign(
+      { key: attachment.key, type: "attachment-upload" },
+      env.SECRET_KEY,
+      { expiresIn: 3600 }
+    );
+    const body = new FormData();
+    body.append("key", attachment.key);
+    body.append("file", content, fileName);
+    body.append("sig", sig);
+    body.append(CSRF.fieldName, csrf);
+    const response = await server.post("/api/files.create", {
+      headers: {
+        ...body.getHeaders(),
+        Cookie: cookie,
+        Origin: new URL(env.URL).origin,
+      },
+      body,
+    });
+    expect(response.status).toBe(403);
+    expect(
+      existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+    ).toBe(false);
+  });
+
+  it("retains upstream signed uploads without a session", async () => {
+    const { attachment, form } = await fixture();
+    const previous = env.WEBSITE_INTEGRATION_ENABLED;
+    try {
+      env.WEBSITE_INTEGRATION_ENABLED = false;
+      const body = form();
+      const response = await server.post("/api/files.create", {
+        headers: body.getHeaders(),
+        body,
+      });
+      expect(response.status).toBe(200);
+      expect(
+        existsSync(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key))
+      ).toBe(true);
+    } finally {
+      env.WEBSITE_INTEGRATION_ENABLED = previous;
+    }
   });
 });
 
@@ -564,35 +753,108 @@ describe("#files.get", () => {
   });
 
   it("should succeed with status 200 ok when exported file is requested using signature", async () => {
-    const user = await buildUser();
-    const fileName = "export-markdown.zip";
-    const key = `${Buckets.uploads}/${user.teamId}/${crypto.randomUUID()}/${fileName}`;
+    const previousIntegration = env.WEBSITE_INTEGRATION_ENABLED;
+    env.WEBSITE_INTEGRATION_ENABLED = false;
+    try {
+      const user = await buildUser();
+      const fileName = "export-markdown.zip";
+      const key = `${Buckets.uploads}/${user.teamId}/${crypto.randomUUID()}/${fileName}`;
 
-    await buildFileOperation({
-      userId: user.id,
-      teamId: user.teamId,
-      type: FileOperationType.Export,
-      state: FileOperationState.Complete,
-      key,
+      await buildFileOperation({
+        userId: user.id,
+        teamId: user.teamId,
+        type: FileOperationType.Export,
+        state: FileOperationState.Complete,
+        key,
+      });
+
+      ensureDirSync(
+        path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+      );
+
+      copyFileSync(
+        path.resolve(__dirname, "..", "test", "fixtures", fileName),
+        path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+      );
+
+      const signedUrl = await FileStorage.getSignedUrl(key);
+      const url = new URL(signedUrl);
+      const res = await server.get(url.pathname + url.search);
+
+      expect(res.status).toEqual(200);
+      expect(res.headers.get("Content-Type")).toEqual("application/zip");
+      expect(res.headers.get("Content-Disposition")).toEqual(
+        'attachment; filename="export-markdown.zip"'
+      );
+    } finally {
+      env.WEBSITE_INTEGRATION_ENABLED = previousIntegration;
+    }
+  });
+});
+
+describe("integrated local file reads", () => {
+  it("rechecks public ownership and revocation for key, signed and Range reads", async () => {
+    const team = await buildTeam({ sharing: true });
+    const user = await buildUser({ teamId: team.id });
+    await WebsiteIntegration.create({
+      key: "website",
+      teamId: team.id,
+      issuer: "http://identity.exwebsite.test:8090/",
+      initialAdminSubject: randomUUID(),
     });
-
-    ensureDirSync(
-      path.dirname(path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key))
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      sharing: true,
+      permission: null,
+    });
+    const share = await buildShare({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      documentId: null,
+      published: true,
+    });
+    const document = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+    });
+    const attachment = await buildAttachment(
+      {
+        teamId: team.id,
+        userId: user.id,
+        documentId: document.id,
+        acl: "private",
+        contentType: "image/jpg",
+      },
+      "avatar.jpg"
     );
-
+    const redirectUrl = `/api/attachments.redirect?id=${attachment.id}`;
+    await document.update({
+      text: `![image](${redirectUrl})`,
+      content: parser.parse(`![image](${redirectUrl})`)?.toJSON(),
+    });
+    const filePath = path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, attachment.key);
+    ensureDirSync(path.dirname(filePath));
     copyFileSync(
-      path.resolve(__dirname, "..", "test", "fixtures", fileName),
-      path.join(env.FILE_STORAGE_LOCAL_ROOT_DIR, key)
+      path.resolve(__dirname, "..", "test", "fixtures", "avatar.jpg"),
+      filePath
     );
 
-    const signedUrl = await FileStorage.getSignedUrl(key);
-    const url = new URL(signedUrl);
-    const res = await server.get(url.pathname + url.search);
+    const keyPath = `/api/files.get?key=${encodeURIComponent(attachment.key)}`;
+    const publicRange = await server.get(keyPath, {
+      headers: { Range: "bytes=0-3", Cookie: "exdocs_access=expired-cookie" },
+    });
+    expect(publicRange.status, await publicRange.text()).toBe(206);
+    expect(publicRange.headers.get("cache-control")).toBe("no-store");
 
-    expect(res.status).toEqual(200);
-    expect(res.headers.get("Content-Type")).toEqual("application/zip");
-    expect(res.headers.get("Content-Disposition")).toEqual(
-      'attachment; filename="export-markdown.zip"'
-    );
+    const signed = new URL(await attachment.signedUrl);
+    await share.update({ revokedAt: new Date() });
+    const replay = await server.get(signed.pathname + signed.search, {
+      headers: { Range: "bytes=0-3" },
+    });
+    expect(replay.status).toBe(404);
+    expect((await server.get(keyPath)).status).toBe(404);
   });
 });

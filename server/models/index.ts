@@ -80,3 +80,6 @@ export { default as Emoji } from "./Emoji";
 export { default as UserPasskey } from "./UserPasskey";
 
 export { default as AccessRequest } from "./AccessRequest";
+export { default as WebsiteIntegration } from "./WebsiteIntegration";
+export { default as ExternalIdentity } from "./ExternalIdentity";
+export { default as ExternalSession } from "./ExternalSession";

@@ -7,6 +7,7 @@ import { errToId } from "@shared/utils/error";
 import { QueryNotices, TeamPreference } from "@shared/types";
 import {
   AuthenticationError,
+  AuthorizationError,
   InvalidRequestError,
   NotFoundError,
 } from "@server/errors";
@@ -45,17 +46,27 @@ import {
 } from "@server/commands/shareLoader";
 import shareDomains from "@server/middlewares/shareDomains";
 import env from "@server/env";
+import { publicDocumentContent } from "@server/commands/publicAccess";
 import { safeEqual } from "@server/utils/crypto";
 
 const router = new Router();
 
 router.post(
   "shares.info",
-  auth({ optional: true }),
+  async (ctx, next) =>
+    env.WEBSITE_INTEGRATION_ENABLED &&
+    typeof ctx.request.body === "object" &&
+    ctx.request.body !== null &&
+    "id" in ctx.request.body
+      ? next()
+      : auth({ optional: true })(ctx, next),
   validate(T.SharesInfoSchema),
   async (ctx: APIContext<T.SharesInfoReq>) => {
     const { id, collectionId, documentId } = ctx.input.body;
-    const { user } = ctx.state.auth;
+    const user = ctx.state.auth?.user;
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      ctx.set("Cache-Control", "no-store");
+    }
     const teamFromCtx = await getTeamFromContext(ctx, {
       includeOAuthState: false,
     });
@@ -68,6 +79,45 @@ router.post(
         documentId,
         teamId: teamFromCtx?.id,
       });
+
+      if (env.WEBSITE_INTEGRATION_ENABLED) {
+        const visibleCollection = collection;
+        if (!visibleCollection) {
+          throw NotFoundError();
+        }
+        ctx.body = {
+          data: {
+            shares: [
+              {
+                ...presentShare(share, { isPublic: true }),
+                url:
+                  document?.path ??
+                  `/public/collection/${visibleCollection.id}`,
+              },
+            ],
+            sharedTree,
+            team: presentPublicTeam(share.team, false),
+            collection: {
+              id: visibleCollection.id,
+              name: visibleCollection.name,
+              description: visibleCollection.description,
+              url: `/public/collection/${visibleCollection.id}`,
+            },
+            document: document
+              ? {
+                  id: document.id,
+                  collectionId: document.collectionId,
+                  title: document.title,
+                  content: await publicDocumentContent(document),
+                  url: document.path,
+                  updatedAt: document.updatedAt.toISOString(),
+                }
+              : null,
+          },
+          policies: {},
+        };
+        return;
+      }
 
       // reload with membership scope if user is authenticated
       if (user) {
@@ -125,6 +175,9 @@ router.post(
     if (!user) {
       throw AuthenticationError("Authentication required");
     }
+    if (env.WEBSITE_INTEGRATION_ENABLED && !user.isAdmin) {
+      throw AuthorizationError();
+    }
 
     try {
       const { share, parentShare } = await loadShareWithParent({
@@ -164,6 +217,9 @@ router.post(
   async (ctx: APIContext<T.SharesListReq>) => {
     const { sort, direction, query } = ctx.input.body;
     const { user } = ctx.state.auth;
+    if (env.WEBSITE_INTEGRATION_ENABLED && !user.isAdmin) {
+      throw AuthorizationError();
+    }
     authorize(user, "listShares", user.team);
     const collectionIds = await user.collectionIds();
 
@@ -279,11 +335,36 @@ router.post(
       showTOC,
     } = ctx.input.body;
     const { user } = ctx.state.auth;
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      if (!user.isAdmin) {
+        throw AuthorizationError();
+      }
+      if (!collectionId || documentId || !published || urlId) {
+        throw InvalidRequestError("Only collection publication is supported");
+      }
+    }
     authorize(user, "createShare", user.team);
+
+    if (env.WEBSITE_INTEGRATION_ENABLED && collectionId) {
+      // Lock only the collection row. The membership scope below includes
+      // optional joins, which PostgreSQL cannot lock with plain FOR UPDATE.
+      const lockedCollection = await Collection.unscoped().findOne({
+        attributes: ["id"],
+        where: { id: collectionId, teamId: user.teamId },
+        transaction: ctx.state.transaction,
+        lock: ctx.state.transaction.LOCK.UPDATE,
+      });
+      if (!lockedCollection) {
+        throw NotFoundError();
+      }
+    }
 
     const collection = collectionId
       ? await Collection.findByPk(collectionId, {
           userId: user.id,
+          ...(env.WEBSITE_INTEGRATION_ENABLED
+            ? { transaction: ctx.state.transaction }
+            : {}),
         })
       : null;
     const document = documentId
@@ -316,8 +397,10 @@ router.post(
       defaults: {
         userId: user.id,
         published,
-        includeChildDocuments: published || includeChildDocuments,
-        allowIndexing,
+        includeChildDocuments: env.WEBSITE_INTEGRATION_ENABLED
+          ? true
+          : published || includeChildDocuments,
+        allowIndexing: env.WEBSITE_INTEGRATION_ENABLED ? true : allowIndexing,
         allowSubscriptions,
         showLastUpdated,
         showTOC,
@@ -367,12 +450,27 @@ router.post(
     } = ctx.input.body;
 
     const { user } = ctx.state.auth;
+    if (env.WEBSITE_INTEGRATION_ENABLED && !user.isAdmin) {
+      throw AuthorizationError();
+    }
     authorize(user, "share", user.team);
 
     // fetch the share with document and collection.
     const share = await Share.scope({
       method: ["withCollectionPermissions", user.id],
     }).findByPk(id);
+
+    if (
+      env.WEBSITE_INTEGRATION_ENABLED &&
+      (!share?.collectionId ||
+        share.documentId ||
+        published === false ||
+        includeChildDocuments === false ||
+        allowIndexing === false ||
+        urlId !== undefined)
+    ) {
+      throw NotFoundError();
+    }
 
     authorize(user, "update", share);
 
@@ -429,7 +527,17 @@ router.post(
   async (ctx: APIContext<T.SharesRevokeReq>) => {
     const { id } = ctx.input.body;
     const { user } = ctx.state.auth;
+    if (env.WEBSITE_INTEGRATION_ENABLED && !user.isAdmin) {
+      throw AuthorizationError();
+    }
     const share = await Share.findByPk(id);
+
+    if (
+      env.WEBSITE_INTEGRATION_ENABLED &&
+      (!share?.collectionId || share.documentId)
+    ) {
+      throw NotFoundError();
+    }
 
     if (!share?.collection && !share?.document) {
       throw NotFoundError();
@@ -451,6 +559,9 @@ router.get(
   shareDomains(),
   validate(T.SharesSitemapSchema),
   async (ctx: APIContext<T.SharesSitemapReq>) => {
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      throw NotFoundError();
+    }
     const { id } = ctx.input.query;
     const team = await getTeamFromContext(ctx, { includeOAuthState: false });
 

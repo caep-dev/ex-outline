@@ -20,6 +20,7 @@ import {
   newDocumentPath,
 } from "~/utils/routeHelpers";
 import useCurrentUser from "~/hooks/useCurrentUser";
+import useStores from "~/hooks/useStores";
 import type { SidebarContextType } from "~/components/Sidebar/components/SidebarContext";
 import { CollectionTab } from "./Navigation";
 import lazyWithRetry from "~/utils/lazyWithRetry";
@@ -42,6 +43,8 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
   const { t } = useTranslation();
   const can = usePolicy(collection);
   const user = useCurrentUser();
+  const { auth } = useStores();
+  const canManage = !auth.websiteIntegrationEnabled || user.isAdmin;
 
   const goToEdit = useCallback(() => {
     history.push({
@@ -59,7 +62,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
 
   return (
     <>
-      {can.createDocument && (
+      {canManage && can.createDocument && (
         <Action>
           <Tooltip content={t("New document")} shortcut="n" placement="bottom">
             <Button
@@ -74,7 +77,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
           </Tooltip>
         </Action>
       )}
-      {!isEditing && user?.separateEditMode && (
+      {canManage && !isEditing && user?.separateEditMode && (
         <Action>
           <RegisterKeyDown trigger="e" handler={goToEdit} />
           <Tooltip
@@ -88,7 +91,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
           </Tooltip>
         </Action>
       )}
-      {isEditing && user?.separateEditMode && (
+      {canManage && isEditing && user?.separateEditMode && (
         <Action>
           <RegisterKeyDown trigger="Escape" handler={goBack} />
           <Button onClick={goBack}>{t("Done editing")}</Button>

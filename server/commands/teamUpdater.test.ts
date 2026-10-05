@@ -2,10 +2,35 @@ import type { CustomTheme } from "@shared/types";
 import { randomString } from "@shared/random";
 import { CommentingAccess, TeamPreference } from "@shared/types";
 import { buildTeam, buildUser } from "@server/test/factories";
+import env from "@server/env";
 import { setCloudHosted, withAPIContext } from "@server/test/support";
 import teamUpdater from "./teamUpdater";
 
 describe("teamUpdater", () => {
+  it("keeps integrated membership and commenting defaults fixed through direct update", async () => {
+    const previous = env.WEBSITE_INTEGRATION_ENABLED;
+    env.WEBSITE_INTEGRATION_ENABLED = true;
+    try {
+      const team = await buildTeam();
+      const user = await buildUser({ teamId: team.id });
+      await expect(
+        withAPIContext(user, (ctx) =>
+          teamUpdater(ctx, {
+            user,
+            team,
+            params: {
+              memberCollectionCreate: true,
+              preferences: {
+                [TeamPreference.Commenting]: CommentingAccess.None,
+              },
+            },
+          })
+        )
+      ).rejects.toThrow();
+    } finally {
+      env.WEBSITE_INTEGRATION_ENABLED = previous;
+    }
+  });
   describe("preferences", () => {
     it("should update preference when value changes", async () => {
       const team = await buildTeam();

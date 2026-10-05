@@ -1,5 +1,6 @@
 import { Client } from "@shared/types";
 import { parseDomain } from "@shared/utils/domains";
+import { publicBasePath, publicPath } from "@shared/utils/publicPath";
 import env from "~/env";
 import Desktop from "~/utils/Desktop";
 
@@ -18,7 +19,7 @@ import Desktop from "~/utils/Desktop";
 export function getRedirectUrl(authUrl: string) {
   const { custom, teamSubdomain, host } = parseDomain(window.location.origin);
   const url = new URL(env.URL);
-  url.pathname = authUrl;
+  url.pathname = publicPath(publicBasePath(env.URL), authUrl);
 
   if (custom || teamSubdomain) {
     url.searchParams.set("host", host);

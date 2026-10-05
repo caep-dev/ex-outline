@@ -59,7 +59,7 @@ const CollectionScene = observer(function CollectionScene_() {
   const match = useRouteMatch();
   const location = useLocation();
   const user = useCurrentUser();
-  const { documents, collections, shares, ui } = useStores();
+  const { auth, documents, collections, shares, ui } = useStores();
   const [error, setError] = useState<Error | undefined>();
   const currentPath = location.pathname;
   useTrackLastVisitedPath(currentPath);
@@ -120,14 +120,14 @@ const CollectionScene = observer(function CollectionScene_() {
   }, []);
 
   useEffect(() => {
-    if (collection) {
+    if (collection && (!auth.websiteIntegrationEnabled || auth.user?.isAdmin)) {
       shares.fetchOne({ collectionId: collection.id }).catch((err) => {
         if (!(err instanceof NotFoundError)) {
           throw err;
         }
       });
     }
-  }, [shares, collection]);
+  }, [shares, collection, auth.websiteIntegrationEnabled, auth.user?.isAdmin]);
 
   useCommandBarActions([editCollection], [ui.activeCollectionId ?? "none"]);
 
@@ -138,7 +138,8 @@ const CollectionScene = observer(function CollectionScene_() {
     return <Loading />;
   }
 
-  const showOverview = can.update || hasDescription;
+  const canManage = !auth.websiteIntegrationEnabled || auth.user?.isAdmin;
+  const showOverview = (can.update && canManage) || hasDescription;
 
   return (
     <Scene
@@ -213,7 +214,9 @@ const CollectionScene = observer(function CollectionScene_() {
                   <Overview
                     collection={collection}
                     readOnly={
-                      !can.update || (!isEditRoute && !!user?.separateEditMode)
+                      !can.update ||
+                      !canManage ||
+                      (!isEditRoute && !!user?.separateEditMode)
                     }
                   />
                 ) : (

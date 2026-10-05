@@ -4,6 +4,10 @@ import { isEmpty } from "es-toolkit/compat";
 import { toError, errToString } from "@shared/utils/error";
 import { Minute } from "@shared/utils/time";
 import env from "@server/env";
+import {
+  assertIntegrationReady,
+  assertIntegrationModeSafe,
+} from "@server/identity/readiness";
 import Logger from "@server/logging/Logger";
 import AuthenticationProvider from "@server/models/AuthenticationProvider";
 import Team from "@server/models/Team";
@@ -96,6 +100,23 @@ $ node ./build/server/scripts/20210226232041-migrate-authentication.js
 }
 
 void (async () => {
+  try {
+    await assertIntegrationModeSafe();
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      await assertIntegrationReady();
+      process.exit(0);
+    }
+  } catch (error) {
+    const code =
+      error instanceof Error && /^INTEGRATION_[A-Z_]+$/.test(error.message)
+        ? error.message
+        : "INTEGRATION_CHECK_FAILED";
+    // oxlint-disable-next-line no-console
+    console.error(
+      `${code}: verify configuration, explicit migrations and administrator bootstrap`
+    );
+    process.exit(1);
+  }
   await checkConnection(sequelize);
   await checkPendingMigrations();
 

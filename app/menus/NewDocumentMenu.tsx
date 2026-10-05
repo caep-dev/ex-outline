@@ -10,6 +10,7 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Button from "~/components/Button";
 import Tooltip from "~/components/Tooltip";
+import useStores from "~/hooks/useStores";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import usePolicy from "~/hooks/usePolicy";
 import { preloadEditor } from "~/routes/scenes";
@@ -19,8 +20,16 @@ function NewDocumentMenu() {
   const { t } = useTranslation();
   const team = useCurrentTeam();
   const can = usePolicy(team);
+  const { auth, collections, policies } = useStores();
+  const hasEditableCollection = collections.allActive.some(
+    (collection) => policies.abilities(collection.id).createDocument
+  );
 
-  if (!can.createDocument) {
+  if (
+    auth.websiteIntegrationEnabled
+      ? !hasEditableCollection
+      : !can.createDocument
+  ) {
     return null;
   }
 

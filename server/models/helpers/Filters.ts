@@ -13,6 +13,8 @@ import {
 import type { DateFilter, StatusFilter } from "@shared/types";
 import { StatusFilter as StatusFilterEnum, UserRole } from "@shared/types";
 import { Collection } from "@server/models";
+import { isPublicCollection } from "@server/commands/publicAccess";
+import env from "@server/env";
 import type User from "@server/models/User";
 import { authorize } from "@server/policies";
 import { isISO8601Duration } from "@server/validation";
@@ -471,6 +473,13 @@ export async function authorizeFilterFields(
   );
 
   for (const collection of collections) {
+    if (
+      env.WEBSITE_INTEGRATION_ENABLED &&
+      collection?.teamId === user.teamId &&
+      (await isPublicCollection(collection.id))
+    ) {
+      continue;
+    }
     authorize(user, "readDocument", collection);
   }
 }

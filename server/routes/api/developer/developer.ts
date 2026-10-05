@@ -7,6 +7,7 @@ import type { Invite } from "@server/commands/userInviter";
 import userInviter from "@server/commands/userInviter";
 import env from "@server/env";
 import Logger from "@server/logging/Logger";
+import { NotFoundError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import validate from "@server/middlewares/validate";
 import { Document, Notification, User } from "@server/models";
@@ -33,6 +34,9 @@ router.post(
   auth(),
   validate(T.CreateTestUsersSchema),
   async (ctx: APIContext<T.CreateTestUsersReq>) => {
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      throw NotFoundError();
+    }
     const { count } = ctx.input.body;
     const invites = Array(Math.min(count, 100))
       .fill(0)

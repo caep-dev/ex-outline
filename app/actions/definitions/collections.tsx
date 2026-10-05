@@ -118,6 +118,7 @@ export const createCollection = dialogActionFactory({
   keywords: "create",
   stopEvent: true,
   visible: ({ stores }) =>
+    (!stores.auth.websiteIntegrationEnabled || !!stores.auth.user?.isAdmin) &&
     stores.policies.abilities(stores.auth.team?.id || "").createCollection,
 });
 
@@ -126,7 +127,8 @@ export const editCollection = createAction({
   analyticsName: "Edit collection",
   section: ActiveCollectionSection,
   icon: <EditIcon />,
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActivePolicies, stores }) =>
+    (!stores.auth.websiteIntegrationEnabled || !!stores.auth.user?.isAdmin) &&
     getActivePolicies(Collection).some((policy) => policy.abilities.update),
   perform: ({ t, getActiveModel, stores }) => {
     const collection = getActiveModel(Collection);
@@ -152,7 +154,8 @@ export const editCollectionPermissions = createAction({
   analyticsName: "Collection permissions",
   section: ActiveCollectionSection,
   icon: <PadlockIcon />,
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActivePolicies, stores }) =>
+    (!stores.auth.websiteIntegrationEnabled || !!stores.auth.user?.isAdmin) &&
     getActivePolicies(Collection).some((policy) => policy.abilities.update),
   perform: ({ t, getActiveModel, stores }) => {
     const collection = getActiveModel(Collection);
@@ -182,7 +185,8 @@ export const duplicateCollection = createAction({
   section: ActiveCollectionSection,
   icon: <DuplicateIcon />,
   keywords: "copy",
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActivePolicies, stores }) =>
+    (!stores.auth.websiteIntegrationEnabled || !!stores.auth.user?.isAdmin) &&
     getActivePolicies(Collection).some((policy) => policy.abilities.duplicate),
   perform: ({ getActiveModel, t, stores }) => {
     const collection = getActiveModel(Collection);
@@ -231,7 +235,8 @@ export const importDocument = dialogActionFactory({
 export const sortCollection = createActionWithChildren({
   name: ({ t }) => t("Sort in sidebar"),
   section: ActiveCollectionSection,
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActivePolicies, stores }) =>
+    (!stores.auth.websiteIntegrationEnabled || !!stores.auth.user?.isAdmin) &&
     getActivePolicies(Collection).some((policy) => policy.abilities.update),
   icon: ({ getActiveModel }) => {
     const collection = getActiveModel(Collection);
@@ -461,7 +466,8 @@ export const archiveCollection = createAction({
   analyticsName: "Archive collection",
   section: ActiveCollectionSection,
   icon: <ArchiveIcon />,
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActivePolicies, stores }) =>
+    (!stores.auth.websiteIntegrationEnabled || !!stores.auth.user?.isAdmin) &&
     getActivePolicies(Collection).some((policy) => policy.abilities.archive),
   perform: async ({ getActiveModel, stores, t }) => {
     const collection = getActiveModel(Collection);
@@ -494,7 +500,8 @@ export const restoreCollection = createAction({
   analyticsName: "Restore collection",
   section: CollectionSection,
   icon: <RestoreIcon />,
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActivePolicies, stores }) =>
+    (!stores.auth.websiteIntegrationEnabled || !!stores.auth.user?.isAdmin) &&
     getActivePolicies(Collection).some((policy) => policy.abilities.restore),
   perform: async ({ getActiveModel, t }) => {
     const collection = getActiveModel(Collection);
@@ -513,7 +520,8 @@ export const deleteCollection = createAction({
   section: ActiveCollectionSection,
   dangerous: true,
   icon: <TrashIcon />,
-  visible: ({ getActivePolicies }) =>
+  visible: ({ getActivePolicies, stores }) =>
+    (!stores.auth.websiteIntegrationEnabled || !!stores.auth.user?.isAdmin) &&
     getActivePolicies(Collection).some((policy) => policy.abilities.delete),
   perform: ({ getActiveModel, t, stores }) => {
     const collection = getActiveModel(Collection);

@@ -209,6 +209,9 @@ class Share extends IdModel<
     teamId: string,
     documentIds: string | string[]
   ): Promise<Share[]> {
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      return Promise.resolve([]);
+    }
     return this.findPublicShares(teamId, "documentId", documentIds);
   }
 

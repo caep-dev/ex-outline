@@ -5,6 +5,7 @@ import {
   TeamPreference,
 } from "@shared/types";
 import { Document, Revision, User, Team } from "@server/models";
+import env from "@server/env";
 import { allow, cannot, can } from "./cancan";
 import { and, isTeamAdmin, isTeamModel, isTeamMutable, or } from "./utils";
 
@@ -12,7 +13,7 @@ allow(User, "createDocument", Team, (actor, document) =>
   and(
     //
     !actor.isGuest,
-    !actor.isViewer,
+    env.WEBSITE_INTEGRATION_ENABLED ? true : !actor.isViewer,
     isTeamModel(actor, document),
     isTeamMutable(actor)
   )
@@ -21,15 +22,20 @@ allow(User, "createDocument", Team, (actor, document) =>
 allow(User, "read", Document, (actor, document) =>
   and(
     isTeamModel(actor, document),
-    or(
-      includesMembership(document, [
-        DocumentPermission.Read,
-        DocumentPermission.ReadWrite,
-        DocumentPermission.Admin,
-      ]),
-      and(!!document?.isDraft, actor.id === document?.createdById),
-      can(actor, "readDocument", document?.collection)
-    )
+    env.WEBSITE_INTEGRATION_ENABLED
+      ? !!document?.isActive &&
+          (document.isDraft
+            ? can(actor, "updateDocument", document.collection)
+            : can(actor, "readDocument", document.collection))
+      : or(
+          includesMembership(document, [
+            DocumentPermission.Read,
+            DocumentPermission.ReadWrite,
+            DocumentPermission.Admin,
+          ]),
+          and(!!document?.isDraft, actor.id === document?.createdById),
+          can(actor, "readDocument", document?.collection)
+        )
   )
 );
 
@@ -51,6 +57,13 @@ allow(User, "download", Document, (actor, document) =>
 );
 
 allow(User, "comment", Document, (actor, document) => {
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return (
+      !!document?.isActive &&
+      isTeamMutable(actor) &&
+      can(actor, "read", document)
+    );
+  }
   const commenting = actor.team.getPreference(TeamPreference.Commenting);
   return and(
     !!document?.isActive,
@@ -75,30 +88,36 @@ allow(
 );
 
 allow(User, "share", Document, (actor, document) =>
-  and(
-    !!document?.isActive,
-    isTeamMutable(actor),
-    can(actor, "read", document),
-    or(!document?.collection, can(actor, "share", document?.collection))
-  )
+  env.WEBSITE_INTEGRATION_ENABLED
+    ? false
+    : and(
+        !!document?.isActive,
+        isTeamMutable(actor),
+        can(actor, "read", document),
+        or(!document?.collection, can(actor, "share", document?.collection))
+      )
 );
 
 allow(User, "update", Document, (actor, document) =>
-  and(
-    !!document?.isActive,
-    isTeamMutable(actor),
-    can(actor, "read", document),
-    or(
-      includesMembership(document, [
-        DocumentPermission.ReadWrite,
-        DocumentPermission.Admin,
-      ]),
-      or(
-        can(actor, "updateDocument", document?.collection),
-        and(!!document?.isDraft && actor.id === document?.createdById)
+  env.WEBSITE_INTEGRATION_ENABLED
+    ? !!document?.isActive &&
+      isTeamMutable(actor) &&
+      can(actor, "updateDocument", document.collection)
+    : and(
+        !!document?.isActive,
+        isTeamMutable(actor),
+        can(actor, "read", document),
+        or(
+          includesMembership(document, [
+            DocumentPermission.ReadWrite,
+            DocumentPermission.Admin,
+          ]),
+          or(
+            can(actor, "updateDocument", document?.collection),
+            and(!!document?.isDraft && actor.id === document?.createdById)
+          )
+        )
       )
-    )
-  )
 );
 
 allow(User, "publish", Document, (actor, document) =>
@@ -110,16 +129,18 @@ allow(User, "publish", Document, (actor, document) =>
 );
 
 allow(User, "manageUsers", Document, (actor, document) =>
-  and(
-    isTeamMutable(actor),
-    can(actor, "read", document),
-    or(
-      includesMembership(document, [DocumentPermission.Admin]),
-      isTeamAdmin(actor, document),
-      can(actor, "update", document?.collection),
-      !!document?.isDraft && actor.id === document?.createdById
-    )
-  )
+  env.WEBSITE_INTEGRATION_ENABLED
+    ? false
+    : and(
+        isTeamMutable(actor),
+        can(actor, "read", document),
+        or(
+          includesMembership(document, [DocumentPermission.Admin]),
+          isTeamAdmin(actor, document),
+          can(actor, "update", document?.collection),
+          !!document?.isDraft && actor.id === document?.createdById
+        )
+      )
 );
 
 // Note that read access to the source document is sufficient – the destination
@@ -129,23 +150,27 @@ allow(User, "duplicate", Document, (actor, document) =>
     !!document?.isActive,
     isTeamMutable(actor),
     can(actor, "read", document),
-    can(actor, "createDocument", actor.team)
+    env.WEBSITE_INTEGRATION_ENABLED
+      ? true
+      : can(actor, "createDocument", actor.team)
   )
 );
 
 allow(User, "move", Document, (actor, document) =>
-  and(
-    can(actor, "update", document),
-    or(
-      includesMembership(document, [
-        DocumentPermission.ReadWrite,
-        DocumentPermission.Admin,
-      ]),
-      can(actor, "updateDocument", document?.collection),
-      and(!!document?.isDraft && actor.id === document?.createdById),
-      and(!!document?.isDraft && !document?.collection)
-    )
-  )
+  env.WEBSITE_INTEGRATION_ENABLED
+    ? can(actor, "update", document)
+    : and(
+        can(actor, "update", document),
+        or(
+          includesMembership(document, [
+            DocumentPermission.ReadWrite,
+            DocumentPermission.Admin,
+          ]),
+          can(actor, "updateDocument", document?.collection),
+          and(!!document?.isDraft && actor.id === document?.createdById),
+          and(!!document?.isDraft && !document?.collection)
+        )
+      )
 );
 
 allow(User, "createChildDocument", Document, (actor, document) =>
@@ -176,32 +201,39 @@ allow(User, "pinToHome", Document, (actor, document) =>
 );
 
 allow(User, "delete", Document, (actor, document) =>
-  and(
-    !document?.isDeleted,
-    isTeamModel(actor, document),
-    isTeamMutable(actor),
-    or(
-      can(actor, "unarchive", document),
-      can(actor, "update", document),
-      and(!document?.collection, actor.id === document?.createdById)
-    )
-  )
+  env.WEBSITE_INTEGRATION_ENABLED
+    ? !!document && !document.isDeleted && can(actor, "update", document)
+    : and(
+        !document?.isDeleted,
+        isTeamModel(actor, document),
+        isTeamMutable(actor),
+        or(
+          can(actor, "unarchive", document),
+          can(actor, "update", document),
+          and(!document?.collection, actor.id === document?.createdById)
+        )
+      )
 );
 
 allow(User, "restore", Document, (actor, document) =>
-  and(
-    !actor.isGuest,
-    !!document?.isDeleted,
-    isTeamModel(actor, document),
-    or(
-      includesMembership(document, [
-        DocumentPermission.ReadWrite,
-        DocumentPermission.Admin,
-      ]),
-      can(actor, "updateDocument", document?.collection),
-      and(!!document?.isDraft && actor.id === document?.createdById)
-    )
-  )
+  env.WEBSITE_INTEGRATION_ENABLED
+    ? !!document?.isDeleted &&
+      isTeamModel(actor, document) &&
+      isTeamMutable(actor) &&
+      can(actor, "createDocument", document.collection)
+    : and(
+        !actor.isGuest,
+        !!document?.isDeleted,
+        isTeamModel(actor, document),
+        or(
+          includesMembership(document, [
+            DocumentPermission.ReadWrite,
+            DocumentPermission.Admin,
+          ]),
+          can(actor, "updateDocument", document?.collection),
+          and(!!document?.isDraft && actor.id === document?.createdById)
+        )
+      )
 );
 
 allow(User, "permanentDelete", Document, (actor, document) =>
@@ -227,20 +259,26 @@ allow(User, "archive", Document, (actor, document) =>
 );
 
 allow(User, "unarchive", Document, (actor, document) =>
-  and(
-    !document?.isDraft,
-    !document?.isDeleted,
-    !!document?.archivedAt,
-    can(actor, "read", document),
-    or(
-      includesMembership(document, [
-        DocumentPermission.ReadWrite,
-        DocumentPermission.Admin,
-      ]),
-      can(actor, "updateDocument", document?.collection),
-      and(!!document?.isDraft && actor.id === document?.createdById)
-    )
-  )
+  env.WEBSITE_INTEGRATION_ENABLED
+    ? !!document?.archivedAt &&
+      !document.isDeleted &&
+      isTeamModel(actor, document) &&
+      isTeamMutable(actor) &&
+      can(actor, "createDocument", document.collection)
+    : and(
+        !document?.isDraft,
+        !document?.isDeleted,
+        !!document?.archivedAt,
+        can(actor, "read", document),
+        or(
+          includesMembership(document, [
+            DocumentPermission.ReadWrite,
+            DocumentPermission.Admin,
+          ]),
+          can(actor, "updateDocument", document?.collection),
+          and(!!document?.isDraft && actor.id === document?.createdById)
+        )
+      )
 );
 
 allow(
@@ -251,6 +289,13 @@ allow(
 );
 
 allow(User, "unpublish", Document, (user, document) => {
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return (
+      !!document?.isActive &&
+      !document.isDraft &&
+      can(user, "updateDocument", document.collection)
+    );
+  }
   if (
     !document ||
     user.isGuest ||

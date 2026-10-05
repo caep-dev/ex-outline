@@ -1,4 +1,5 @@
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
+import env from "@server/env";
 import {
   buildUser,
   buildCollection,
@@ -10,6 +11,20 @@ import { withAPIContext } from "@server/test/support";
 import documentCreator from "./documentCreator";
 
 describe("documentCreator", () => {
+  it("rejects collection-less drafts in Website integration mode", async () => {
+    const previous = env.WEBSITE_INTEGRATION_ENABLED;
+    env.WEBSITE_INTEGRATION_ENABLED = true;
+    try {
+      const user = await buildUser();
+      await expect(
+        withAPIContext(user, (ctx) =>
+          documentCreator(ctx, { title: "Unscoped" })
+        )
+      ).rejects.toThrow();
+    } finally {
+      env.WEBSITE_INTEGRATION_ENABLED = previous;
+    }
+  });
   describe("content vs text priority", () => {
     it("should prioritize content over text when both are provided", async () => {
       const user = await buildUser();

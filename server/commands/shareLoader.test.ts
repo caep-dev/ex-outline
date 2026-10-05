@@ -1,4 +1,6 @@
 import { faker } from "@faker-js/faker";
+import { randomUUID } from "node:crypto";
+import { WebsiteIntegration } from "@server/models";
 import {
   buildCollection,
   buildDocument,
@@ -386,5 +388,61 @@ describe("shareLoader", () => {
 
       await expect(loadPublicShare({ id: share.id })).rejects.toThrow();
     });
+  });
+});
+
+describe("integrated legacy share loader", () => {
+  it("does not expose a document share or draft navigation while resolving a collection share", async () => {
+    const team = await buildTeam({ sharing: true });
+    const user = await buildUser({ teamId: team.id });
+    await WebsiteIntegration.create({
+      key: "website",
+      teamId: team.id,
+      issuer: "http://identity.exwebsite.test:8090/",
+      initialAdminSubject: randomUUID(),
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      sharing: true,
+      permission: null,
+    });
+    const published = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Public child",
+    });
+    const draft = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Secret draft",
+      publishedAt: null,
+    });
+    const collectionShare = await buildShare({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      documentId: null,
+    });
+    const documentShare = await buildShare({
+      teamId: team.id,
+      userId: user.id,
+      documentId: draft.id,
+      collectionId: null,
+    });
+
+    await expect(loadPublicShare({ id: documentShare.id })).rejects.toThrow();
+    await expect(
+      loadPublicShare({ id: collectionShare.id, documentId: draft.id })
+    ).rejects.toThrow();
+    const loaded = await loadPublicShare({
+      id: collectionShare.id,
+      documentId: published.id,
+    });
+    expect(loaded.document?.id).toBe(published.id);
+    expect(JSON.stringify(loaded.sharedTree)).toContain("Public child");
+    expect(JSON.stringify(loaded.sharedTree)).not.toContain("Secret draft");
   });
 });

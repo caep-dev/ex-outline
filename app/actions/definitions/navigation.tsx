@@ -47,6 +47,7 @@ import {
 import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { toast } from "sonner";
 import {
   homePath,
   searchPath,
@@ -229,10 +230,14 @@ export const logout = createAction({
   section: NavigationSection,
   icon: <LogoutIcon />,
   perform: async () => {
-    await stores.auth.logout({
-      userInitiated: true,
-      clearCache: true,
-    });
+    try {
+      await stores.auth.logout({
+        userInitiated: true,
+        clearCache: true,
+      });
+    } catch {
+      toast.error("Could not sign out. Please try again.");
+    }
   },
 });
 

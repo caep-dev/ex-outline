@@ -63,6 +63,10 @@ export class Environment {
   @IsIn(["development", "production", "staging", "test"])
   public ENVIRONMENT = environment.NODE_ENV ?? "production";
 
+  @Public
+  public WEBSITE_INTEGRATION_ENABLED =
+    environment.WEBSITE_INTEGRATION_ENABLED === "true";
+
   /**
    * The secret key is used for encrypting data. Do not change this value once
    * set or your users will be unable to login.
@@ -239,6 +243,16 @@ export class Environment {
       ? `https://${environment.HEROKU_APP_NAME}.herokuapp.com`
       : "")
   ).replace(/\/$/, "");
+
+  /** The Website homepage, independent of the document application's URL. */
+  @Public
+  @IsOptional()
+  @IsUrl({
+    protocols: ["http", "https"],
+    require_protocol: true,
+    require_tld: false,
+  })
+  public WEBSITE_URL = this.toOptionalString(environment.WEBSITE_URL);
 
   /**
    * If using a Cloudfront/Cloudflare distribution or similar it can be set below.

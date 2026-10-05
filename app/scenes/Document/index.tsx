@@ -11,6 +11,7 @@ import { getFocusedSplitPane } from "~/utils/splitView";
 import DataLoader from "./components/DataLoader";
 import Document from "./components/Document";
 import { Footer } from "./components/Footer";
+import PublicOnlyGate from "./components/PublicOnlyGate";
 
 type Params = {
   documentSlug: string;
@@ -27,7 +28,7 @@ type LocationState = {
 type Props = RouteComponentProps<Params, StaticContext, LocationState>;
 
 export default function DocumentScene(props: Props) {
-  const { ui } = useStores();
+  const { auth, ui } = useStores();
   const history = useHistory();
   const { pane, isSplitView } = useSplitView();
   const { documentSlug, revisionId } = props.match.params;
@@ -70,7 +71,7 @@ export default function DocumentScene(props: Props) {
   // prevents extra network requests and preserves editor state on resize.
   const key = revisionId ? `${urlId}/${revisionId}` : urlId;
 
-  return (
+  const content = (
     <DataLoader
       key={key}
       match={props.match}
@@ -83,5 +84,10 @@ export default function DocumentScene(props: Props) {
         </Document>
       )}
     </DataLoader>
+  );
+  return auth.websiteIntegrationEnabled ? (
+    <PublicOnlyGate documentSlug={documentSlug}>{content}</PublicOnlyGate>
+  ) : (
+    content
   );
 }

@@ -4,12 +4,21 @@ import type {
   Hocuspocus,
   onAuthenticatePayload,
   onConfigurePayload,
+  beforeHandleMessagePayload,
+  onDisconnectPayload,
   onDestroyPayload,
 } from "@hocuspocus/server";
 import { uniq } from "es-toolkit";
 import { AuthorizationChanged } from "@shared/collaboration/CloseEvents";
 import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
+import env from "@server/env";
+import {
+  authenticateExternalToken,
+  websiteSessionGuard,
+} from "@server/identity/authenticateExternalSession";
+import type { SessionLease } from "@server/identity/SessionGuard";
+import { revocationChannel } from "@server/routes/internalIdentity";
 import { trace } from "@server/logging/tracing";
 import Document from "@server/models/Document";
 import GroupUser from "@server/models/GroupUser";
@@ -30,6 +39,8 @@ const CHANNEL = "collaboration:authorization";
  * matches all of them.
  */
 export interface AuthorizationScope {
+  /** Restrict to one Website browser session. */
+  websiteSessionIds?: string[];
   /** Restrict to connections belonging to one of these users. */
   userIds?: string[];
   /** Restrict to connections belonging to members of this group. */
@@ -76,6 +87,7 @@ export default class AuthenticationExtension implements Extension {
     connection,
     token,
     documentName,
+    socketId,
   }: onAuthenticatePayload) {
     // allows for different entity types to use this multiplayer provider later
     const [, documentId] = documentName.split(".");
@@ -84,7 +96,22 @@ export default class AuthenticationExtension implements Extension {
       throw AuthenticationError("Authentication required");
     }
 
-    const { user } = await getUserForJWT(token, ["session", "collaboration"]);
+    let user: User;
+    let websiteLease: SessionLease | undefined;
+    let websiteSessionId: string | undefined;
+    let websiteIdentity:
+      | Awaited<ReturnType<typeof authenticateExternalToken>>
+      | undefined;
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      websiteIdentity = await authenticateExternalToken(
+        token,
+        "website-collaboration"
+      );
+      user = websiteIdentity.user;
+      websiteSessionId = websiteIdentity.session.websiteSessionId;
+    } else {
+      ({ user } = await getUserForJWT(token, ["session", "collaboration"]));
+    }
     const document = await Document.findByPk(documentId, {
       userId: user.id,
     });
@@ -99,9 +126,35 @@ export default class AuthenticationExtension implements Extension {
       connection.readOnly = true;
     }
 
-    return {
-      user,
-    };
+    if (websiteIdentity) {
+      websiteLease = await websiteSessionGuard().openLease(
+        {
+          ...websiteIdentity.session.get(),
+          websiteSubject: websiteIdentity.websiteSubject,
+        },
+        () => {
+          const live = this.instance?.documents
+            .get(documentName)
+            ?.getConnections()
+            .find((item) => item.socketId === socketId);
+          live?.close(AuthorizationChanged);
+        }
+      );
+    }
+
+    return { user, websiteLease, websiteSessionId };
+  }
+
+  async beforeHandleMessage({ context }: beforeHandleMessagePayload) {
+    const lease = context.websiteLease as SessionLease | undefined;
+    if (env.WEBSITE_INTEGRATION_ENABLED && !lease) {
+      throw AuthenticationError("Website session required");
+    }
+    lease?.assertActive();
+  }
+
+  async onDisconnect({ context }: onDisconnectPayload) {
+    (context.websiteLease as SessionLease | undefined)?.invalidate();
   }
 
   async onConfigure({ instance }: onConfigurePayload) {
@@ -114,7 +167,10 @@ export default class AuthenticationExtension implements Extension {
 
     try {
       const subscriber = RedisAdapter.collaborationSubscriber;
-      await subscriber.subscribe(CHANNEL);
+      await subscriber.subscribe(
+        CHANNEL,
+        ...(env.WEBSITE_INTEGRATION_ENABLED ? [revocationChannel] : [])
+      );
       subscriber.on("message", this.handleMessage);
 
       Logger.debug("multiplayer", `Subscribed to ${CHANNEL}`);
@@ -128,7 +184,10 @@ export default class AuthenticationExtension implements Extension {
     if (this.subscribed) {
       const subscriber = RedisAdapter.collaborationSubscriber;
       subscriber.off("message", this.handleMessage);
-      await subscriber.unsubscribe(CHANNEL);
+      await subscriber.unsubscribe(
+        CHANNEL,
+        ...(env.WEBSITE_INTEGRATION_ENABLED ? [revocationChannel] : [])
+      );
       this.subscribed = false;
     }
 
@@ -162,10 +221,18 @@ export default class AuthenticationExtension implements Extension {
       }
 
       for (const connection of document.getConnections()) {
-        const context: { user?: User } = connection.context;
+        const context: { user?: User; websiteSessionId?: string } =
+          connection.context;
         const userId = context.user?.id;
 
         if (!userId || (scope.userIds && !scope.userIds.includes(userId))) {
+          continue;
+        }
+        if (
+          scope.websiteSessionIds &&
+          (!context.websiteSessionId ||
+            !scope.websiteSessionIds.includes(context.websiteSessionId))
+        ) {
           continue;
         }
 
@@ -220,13 +287,27 @@ export default class AuthenticationExtension implements Extension {
   private subscribed = false;
 
   private handleMessage = async (channel: string, message: string) => {
-    if (channel !== CHANNEL) {
+    if (channel !== CHANNEL && channel !== revocationChannel) {
       return;
     }
 
     try {
-      const scope: AuthorizationScope = JSON.parse(message);
-      await this.disconnect(scope);
+      if (channel === revocationChannel) {
+        const revocation = JSON.parse(message) as {
+          sessionId?: string;
+          userId?: string;
+        };
+        websiteSessionGuard().invalidate(revocation);
+        await this.disconnect({
+          websiteSessionIds: revocation.sessionId
+            ? [revocation.sessionId]
+            : undefined,
+          userIds: revocation.userId ? [revocation.userId] : undefined,
+        });
+      } else {
+        const scope: AuthorizationScope = JSON.parse(message);
+        await this.disconnect(scope);
+      }
     } catch (error) {
       Logger.error("Failed to handle access change", toError(error));
     }

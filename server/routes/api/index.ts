@@ -38,6 +38,7 @@ import notifications from "./notifications";
 import oauthAuthentications from "./oauthAuthentications";
 import oauthClients from "./oauthClients";
 import pins from "./pins";
+import publicRoutes from "./public";
 import reactions from "./reactions";
 import relationships from "./relationships";
 import revisions from "./revisions";
@@ -81,14 +82,22 @@ api.use(editor());
 api.use(apiContext());
 api.use(verifyCSRFToken());
 
-// Register plugin API routes before others to allow for overrides
-PluginManager.getHooks(Hook.API).forEach((hook) =>
-  router.use("/", hook.value.routes())
-);
+// Integrated mode retains only the local file transport. Its handlers perform
+// their own per-request document and session authorization.
+PluginManager.getHooks(Hook.API)
+  .filter(
+    (hook) =>
+      !env.WEBSITE_INTEGRATION_ENABLED ||
+      (env.FILE_STORAGE === "local" && hook.name === "Local file storage")
+  )
+  .forEach((hook) => router.use("/", hook.value.routes()));
 
 // routes
 router.use("/", auth.routes());
-router.use("/", authenticationProviders.routes());
+router.use("/", publicRoutes.routes());
+if (!env.WEBSITE_INTEGRATION_ENABLED) {
+  router.use("/", authenticationProviders.routes());
+}
 router.use("/", batch.routes());
 router.use("/", events.routes());
 router.use("/", users.routes());
@@ -100,7 +109,9 @@ router.use("/", emojis.routes());
 router.use("/", pins.routes());
 router.use("/", revisions.routes());
 router.use("/", views.routes());
-router.use("/", apiKeys.routes());
+if (!env.WEBSITE_INTEGRATION_ENABLED) {
+  router.use("/", apiKeys.routes());
+}
 router.use("/", searches.routes());
 router.use("/", shares.routes());
 router.use("/", stars.routes());
@@ -110,8 +121,10 @@ router.use("/", teams.routes());
 router.use("/", templates.routes());
 router.use("/", integrations.routes());
 router.use("/", notifications.routes());
-router.use("/", oauthAuthentications.routes());
-router.use("/", oauthClients.routes());
+if (!env.WEBSITE_INTEGRATION_ENABLED) {
+  router.use("/", oauthAuthentications.routes());
+  router.use("/", oauthClients.routes());
+}
 router.use("/", attachments.routes());
 router.use("/", cron.routes());
 router.use("/", groups.routes());
@@ -123,11 +136,11 @@ router.use("/", reactions.routes());
 router.use("/", relationships.routes());
 router.use("/", imports.routes());
 
-if (!env.isCloudHosted) {
+if (!env.isCloudHosted && !env.WEBSITE_INTEGRATION_ENABLED) {
   router.use("/", installation.routes());
 }
 
-if (env.isDevelopment) {
+if (env.isDevelopment && !env.WEBSITE_INTEGRATION_ENABLED) {
   router.use("/", developer.routes());
 }
 

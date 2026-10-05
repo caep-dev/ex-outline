@@ -10,7 +10,7 @@ import ConfirmUpdateEmail from "@server/emails/templates/ConfirmUpdateEmail";
 import ConfirmUserDeleteEmail from "@server/emails/templates/ConfirmUserDeleteEmail";
 import InviteEmail from "@server/emails/templates/InviteEmail";
 import env from "@server/env";
-import { ValidationError } from "@server/errors";
+import { NotFoundError, ValidationError } from "@server/errors";
 import logger from "@server/logging/Logger";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
@@ -490,6 +490,9 @@ router.post(
   validate(T.UsersInviteSchema),
   transaction(),
   async (ctx: APIContext<T.UsersInviteReq>) => {
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      throw NotFoundError();
+    }
     const { invites, suppressEmail } = ctx.input.body;
     const { user } = ctx.state.auth;
 
@@ -520,6 +523,9 @@ router.post(
   validate(T.UsersResendInviteSchema),
   transaction(),
   async (ctx: APIContext<T.UsersResendInviteReq>) => {
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      throw NotFoundError();
+    }
     const { id } = ctx.input.body;
     const { auth, transaction } = ctx.state;
     const actor = auth.user;

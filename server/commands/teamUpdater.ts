@@ -1,5 +1,5 @@
 import { has, isEqual } from "es-toolkit/compat";
-import { TeamPreference } from "@shared/types";
+import { CommentingAccess, TeamPreference, UserRole } from "@shared/types";
 import env from "@server/env";
 import { ValidationError } from "@server/errors";
 import type { User } from "@server/models";
@@ -13,6 +13,24 @@ type Props = {
 };
 
 const teamUpdater = async (ctx: APIContext, { params, user, team }: Props) => {
+  if (
+    env.WEBSITE_INTEGRATION_ENABLED &&
+    (params.memberCollectionCreate === true ||
+      params.memberTeamCreate === true ||
+      (params.defaultUserRole && params.defaultUserRole !== UserRole.Viewer) ||
+      params.inviteRequired === false ||
+      params.guestSignin === true ||
+      params.passkeysEnabled === true ||
+      (params.preferences?.[TeamPreference.Commenting] &&
+        params.preferences[TeamPreference.Commenting] !==
+          CommentingAccess.Members) ||
+      params.preferences?.[TeamPreference.MCP] === true ||
+      params.preferences?.[TeamPreference.MembersCanCreateApiKey] === true)
+  ) {
+    throw ValidationError(
+      "Integrated workspace identity and commenting settings are fixed"
+    );
+  }
   const { allowedDomains, preferences, subdomain, ...attributes } = params;
   team.setAttributes(attributes);
 

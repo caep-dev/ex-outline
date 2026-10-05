@@ -33,6 +33,12 @@ import documentMover from "@server/commands/documentMover";
 import documentPermanentDeleter from "@server/commands/documentPermanentDeleter";
 import documentRestorer from "@server/commands/documentRestorer";
 import documentUpdater from "@server/commands/documentUpdater";
+import {
+  isPublicCollection,
+  publicCollectionIds,
+  publicDocumentContent,
+  resolvePublicDocument,
+} from "@server/commands/publicAccess";
 import env from "@server/env";
 import {
   InvalidRequestError,
@@ -113,6 +119,59 @@ import {
 
 const router = new Router();
 
+function publicOnlySummary(document: Document) {
+  return {
+    id: document.id,
+    title: document.title,
+    url: document.path,
+    collectionId: document.collectionId,
+    updatedAt: document.updatedAt.toISOString(),
+    publicOnly: true,
+  };
+}
+
+async function presentReadableDocuments(
+  ctx: APIContext,
+  user: User,
+  documents: Document[],
+  internalCollectionIds: string[]
+) {
+  if (!env.WEBSITE_INTEGRATION_ENABLED) {
+    return presentDocuments(ctx, documents);
+  }
+  const internal = new Set(internalCollectionIds);
+  return Promise.all(
+    documents.map((document) =>
+      Promise.resolve(
+        internal.has(document.collectionId ?? "")
+          ? presentDocument(ctx, document)
+          : publicOnlySummary(document)
+      )
+    )
+  );
+}
+
+function presentReadablePolicies(
+  user: User,
+  documents: Document[],
+  internalCollectionIds: string[]
+) {
+  const policies = presentPolicies(user, documents);
+  if (!env.WEBSITE_INTEGRATION_ENABLED) {
+    return policies;
+  }
+  const internal = new Set(internalCollectionIds);
+  return policies.map((policy) => {
+    const document = documents.find((item) => item.id === policy.id);
+    return document && !internal.has(document.collectionId ?? "")
+      ? {
+          id: policy.id,
+          abilities: { read: true, comment: true, update: false },
+        }
+      : policy;
+  });
+}
+
 /**
  * Resolve every `documentId` leaf in a search filter to an `id in [...]` leaf
  * containing the document and all of its descendants. When a user is given,
@@ -142,7 +201,16 @@ async function expandDocumentIdLeaves(
         const document = await Document.findByPk(documentId, {
           userId: context.user.id,
         });
-        authorize(context.user, "read", document);
+        if (
+          !(
+            env.WEBSITE_INTEGRATION_ENABLED &&
+            document &&
+            document.teamId === context.user.teamId &&
+            (await resolvePublicDocument(document.id))
+          )
+        ) {
+          authorize(context.user, "read", document);
+        }
         expandedIds.set(documentId, [
           documentId,
           ...(await document.findAllChildDocumentIds()),
@@ -193,6 +261,9 @@ async function directMembershipDocumentIds(user: User): Promise<string[]> {
  * @returns an array of OR-able Sequelize conditions.
  */
 async function draftVisibilityClauses(user: User): Promise<WhereOptions[]> {
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return [{ collectionId: await user.editableCollectionIds() }];
+  }
   return [
     { createdById: user.id },
     { id: await directMembershipDocumentIds(user) },
@@ -249,7 +320,7 @@ router.post(
     // collection access check. Mirrors the prior behavior of pushing then
     // removing the legacy collectionId predicate.
     let collectionScopeDropped = false;
-    if (parentDocumentId) {
+    if (parentDocumentId && !env.WEBSITE_INTEGRATION_ENABLED) {
       const [groupMembership, membership] = await Promise.all([
         GroupMembership.findOne({
           where: { documentId: parentDocumentId },
@@ -303,16 +374,28 @@ router.post(
       filter !== undefined
         ? extractTopLevelEqValue(filter, "collectionId")
         : undefined;
+    const internalCollectionIds = await user.collectionIds();
+    let publicIndexSort = false;
     if (explicitCollectionId && sort === "index") {
+      const internalRead = internalCollectionIds.includes(explicitCollectionId);
       const collection = await Collection.findByPk(explicitCollectionId, {
         userId: user.id,
-        includeDocumentStructure: true,
+        includeDocumentStructure:
+          !env.WEBSITE_INTEGRATION_ENABLED || internalRead,
       });
-      authorize(user, "readDocument", collection);
-      documentIds = (collection.documentStructure || [])
-        .slice(offset, offset + limit)
-        .map((node) => node.id);
-      where[Op.and].push({ id: documentIds });
+      publicIndexSort = !!(
+        env.WEBSITE_INTEGRATION_ENABLED &&
+        collection &&
+        !internalRead &&
+        (await isPublicCollection(collection.id))
+      );
+      if (!publicIndexSort) {
+        authorize(user, "readDocument", collection);
+        documentIds = (collection.documentStructure || [])
+          .slice(offset, offset + limit)
+          .map((node) => node.id);
+        where[Op.and].push({ id: documentIds });
+      }
     }
 
     // Apply filter and re-run authorize() for any auth-bearing fields. The
@@ -324,11 +407,32 @@ router.post(
       where[Op.and].push(buildWhere<Document>(mapped));
     }
 
-    if (!backlinkDocumentId && !collectionScopeDropped) {
-      const collectionIds = await user.collectionIds();
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      const [publicIds, editableIds] = await Promise.all([
+        publicCollectionIds(),
+        user.editableCollectionIds(),
+      ]);
       where[Op.and].push({
         [Op.or]: [
-          { collectionId: collectionIds },
+          {
+            collectionId: internalCollectionIds,
+            [Op.or]: [
+              { publishedAt: { [Op.ne]: null } },
+              { collectionId: editableIds },
+            ],
+          },
+          {
+            collectionId: publicIds,
+            publishedAt: { [Op.ne]: null },
+            archivedAt: null,
+            template: false,
+          },
+        ],
+      });
+    } else if (!backlinkDocumentId && !collectionScopeDropped) {
+      where[Op.and].push({
+        [Op.or]: [
+          { collectionId: internalCollectionIds },
           { collectionId: null, createdById: user.id },
         ],
       });
@@ -343,7 +447,9 @@ router.post(
       where[Op.and].push({ id: sourceDocumentIds });
 
       // For safety, ensure the collectionId is not set in the query.
-      remove(where[Op.and], (cond) => has(cond, "collectionId"));
+      if (!env.WEBSITE_INTEGRATION_ENABLED) {
+        remove(where[Op.and], (cond) => has(cond, "collectionId"));
+      }
     }
 
     // A filter referencing publishedAt can surface drafts (the replacement
@@ -411,8 +517,12 @@ router.post(
 
     // When sorting by index, use array_position to sort by the document order
     // in the collection structure directly in SQL, enabling correct pagination
-    const orderClause =
-      sort === "index"
+    const orderClause = publicIndexSort
+      ? [
+          ["updatedAt", "DESC"],
+          ["id", "ASC"],
+        ]
+      : sort === "index"
         ? documentIds.length > 0
           ? [
               [
@@ -446,7 +556,7 @@ router.post(
         Document.withMembershipScope(user.id, { includeDrafts }).findAll({
           where,
           order: orderClause as Order,
-          offset: sort === "index" ? 0 : queryOffset,
+          offset: sort === "index" && !publicIndexSort ? 0 : queryOffset,
           limit: queryLimit,
           replacements: {
             documentIds,
@@ -458,8 +568,17 @@ router.post(
         })
     );
 
-    const data = await presentDocuments(ctx, documents);
-    const policies = presentPolicies(user, documents);
+    const data = await presentReadableDocuments(
+      ctx,
+      user,
+      documents,
+      internalCollectionIds
+    );
+    const policies = presentReadablePolicies(
+      user,
+      documents,
+      internalCollectionIds
+    );
 
     ctx.body = {
       pagination,
@@ -471,7 +590,7 @@ router.post(
 
 router.post(
   "documents.archived",
-  auth({ role: UserRole.Member }),
+  auth(env.WEBSITE_INTEGRATION_ENABLED ? {} : { role: UserRole.Member }),
   pagination(),
   validate(T.DocumentsArchivedSchema),
   async (ctx: APIContext<T.DocumentsArchivedReq>) => {
@@ -497,11 +616,17 @@ router.post(
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
-      authorize(user, "readDocument", collection);
+      authorize(
+        user,
+        env.WEBSITE_INTEGRATION_ENABLED ? "createDocument" : "readDocument",
+        collection
+      );
 
       // otherwise, filter by all collections the user has access to
     } else {
-      const collectionIds = await user.collectionIds();
+      const collectionIds = env.WEBSITE_INTEGRATION_ENABLED
+        ? await user.editableCollectionIds()
+        : await user.collectionIds();
       where = {
         ...where,
         collectionId: collectionIds,
@@ -528,15 +653,15 @@ router.post(
 
 router.post(
   "documents.deleted",
-  auth({ role: UserRole.Member }),
+  auth(env.WEBSITE_INTEGRATION_ENABLED ? {} : { role: UserRole.Member }),
   pagination(),
   validate(T.DocumentsDeletedSchema),
   async (ctx: APIContext<T.DocumentsDeletedReq>) => {
     const { sort, direction, filters: rawFilters } = ctx.input.body;
     const { user } = ctx.state.auth;
-    const collectionIds = await user.collectionIds({
-      paranoid: false,
-    });
+    const collectionIds = env.WEBSITE_INTEGRATION_ENABLED
+      ? await user.editableCollectionIds()
+      : await user.collectionIds({ paranoid: false });
     const membershipScope: Readonly<ScopeOptions> = {
       method: ["withMembership", user.id],
     };
@@ -559,12 +684,16 @@ router.post(
                 [Op.in]: collectionIds,
               },
             },
-            {
-              createdById: user.id,
-              collectionId: {
-                [Op.is]: null,
-              },
-            },
+            ...(!env.WEBSITE_INTEGRATION_ENABLED
+              ? [
+                  {
+                    createdById: user.id,
+                    collectionId: {
+                      [Op.is]: null,
+                    },
+                  },
+                ]
+              : []),
           ],
         },
       ],
@@ -623,6 +752,14 @@ router.post(
           where: {
             teamId: user.teamId,
             collectionId: collectionIds,
+            ...(env.WEBSITE_INTEGRATION_ENABLED
+              ? {
+                  [Op.or]: [
+                    { publishedAt: { [Op.ne]: null } },
+                    { collectionId: await user.editableCollectionIds() },
+                  ],
+                }
+              : {}),
           },
         },
       ],
@@ -659,17 +796,25 @@ router.post(
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
-      authorize(user, "readDocument", collection);
+      authorize(
+        user,
+        env.WEBSITE_INTEGRATION_ENABLED ? "createDocument" : "readDocument",
+        collection
+      );
     }
 
     const collectionIds = collectionId
       ? [collectionId]
-      : await user.collectionIds();
+      : env.WEBSITE_INTEGRATION_ENABLED
+        ? await user.editableCollectionIds()
+        : await user.collectionIds();
     const where: WhereOptions = {
       teamId: user.teamId,
-      createdById: user.id,
+      ...(env.WEBSITE_INTEGRATION_ENABLED ? {} : { createdById: user.id }),
       collectionId: {
-        [Op.or]: [{ [Op.in]: collectionIds }, { [Op.is]: null }],
+        [Op.or]: env.WEBSITE_INTEGRATION_ENABLED
+          ? [{ [Op.in]: collectionIds }]
+          : [{ [Op.in]: collectionIds }, { [Op.is]: null }],
       },
       publishedAt: {
         [Op.is]: null,
@@ -761,6 +906,41 @@ router.post(
     } else {
       if (!user) {
         throw AuthenticationError("Authentication required");
+      }
+
+      if (env.WEBSITE_INTEGRATION_ENABLED) {
+        const publicDocument = await resolvePublicDocument(id!);
+        const internalCollectionIds = await user.collectionIds();
+        if (
+          publicDocument &&
+          publicDocument.teamId === user.teamId &&
+          publicDocument.collectionId &&
+          !internalCollectionIds.includes(publicDocument.collectionId)
+        ) {
+          const publicData = {
+            id: publicDocument.id,
+            collectionId: publicDocument.collectionId,
+            title: publicDocument.title,
+            content: await publicDocumentContent(publicDocument),
+            url: publicDocument.path,
+            updatedAt: publicDocument.updatedAt.toISOString(),
+          };
+          ctx.body = {
+            data: apiVersion >= 2 ? { document: publicData } : publicData,
+            publicOnly: true,
+            policies: [
+              {
+                id: publicDocument.id,
+                abilities: {
+                  read: true,
+                  comment: true,
+                  update: false,
+                },
+              },
+            ],
+          };
+          return;
+        }
       }
 
       document = await documentLoader({
@@ -1214,8 +1394,18 @@ router.post(
         sort: sort as SortFilter,
         direction: direction as DirectionFilter,
       });
-    const policies = presentPolicies(user, documents);
-    const data = await presentDocuments(ctx, documents);
+    const internalCollectionIds = await user.collectionIds();
+    const policies = presentReadablePolicies(
+      user,
+      documents,
+      internalCollectionIds
+    );
+    const data = await presentReadableDocuments(
+      ctx,
+      user,
+      documents,
+      internalCollectionIds
+    );
 
     ctx.body = {
       pagination: ctx.state.pagination,
@@ -1353,13 +1543,20 @@ router.post(
 
     const { results, total } = response;
     const documents = results.map((result) => result.document);
+    const internalCollectionIds = user ? await user.collectionIds() : [];
 
     const data = await Promise.all(
       results.map(async (result) => {
-        const document = await presentDocument(ctx, result.document, {
-          isPublic,
-          shareId,
-        });
+        const document =
+          env.WEBSITE_INTEGRATION_ENABLED &&
+          user &&
+          !shareId &&
+          !internalCollectionIds.includes(result.document.collectionId ?? "")
+            ? publicOnlySummary(result.document)
+            : await presentDocument(ctx, result.document, {
+                isPublic,
+                shareId,
+              });
         return { ...result, document };
       })
     );
@@ -1385,7 +1582,9 @@ router.post(
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data,
-      policies: user ? presentPolicies(user, documents) : null,
+      policies: user
+        ? presentReadablePolicies(user, documents, internalCollectionIds)
+        : null,
     };
   }
 );
@@ -1543,12 +1742,14 @@ router.post(
             transaction,
           })
         : document?.collection;
+    }
 
-      // The copy is created in the destination collection, so create permission
-      // is required there rather than on the source.
-      if (collection) {
-        authorize(user, "createDocument", collection);
-      }
+    if (env.WEBSITE_INTEGRATION_ENABLED && !collection) {
+      throw ValidationError("A destination collection is required");
+    }
+    // Source read permission never grants destination write permission.
+    if (collection) {
+      authorize(user, "createDocument", collection);
     }
 
     const response = await documentDuplicator(ctx, {
@@ -1602,9 +1803,24 @@ router.post(
         userId: user.id,
         transaction,
       });
-      authorize(user, "updateDocument", collection);
+      authorize(
+        user,
+        env.WEBSITE_INTEGRATION_ENABLED ? "createDocument" : "updateDocument",
+        collection
+      );
     } else {
       throw InvalidRequestError("collectionId is required to move a document");
+    }
+
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      if (!collectionId) {
+        throw ValidationError("A destination collection is required");
+      }
+      const destination = await Collection.findByPk(collectionId, {
+        userId: user.id,
+        transaction,
+      });
+      authorize(user, "createDocument", destination);
     }
 
     const { documents, collectionChanged } = await documentMover(ctx, {

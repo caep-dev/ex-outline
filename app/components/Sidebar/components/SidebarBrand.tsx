@@ -12,7 +12,7 @@ interface SidebarBrandProps {
 }
 
 /**
- * Displays the Exre Service wordmark linking to the configured base URL.
+ * Displays the Exre Service wordmark linking to Website when configured.
  *
  * @param props the independent sidebar controls to show beside the logo.
  * @returns the sidebar brand header.
@@ -20,7 +20,7 @@ interface SidebarBrandProps {
 export function SidebarBrand({ children }: SidebarBrandProps) {
   return (
     <Container>
-      <Logo href={env.URL || "/"}>
+      <Logo href={env.WEBSITE_URL || env.URL || "/"}>
         <Icon aria-hidden>
           <Mark viewBox="0 0 1024 1024" focusable="false">
             <path d="M567.469 508.934L270.636 215.422C269.365 214.166 270.255 212 272.042 212H524.028C524.556 212 525.062 212.209 525.437 212.581L754.409 439.893C754.787 440.269 755 440.78 755 441.313V584.965C755 585.5 754.786 586.012 754.405 586.388L526.537 811.423C526.163 811.793 525.658 812 525.132 812L272.004 812C270.222 812 269.33 809.845 270.59 808.585L567.477 511.771C568.261 510.987 568.258 509.714 567.469 508.934Z" />

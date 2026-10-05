@@ -1,8 +1,20 @@
 import queryString from "query-string";
+import { randomUUID } from "node:crypto";
+import env from "@server/env";
+import WebsiteIdentityClient from "@server/identity/WebsiteIdentityClient";
+import { issueExternalSessionToken } from "@server/identity/authenticateExternalSession";
+import { WebsiteIntegration } from "@server/models";
+import { CSRF } from "@shared/constants";
 import { randomString } from "@shared/random";
 import { CollectionPermission } from "@shared/types";
 import { createContext } from "@server/context";
-import { UserMembership, Share, ShareSubscription } from "@server/models";
+import {
+  ExternalIdentity,
+  ExternalSession,
+  UserMembership,
+  Share,
+  ShareSubscription,
+} from "@server/models";
 import {
   buildUser,
   buildDocument,
@@ -14,8 +26,160 @@ import {
 } from "@server/test/factories";
 
 import { getTestServer, withAPIContext } from "@server/test/support";
+import { bundleToken, generateRawToken } from "@server/utils/csrf";
 
 const server = getTestServer();
+
+describe("integrated legacy share API", () => {
+  it("allows an integrated document admin to publish a private collection", async () => {
+    const issuer = "http://identity.exwebsite.test:8090/";
+    process.env.HYDRA_PUBLIC_URL = issuer;
+    process.env.WEBSITE_INTERNAL_URL = "http://127.0.0.1:18766/";
+    process.env.OUTLINE_INTEGRATION_KEY = "isolated-test-key";
+    env.WEBSITE_INTEGRATION_ENABLED = true;
+    const team = await buildTeam({ sharing: true });
+    const admin = await buildAdmin({ teamId: team.id });
+    await WebsiteIntegration.create({
+      key: "website",
+      teamId: team.id,
+      issuer,
+      initialAdminSubject: randomUUID(),
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      createdById: admin.id,
+      sharing: true,
+      permission: null,
+    });
+    const websiteSessionId = randomUUID();
+    const subject = randomUUID();
+    await ExternalIdentity.create({ issuer, subject, userId: admin.id });
+    const session = await ExternalSession.create({
+      userId: admin.id,
+      websiteSessionId,
+      hydraSid: "safe-test-sid",
+      clientId: "ex-outline",
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    vi.spyOn(WebsiteIdentityClient.prototype, "check").mockResolvedValue({
+      active: true,
+      sessionId: websiteSessionId,
+      userId: subject,
+      expiresAt: Date.now() + 60_000,
+      profile: {
+        nickname: admin.name,
+        email: admin.email ?? "admin@example.test",
+        avatarUrl: null,
+        version: 0,
+      },
+    });
+
+    const csrf = bundleToken(generateRawToken(16), env.SECRET_KEY);
+
+    const response = await server.post("/api/shares.create", {
+      body: {
+        type: "collection",
+        collectionId: collection.id,
+        published: true,
+      },
+      headers: {
+        Cookie: `exdocs_access=${issueExternalSessionToken(session)}; ${CSRF.cookieName}=${csrf}`,
+        [CSRF.headerName]: csrf,
+        Origin: new URL(env.URL).origin,
+      },
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.data.collectionId).toBe(collection.id);
+    expect(body.data.published).toBe(true);
+  });
+
+  it("allows only one unrevoked collection share and permits a new one after revocation", async () => {
+    const team = await buildTeam({ sharing: true });
+    const user = await buildUser({ teamId: team.id });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      sharing: true,
+    });
+    const first = await buildShare({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      documentId: null,
+      published: true,
+    });
+    await expect(
+      buildShare({
+        teamId: team.id,
+        userId: user.id,
+        collectionId: collection.id,
+        documentId: null,
+        published: true,
+      })
+    ).rejects.toThrow();
+    await first.update({ revokedAt: new Date() });
+    const next = await buildShare({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      documentId: null,
+      published: true,
+    });
+    expect(next.id).not.toBe(first.id);
+  });
+
+  it("returns only published collection content despite an expired document cookie", async () => {
+    const team = await buildTeam({ sharing: true });
+    const user = await buildUser({ teamId: team.id });
+    await WebsiteIntegration.create({
+      key: "website",
+      teamId: team.id,
+      issuer: "http://identity.exwebsite.test:8090/",
+      initialAdminSubject: randomUUID(),
+    });
+    const collection = await buildCollection({
+      teamId: team.id,
+      userId: user.id,
+      sharing: true,
+      permission: null,
+    });
+    const published = await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Visible share title",
+    });
+    await buildDocument({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      title: "Secret draft title",
+      publishedAt: null,
+    });
+    const share = await buildShare({
+      teamId: team.id,
+      userId: user.id,
+      collectionId: collection.id,
+      documentId: null,
+      published: true,
+    });
+    const csrf = bundleToken(generateRawToken(16), env.SECRET_KEY);
+    const response = await server.post("/api/shares.info", {
+      body: { id: share.id, documentId: published.id },
+      headers: {
+        Cookie: `exdocs_access=expired-cookie; ${CSRF.cookieName}=${csrf}`,
+        [CSRF.headerName]: csrf,
+        Origin: new URL(env.URL).origin,
+      },
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.data.document.id).toBe(published.id);
+    expect(JSON.stringify(body)).not.toContain("Secret draft title");
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+});
 
 describe("#shares.list", () => {
   it("should fail with status 400 bad request when an invalid sort value is suppled", async () => {

@@ -1,5 +1,6 @@
 import { toError } from "@shared/utils/error";
 import Logger from "@server/logging/Logger";
+import env from "@server/env";
 import { Collection } from "@server/models";
 import DuplicateCollectionDocumentsTask from "@server/queues/tasks/DuplicateCollectionDocumentsTask";
 import type { APIContext } from "@server/types";
@@ -35,10 +36,10 @@ export default async function collectionDuplicator(
     color: collection.color,
     teamId: user.teamId,
     createdById: user.id,
-    permission: collection.permission,
+    permission: env.WEBSITE_INTEGRATION_ENABLED ? null : collection.permission,
     sharing: collection.sharing,
     sort: collection.sort,
-    commenting: collection.commenting,
+    commenting: env.WEBSITE_INTEGRATION_ENABLED ? true : collection.commenting,
     templateManagement: collection.templateManagement,
     sourceMetadata: {
       ...collection.sourceMetadata,

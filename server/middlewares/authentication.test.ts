@@ -10,9 +10,49 @@ import {
   buildOAuthAuthentication,
 } from "@server/test/factories";
 import { AuthenticationType } from "@server/types";
+import env from "@server/env";
 import auth from "./authentication";
 
 describe("Authentication middleware", () => {
+  describe("integrated optional authentication", () => {
+    const original = env.WEBSITE_INTEGRATION_ENABLED;
+    beforeEach(() => {
+      env.WEBSITE_INTEGRATION_ENABLED = true;
+    });
+    afterEach(() => {
+      env.WEBSITE_INTEGRATION_ENABLED = original;
+    });
+
+    it("allows a request without credentials as anonymous", async () => {
+      const state = {} as DefaultState;
+      const next = vi.fn();
+      await auth({ optional: true })(
+        {
+          state,
+          cookies: { get: vi.fn(() => undefined) },
+          request: { get: vi.fn(() => "") },
+        } as never,
+        next
+      );
+      expect(state.auth).toEqual({});
+      expect(next).toHaveBeenCalledOnce();
+    });
+
+    it("rejects an invalid integrated cookie without anonymous fallback", async () => {
+      const next = vi.fn();
+      await expect(
+        auth({ optional: true })(
+          {
+            state: {},
+            cookies: { get: vi.fn(() => "invalid") },
+            request: { get: vi.fn(() => "") },
+          } as never,
+          next
+        )
+      ).rejects.toHaveProperty("status", 401);
+      expect(next).not.toHaveBeenCalled();
+    });
+  });
   describe("with session JWT", () => {
     it("should authenticate with correct session token", async () => {
       const state = {} as DefaultState;

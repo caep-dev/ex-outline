@@ -15,7 +15,12 @@ import {
 import { ImportValidation } from "@shared/validations";
 import collectionDuplicator from "@server/commands/collectionDuplicator";
 import collectionExporter from "@server/commands/collectionExporter";
+import {
+  integratedCollectionSettings,
+  assertIntegratedCollectionUpdate,
+} from "@server/commands/integratedCollectionSettings";
 import teamUpdater from "@server/commands/teamUpdater";
+import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -80,6 +85,9 @@ router.post(
 
     const { user } = ctx.state.auth;
     authorize(user, "createCollection", user.team);
+    const fixed = env.WEBSITE_INTEGRATION_ENABLED
+      ? integratedCollectionSettings(permission, commenting)
+      : null;
 
     const collection = Collection.build({
       name,
@@ -89,11 +97,11 @@ router.post(
       color,
       teamId: user.teamId,
       createdById: user.id,
-      permission,
+      permission: fixed ? fixed.permission : permission,
       sharing,
       sort,
       index,
-      commenting,
+      commenting: fixed ? fixed.commenting : commenting,
       templateManagement,
     });
 
@@ -197,6 +205,9 @@ router.post(
     const { attachmentId, permission, format } = ctx.input.body;
     const { user } = ctx.state.auth;
     authorize(user, "importCollection", user.team);
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      integratedCollectionSettings(permission, undefined);
+    }
 
     const attachment = await Attachment.findByPk(attachmentId, {
       transaction,
@@ -217,7 +228,9 @@ router.post(
       input: [
         {
           externalId: randomUUID(),
-          permission: permission ?? undefined,
+          permission: env.WEBSITE_INTEGRATION_ENABLED
+            ? undefined
+            : (permission ?? undefined),
         },
       ],
       scratch: { storageKey: attachment.key },
@@ -628,6 +641,7 @@ router.post(
       transaction,
     });
     authorize(user, "update", collection);
+    assertIntegratedCollectionUpdate(permission, commenting);
 
     // we're making this collection have no default access, ensure that the
     // current user has an admin membership so that at least they can manage it.

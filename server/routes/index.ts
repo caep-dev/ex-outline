@@ -17,7 +17,13 @@ import { getTeamFromContext } from "@server/utils/passport";
 import { robotsResponse } from "@server/utils/robots";
 import { isInvalidAppPath } from "@server/utils/url";
 import apexRedirect from "../middlewares/apexRedirect";
-import { renderApp, renderShare } from "./app";
+import {
+  renderApp,
+  renderIntegratedShare,
+  renderPublicDocument,
+  renderPublicSitemap,
+  renderShare,
+} from "./app";
 import { renderEmbed } from "./embeds";
 import errors from "./errors";
 
@@ -73,7 +79,10 @@ if (env.isProduction) {
         maxAge: Day.ms * 365,
         immutable: true,
         setHeaders: (res) => {
-          res.setHeader("Service-Worker-Allowed", "/");
+          res.setHeader(
+            "Service-Worker-Allowed",
+            process.env.WEBSITE_INTEGRATION_ENABLED === "true" ? "/docs/" : "/"
+          );
           res.setHeader("Access-Control-Allow-Origin", "*");
         },
       });
@@ -190,15 +199,33 @@ router.get("/opensearch.xml", (ctx) => {
   ctx.body = opensearchResponse(ctx.request.URL.origin);
 });
 
-router.get("/s/:shareId.:format", shareDomains(), renderShare);
-router.get("/s/:shareId", shareDomains(), renderShare);
+const integratedShareGuard = async (ctx: Koa.Context, next: Koa.Next) => {
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return renderIntegratedShare(ctx);
+  }
+  await next();
+};
+
 router.get(
-  "/s/:shareId/doc/:documentSlug.:format",
+  "/s/:shareId.:format",
+  integratedShareGuard,
   shareDomains(),
   renderShare
 );
-router.get("/s/:shareId/doc/:documentSlug", shareDomains(), renderShare);
-router.get("/s/:shareId/*", shareDomains(), renderShare);
+router.get("/s/:shareId", integratedShareGuard, shareDomains(), renderShare);
+router.get(
+  "/s/:shareId/doc/:documentSlug.:format",
+  integratedShareGuard,
+  shareDomains(),
+  renderShare
+);
+router.get(
+  "/s/:shareId/doc/:documentSlug",
+  integratedShareGuard,
+  shareDomains(),
+  renderShare
+);
+router.get("/s/:shareId/*", integratedShareGuard, shareDomains(), renderShare);
 
 router.get("/embeds/gitlab", renderEmbed);
 router.get("/embeds/github", renderEmbed);
@@ -208,6 +235,9 @@ router.get("/embeds/pinterest", renderEmbed);
 router.use(shareDomains());
 
 router.get("/doc/:documentSlug", async (ctx, next) => {
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return renderPublicDocument(ctx, next);
+  }
   if (ctx.state?.rootShare) {
     return renderShare(ctx, next);
   }
@@ -215,6 +245,9 @@ router.get("/doc/:documentSlug", async (ctx, next) => {
 });
 
 router.get("/sitemap.xml", async (ctx) => {
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    return renderPublicSitemap(ctx);
+  }
   if (ctx.state?.rootShare) {
     ctx.redirect(`/api/shares.sitemap?id=${ctx.state?.rootShare.id}`);
   } else {

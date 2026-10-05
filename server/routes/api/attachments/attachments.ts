@@ -24,8 +24,13 @@ import pagination from "@server/routes/api/middlewares/pagination";
 import { sequelize } from "@server/storage/database";
 import FileStorage from "@server/storage/files";
 import BaseStorage from "@server/storage/files/BaseStorage";
+import {
+  isPublicAttachment,
+  authorizePrivateIntegratedAttachment,
+} from "./access";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
+import { publicBasePath, publicPath } from "@shared/utils/publicPath";
 import { assertIn } from "@server/validation";
 import * as T from "./schema";
 
@@ -307,6 +312,17 @@ const handleAttachmentsRedirect = async (
     rejectOnEmpty: true,
   });
 
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    ctx.set("Cache-Control", "no-store");
+    if (!(await isPublicAttachment(attachment))) {
+      await authorizePrivateIntegratedAttachment(ctx, attachment);
+    }
+    await attachment.update({ lastAccessedAt: new Date() }, { silent: true });
+    // Local file reads repeat the authorization for each GET, including Range requests.
+    ctx.redirect(publicPath(publicBasePath(env.URL), attachment.canonicalUrl));
+    return;
+  }
+
   // Private attachments are accessible to any member of the workspace they
   // belong to. This is intentional and not a permission bypass – attachments
   // are owned by the workspace (team), not by individual documents. Checking
@@ -341,7 +357,10 @@ router.register(
   "attachments.redirect",
   ["get", "post"],
   [
-    auth({ optional: true }),
+    async (ctx, next) =>
+      env.WEBSITE_INTEGRATION_ENABLED
+        ? next()
+        : auth({ optional: true })(ctx, next),
     validate(T.AttachmentsRedirectSchema),
     handleAttachmentsRedirect,
   ]

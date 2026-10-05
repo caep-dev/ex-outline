@@ -4,7 +4,7 @@ import teamCreator from "@server/commands/teamCreator";
 import teamUpdater from "@server/commands/teamUpdater";
 import ConfirmTeamDeleteEmail from "@server/emails/templates/ConfirmTeamDeleteEmail";
 import env from "@server/env";
-import { ValidationError } from "@server/errors";
+import { NotFoundError, ValidationError } from "@server/errors";
 import auth from "@server/middlewares/authentication";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
@@ -120,6 +120,9 @@ router.post(
   auth(),
   transaction(),
   async (ctx: APIContext) => {
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      throw NotFoundError();
+    }
     const { transaction } = ctx.state;
     const { user } = ctx.state.auth;
     const { name } = ctx.request.body;

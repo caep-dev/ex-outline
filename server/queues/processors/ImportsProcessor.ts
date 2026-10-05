@@ -27,7 +27,9 @@ import { colorPalette } from "@shared/constants";
 import { UrlHelper } from "@shared/utils/UrlHelper";
 import { CollectionValidation } from "@shared/validations";
 import { createContext } from "@server/context";
+import { integratedCollectionSettings } from "@server/commands/integratedCollectionSettings";
 import { schema } from "@server/editor";
+import env from "@server/env";
 import Logger from "@server/logging/Logger";
 import { Attachment, Collection, Document, Import, User } from "@server/models";
 import type {
@@ -447,7 +449,10 @@ export default abstract class ImportsProcessor<
                 apiImportId: importModel.id,
                 index: collectionIdx,
                 sort: Collection.DEFAULT_SORT,
-                permission: collectionItem.permission,
+                permission: env.WEBSITE_INTEGRATION_ENABLED
+                  ? integratedCollectionSettings(null, undefined).permission
+                  : collectionItem.permission,
+                commenting: env.WEBSITE_INTEGRATION_ENABLED ? true : undefined,
                 sourceMetadata,
                 createdAt: output.createdAt ?? now,
                 updatedAt: output.updatedAt ?? now,

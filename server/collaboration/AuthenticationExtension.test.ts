@@ -1,12 +1,25 @@
 import type {
   Hocuspocus,
+  onAuthenticatePayload,
   onConfigurePayload,
   onDestroyPayload,
 } from "@hocuspocus/server";
+import { randomUUID } from "node:crypto";
 import { AuthorizationChanged } from "@shared/collaboration/CloseEvents";
 import { CollectionPermission } from "@shared/types";
 import { sleep } from "@shared/utils/timers";
-import { UserMembership } from "@server/models";
+import env from "@server/env";
+import WebsiteIdentityClient from "@server/identity/WebsiteIdentityClient";
+import {
+  issueCollaborationToken,
+  websiteSessionGuard,
+} from "@server/identity/authenticateExternalSession";
+import {
+  ExternalIdentity,
+  ExternalSession,
+  UserMembership,
+  WebsiteIntegration,
+} from "@server/models";
 import type User from "@server/models/User";
 import RedisAdapter from "@server/storage/redis";
 import {
@@ -70,6 +83,45 @@ describe("AuthenticationExtension", () => {
     return { admin, collection, document, membership, team, user };
   };
 
+  const websiteSessionFor = async (user: User) => {
+    const issuer = "http://identity.exwebsite.test:8090/";
+    process.env.HYDRA_PUBLIC_URL = issuer;
+    process.env.WEBSITE_INTERNAL_URL = "http://127.0.0.1:18766/";
+    process.env.OUTLINE_INTEGRATION_KEY = "isolated-test-key";
+    env.WEBSITE_INTEGRATION_ENABLED = true;
+    await WebsiteIntegration.create({
+      key: "website",
+      teamId: user.teamId,
+      issuer,
+      initialAdminSubject: randomUUID(),
+    });
+    const websiteSessionId = randomUUID();
+    const subject = randomUUID();
+    await ExternalIdentity.create({ issuer, subject, userId: user.id });
+    const session = await ExternalSession.create({
+      userId: user.id,
+      websiteSessionId,
+      hydraSid: "safe-test-sid",
+      clientId: "ex-outline",
+      expiresAt: new Date(Date.now() + 60_000),
+    });
+    const check = vi
+      .spyOn(WebsiteIdentityClient.prototype, "check")
+      .mockResolvedValue({
+        active: true,
+        sessionId: websiteSessionId,
+        userId: subject,
+        expiresAt: Date.now() + 60_000,
+        profile: {
+          nickname: user.name,
+          email: user.email ?? "collaborator@example.test",
+          avatarUrl: null,
+          version: 0,
+        },
+      });
+    return { session, token: issueCollaborationToken(session), check };
+  };
+
   beforeEach(() => {
     extension = new AuthenticationExtension();
   });
@@ -85,6 +137,82 @@ describe("AuthenticationExtension", () => {
     await sleep(100);
 
     expect(connection.close).toHaveBeenCalledWith(AuthorizationChanged);
+  });
+
+  it("rejects a collaboration update after its Website lease expires", async () => {
+    const assertActive = vi.fn(() => {
+      throw new Error("expired");
+    });
+    await expect(
+      extension.beforeHandleMessage({
+        context: { websiteLease: { assertActive } },
+      } as never)
+    ).rejects.toThrow("expired");
+    expect(assertActive).toHaveBeenCalledOnce();
+  });
+
+  it("rejects a denied collaboration handshake without starting a Website lease", async () => {
+    const { document, membership, user } = await buildPrivateCollection();
+    await membership.destroy();
+    const { session, token, check } = await websiteSessionFor(user);
+    const guard = websiteSessionGuard();
+    const openLease = vi.spyOn(guard, "openLease");
+    const interval = vi.spyOn(globalThis, "setInterval");
+    const connection = buildConnection(user);
+    let leases = 0;
+    let timers = 0;
+    let websiteChecks = 0;
+    try {
+      await expect(
+        extension.onAuthenticate({
+          connection,
+          token,
+          documentName: `document.${document.id}`,
+          socketId: "denied-socket",
+        } as unknown as onAuthenticatePayload)
+      ).rejects.toThrow("Authorization required");
+      await sleep(2300);
+      leases = openLease.mock.calls.length;
+      timers = interval.mock.calls.filter(
+        ([, delay]) => delay === 2000 || delay === 250
+      ).length;
+      websiteChecks = check.mock.calls.length;
+    } finally {
+      guard.invalidate({ sessionId: session.websiteSessionId });
+      openLease.mockRestore();
+      interval.mockRestore();
+      check.mockRestore();
+    }
+    expect({ leases, timers, websiteChecks }).toEqual({
+      leases: 0,
+      timers: 0,
+      websiteChecks: 1,
+    });
+  }, 10_000);
+
+  it("retains and releases a Website lease for an authorized collaboration connection", async () => {
+    const { document, user } = await buildPrivateCollection();
+    const { session, token, check } = await websiteSessionFor(user);
+    const connection = buildConnection(user);
+    const context = await extension.onAuthenticate({
+      connection,
+      token,
+      documentName: `document.${document.id}`,
+      socketId: "authorized-socket",
+    } as unknown as onAuthenticatePayload);
+    try {
+      expect(context.websiteSessionId).toBe(session.websiteSessionId);
+      expect(context.websiteLease).toBeDefined();
+      expect(check).toHaveBeenCalledTimes(2);
+      await expect(
+        extension.beforeHandleMessage({ context } as never)
+      ).resolves.toBeUndefined();
+      await extension.onDisconnect({ context } as never);
+      expect(() => context.websiteLease?.assertActive()).toThrow();
+    } finally {
+      context.websiteLease?.invalidate();
+      check.mockRestore();
+    }
   });
 
   it("should ignore messages for other collaboration channels", async () => {

@@ -92,15 +92,17 @@ export type ConfigItem = {
 };
 
 const useSettingsConfig = () => {
-  const { integrations } = useStores();
+  const { auth, integrations } = useStores();
   const user = useCurrentUser();
   const team = useCurrentTeam();
   const can = usePolicy(team);
   const { t } = useTranslation();
 
   useEffect(() => {
-    void integrations.fetchAll();
-  }, [integrations]);
+    if (!auth.websiteIntegrationEnabled) {
+      void integrations.fetchAll();
+    }
+  }, [auth.websiteIntegrationEnabled, integrations]);
 
   const config = useComputed(() => {
     const items: ConfigItem[] = [
@@ -283,6 +285,18 @@ const useSettingsConfig = () => {
       },
     ];
 
+    if (auth.websiteIntegrationEnabled) {
+      // Identity, application keys, workspace membership, and plugin setup
+      // belong outside the integrated document workspace.
+      return items.filter((item) =>
+        [
+          settingsPath(),
+          settingsPath("preferences"),
+          settingsPath("notifications"),
+        ].includes(item.path)
+      );
+    }
+
     // Plugins
     PluginManager.getHooks(Hook.Settings).forEach((plugin) => {
       const group = plugin.value.group ?? "Integrations";
@@ -311,6 +325,7 @@ const useSettingsConfig = () => {
   }, [
     t,
     user,
+    auth.websiteIntegrationEnabled,
     can.createApiKey,
     can.update,
     can.createImport,

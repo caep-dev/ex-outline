@@ -26,6 +26,7 @@ import type {
   Revision,
   Team,
   User,
+  ExternalSession,
   UserMembership,
   UserPasskey,
   WebhookSubscription,
@@ -72,6 +73,8 @@ export type Pagination = {
 
 export type AppState = {
   auth: Authentication | Record<string, never>;
+  externalSession?: ExternalSession;
+  websiteSubject?: string;
   transaction: Transaction;
   pagination: Pagination;
   oauthClient?: OAuthClient;

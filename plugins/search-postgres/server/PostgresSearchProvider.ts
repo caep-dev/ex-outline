@@ -15,6 +15,8 @@ import { DirectionFilter, SortFilter } from "@shared/types";
 import { regexIndexOf, regexLastIndexOf } from "@shared/utils/string";
 import { getUrls } from "@shared/utils/urls";
 import { ValidationError } from "@server/errors";
+import env from "@server/env";
+import { publicCollectionIds } from "@server/commands/publicAccess";
 import Collection from "@server/models/Collection";
 import type Comment from "@server/models/Comment";
 import Document from "@server/models/Document";
@@ -668,28 +670,45 @@ export default class PostgresSearchProvider extends BaseSearchProvider {
     // done its own authorization — narrow to the filter's collectionId if
     // specified, otherwise to the team's publicly-permissioned set.
     if (model instanceof User) {
-      const [membershipDocumentIds, collectionIds] = await Promise.all([
-        Document.membershipDocumentIds(model.id),
-        model.collectionIds(),
-      ]);
-      if (membershipDocumentIds.length) {
-        where[Op.or].push({ id: membershipDocumentIds });
-      }
-      where[Op.or].push({
-        createdById: model.id,
-        collectionId: { [Op.is]: null },
-      });
-      if (collectionIds.length) {
+      if (env.WEBSITE_INTEGRATION_ENABLED) {
+        const [collectionIds, editableIds, publicIds] = await Promise.all([
+          model.collectionIds(),
+          model.editableCollectionIds(),
+          publicCollectionIds(),
+        ]);
         where[Op.or].push(
+          { collectionId: collectionIds, publishedAt: { [Op.ne]: null } },
+          { collectionId: editableIds, publishedAt: { [Op.is]: null } },
           {
-            collectionId: collectionIds,
+            collectionId: publicIds,
             publishedAt: { [Op.ne]: null },
-          },
-          {
-            createdById: model.id,
-            collectionId: collectionIds,
+            archivedAt: null,
           }
         );
+      } else {
+        const [membershipDocumentIds, collectionIds] = await Promise.all([
+          Document.membershipDocumentIds(model.id),
+          model.collectionIds(),
+        ]);
+        if (membershipDocumentIds.length) {
+          where[Op.or].push({ id: membershipDocumentIds });
+        }
+        where[Op.or].push({
+          createdById: model.id,
+          collectionId: { [Op.is]: null },
+        });
+        if (collectionIds.length) {
+          where[Op.or].push(
+            {
+              collectionId: collectionIds,
+              publishedAt: { [Op.ne]: null },
+            },
+            {
+              createdById: model.id,
+              collectionId: collectionIds,
+            }
+          );
+        }
       }
     } else {
       const explicitCollectionIds = filter

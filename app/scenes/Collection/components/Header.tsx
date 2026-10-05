@@ -13,6 +13,7 @@ import { colorPalette } from "@shared/constants";
 import usePolicy from "~/hooks/usePolicy";
 import { observer } from "mobx-react";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import useStores from "~/hooks/useStores";
 
 const IconPicker = lazyWithRetry(() => import("~/components/IconPicker"));
 
@@ -28,7 +29,11 @@ export const Header = observer(function Header_({
   isEditing,
 }: Props) {
   const can = usePolicy(collection);
-  const canEdit = can.update && isEditing;
+  const { auth } = useStores();
+  const canEdit =
+    can.update &&
+    isEditing &&
+    (!auth.websiteIntegrationEnabled || auth.user?.isAdmin);
   const handleIconChange = useCallback(
     (icon: string | null, color: string | null) =>
       collection?.save({ icon, color }),

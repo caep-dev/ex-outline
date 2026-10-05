@@ -93,7 +93,11 @@ function Collections() {
               }
               empty={
                 // The heading already offers a create action when permitted.
-                can.createCollection ? null : (
+                (
+                  auth.websiteIntegrationEnabled
+                    ? auth.user?.isAdmin && can.createCollection
+                    : can.createCollection
+                ) ? null : (
                   <SidebarLink
                     label={
                       <Text type="tertiary" size="small" italic>

@@ -11,12 +11,19 @@ import { commentingEnabled } from "@server/middlewares/feature";
 import { rateLimiter } from "@server/middlewares/rateLimiter";
 import { transaction } from "@server/middlewares/transaction";
 import validate from "@server/middlewares/validate";
-import { ValidationError } from "@server/errors";
+import { NotFoundError, ValidationError } from "@server/errors";
 import { Document, Comment, Collection, Reaction, Emoji } from "@server/models";
+import type { User } from "@server/models";
+import {
+  isPublicCollection,
+  isPublicDocument,
+  publicCollectionIds,
+} from "@server/commands/publicAccess";
+import env from "@server/env";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
 import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import { TextHelper } from "@server/models/helpers/TextHelper";
-import { authorize } from "@server/policies";
+import { authorize, can } from "@server/policies";
 import { presentComment, presentPolicies } from "@server/presenters";
 import type { APIContext } from "@server/types";
 import { RateLimiterStrategy } from "@server/utils/RateLimiter";
@@ -24,6 +31,64 @@ import pagination from "../middlewares/pagination";
 import * as T from "./schema";
 
 const router = new Router();
+
+function presentReadableComment(
+  comment: Comment,
+  publicOnly: boolean,
+  includeAnchorText?: boolean
+) {
+  const data = presentComment(comment, { includeAnchorText });
+  if (!publicOnly) {
+    return data;
+  }
+  const publicAuthor = (author: typeof data.createdBy) => ({
+    id: author.id,
+    name: author.name,
+    avatarUrl: author.avatarUrl ?? null,
+  });
+  return {
+    id: data.id,
+    data: data.data,
+    createdBy: publicAuthor(data.createdBy),
+    resolvedBy: data.resolvedBy ? publicAuthor(data.resolvedBy) : null,
+  };
+}
+
+async function isPublicOnlyForUser(
+  user: User,
+  document: Document
+): Promise<boolean> {
+  return (
+    env.WEBSITE_INTEGRATION_ENABLED &&
+    !(await user.collectionIds()).includes(document.collectionId ?? "")
+  );
+}
+
+async function authorizeReadableDocument(
+  user: User,
+  document: Document | null,
+  action: "read" | "comment"
+): Promise<Document> {
+  if (!document) {
+    throw NotFoundError();
+  }
+  if (can(user, action, document)) {
+    return document;
+  }
+  if (
+    env.WEBSITE_INTEGRATION_ENABLED &&
+    document &&
+    user.teamId === document.teamId &&
+    !user.isGuest &&
+    document.isActive &&
+    !document.isDraft &&
+    (await isPublicDocument(document.id))
+  ) {
+    return document;
+  }
+  authorize(user, action, document);
+  return document;
+}
 
 router.post(
   "comments.create",
@@ -57,13 +122,13 @@ router.post(
       });
     }
 
-    const document = await Document.findByPk(documentId, {
+    let document = await Document.findByPk(documentId, {
       userId: user.id,
       transaction,
       // We only need to load the state binary if applying a comment mark
       includeState: anchored,
     });
-    authorize(user, "comment", document);
+    document = await authorizeReadableDocument(user, document, "comment");
 
     const text = ctx.input.body.text
       ? await TextHelper.replaceImagesWithAttachments(
@@ -125,7 +190,10 @@ router.post(
     comment.createdBy = user;
 
     ctx.body = {
-      data: presentComment(comment),
+      data: presentReadableComment(
+        comment,
+        await isPublicOnlyForUser(user, document)
+      ),
       policies: presentPolicies(user, [comment]),
     };
   }
@@ -143,16 +211,20 @@ router.post(
     const comment = await Comment.findByPk(id, {
       rejectOnEmpty: true,
     });
-    const document = await Document.findByPk(comment.documentId, {
+    let document = await Document.findByPk(comment.documentId, {
       userId: user.id,
     });
     authorize(user, "read", comment);
-    authorize(user, "read", document);
+    document = await authorizeReadableDocument(user, document, "read");
 
     comment.document = document;
 
     ctx.body = {
-      data: presentComment(comment, { includeAnchorText }),
+      data: presentReadableComment(
+        comment,
+        await isPublicOnlyForUser(user, document),
+        includeAnchorText
+      ),
       policies: presentPolicies(user, [comment]),
     };
   }
@@ -209,8 +281,8 @@ router.post(
 
     let comments, total;
     if (documentId) {
-      const document = await Document.findByPk(documentId, { userId: user.id });
-      authorize(user, "read", document);
+      let document = await Document.findByPk(documentId, { userId: user.id });
+      document = await authorizeReadableDocument(user, document, "read");
       [comments, total] = await Promise.all([
         Comment.findAll(params),
         Comment.count({ where }),
@@ -220,7 +292,19 @@ router.post(
       const collection = await Collection.findByPk(collectionId, {
         userId: user.id,
       });
-      authorize(user, "read", collection);
+      if (
+        !(
+          env.WEBSITE_INTEGRATION_ENABLED &&
+          collection &&
+          collection.teamId === user.teamId &&
+          (await isPublicCollection(collectionId))
+        )
+      ) {
+        authorize(user, "read", collection);
+      }
+      const editableIds = env.WEBSITE_INTEGRATION_ENABLED
+        ? await user.editableCollectionIds()
+        : [];
       const include = [
         {
           model: Document,
@@ -228,6 +312,16 @@ router.post(
           where: {
             teamId: user.teamId,
             collectionId,
+            ...(env.WEBSITE_INTEGRATION_ENABLED
+              ? {
+                  deletedAt: null,
+                  archivedAt: null,
+                  template: false,
+                  ...(editableIds.includes(collectionId)
+                    ? {}
+                    : { publishedAt: { [Op.ne]: null } }),
+                }
+              : {}),
           },
         },
       ];
@@ -242,7 +336,17 @@ router.post(
         }),
       ]);
     } else {
-      const accessibleCollectionIds = await user.collectionIds();
+      const accessibleCollectionIds = env.WEBSITE_INTEGRATION_ENABLED
+        ? Array.from(
+            new Set([
+              ...(await user.collectionIds()),
+              ...(await publicCollectionIds()),
+            ])
+          )
+        : await user.collectionIds();
+      const editableIds = env.WEBSITE_INTEGRATION_ENABLED
+        ? await user.editableCollectionIds()
+        : [];
       const include = [
         {
           model: Document,
@@ -250,6 +354,17 @@ router.post(
           where: {
             teamId: user.teamId,
             collectionId: { [Op.in]: accessibleCollectionIds },
+            ...(env.WEBSITE_INTEGRATION_ENABLED
+              ? {
+                  deletedAt: null,
+                  archivedAt: null,
+                  template: false,
+                  [Op.or]: [
+                    { publishedAt: { [Op.ne]: null } },
+                    { collectionId: { [Op.in]: editableIds } },
+                  ],
+                }
+              : {}),
           },
         },
       ];
@@ -265,10 +380,21 @@ router.post(
       ]);
     }
 
+    const internalCollectionIds = env.WEBSITE_INTEGRATION_ENABLED
+      ? await user.collectionIds()
+      : [];
     ctx.body = {
       pagination: { ...ctx.state.pagination, total },
       data: comments.map((comment) =>
-        presentComment(comment, { includeAnchorText })
+        presentReadableComment(
+          comment,
+          env.WEBSITE_INTEGRATION_ENABLED &&
+            !!comment.document &&
+            !internalCollectionIds.includes(
+              comment.document.collectionId ?? ""
+            ),
+          includeAnchorText
+        )
       ),
       policies: presentPolicies(user, comments),
     };
@@ -294,12 +420,12 @@ router.post(
         of: Comment,
       },
     });
-    const document = await Document.findByPk(comment.documentId, {
+    let document = await Document.findByPk(comment.documentId, {
       userId: user.id,
       transaction,
     });
     authorize(user, "update", comment);
-    authorize(user, "comment", document);
+    document = await authorizeReadableDocument(user, document, "comment");
 
     let newMentionIds: string[] = [];
 
@@ -333,7 +459,10 @@ router.post(
     await comment.saveWithCtx(ctx, undefined, { data: { newMentionIds } });
 
     ctx.body = {
-      data: presentComment(comment),
+      data: presentReadableComment(
+        comment,
+        await isPublicOnlyForUser(user, document)
+      ),
       policies: presentPolicies(user, [comment]),
     };
   }
@@ -358,11 +487,11 @@ router.post(
         of: Comment,
       },
     });
-    const document = await Document.findByPk(comment.documentId, {
+    let document = await Document.findByPk(comment.documentId, {
       userId: user.id,
     });
     authorize(user, "delete", comment);
-    authorize(user, "comment", document);
+    document = await authorizeReadableDocument(user, document, "comment");
 
     await comment.destroyWithCtx(ctx);
 
@@ -401,7 +530,10 @@ router.post(
     await comment.saveWithCtx(ctx, { silent: true });
 
     ctx.body = {
-      data: presentComment(comment),
+      data: presentReadableComment(
+        comment,
+        await isPublicOnlyForUser(user, document)
+      ),
       policies: presentPolicies(user, [comment]),
     };
   }

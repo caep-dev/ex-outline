@@ -1,0 +1,34 @@
+# syntax=docker/dockerfile:1.7
+ARG NODE_IMAGE=node:26.3.0-slim@sha256:95a34da32a840bd9b3b09a5b773591c16923e350174b1c50e1200c75bf15eaa9
+FROM ${NODE_IMAGE} AS outline-build
+RUN apt-get update && apt-get install -y --no-install-recommends cmake python3 make g++ && rm -rf /var/lib/apt/lists/*
+RUN npm install -g corepack@0.34.5 && corepack enable
+WORKDIR /workspace/website
+COPY --from=exui . vendor/exui
+WORKDIR /workspace/website/vendor/exui
+RUN pnpm install --frozen-lockfile && pnpm --filter @exre/exui-tokens build && pnpm --filter @exre/exui build
+WORKDIR /workspace/website
+RUN ln -s vendor/exui exui
+COPY apps/outline apps/outline
+WORKDIR /workspace/website/apps/outline
+ENV WEBSITE_INTEGRATION_ENABLED=true WEBSITE_INTEGRATION_MODE=full URL=http://exwebsite.test:8090/docs HYDRA_PUBLIC_URL=http://identity.exwebsite.test:8090/ OUTLINE_OIDC_CLIENT_ID=ex-outline WEBSITE_INTERNAL_URL=http://server:8080/
+RUN yarn install --immutable && yarn build && yarn workspaces focus --production
+
+FROM ${NODE_IMAGE} AS outline
+ENV NODE_ENV=production NODE_OPTIONS=--preserve-symlinks
+RUN npm install -g corepack@0.34.5 && corepack enable && corepack prepare yarn@4.11.0 --activate
+WORKDIR /workspace/website/apps/outline
+COPY --from=outline-build /workspace/website/apps/outline/build build
+COPY --from=outline-build /workspace/website/apps/outline/server server
+COPY --from=outline-build /workspace/website/apps/outline/public public
+COPY --from=outline-build /workspace/website/apps/outline/node_modules node_modules
+COPY --from=outline-build /workspace/website/apps/outline/package.json package.json
+COPY --from=outline-build /workspace/website/apps/outline/yarn.lock yarn.lock
+COPY --from=outline-build /workspace/website/apps/outline/.yarnrc.yml .yarnrc.yml
+COPY --from=outline-build /workspace/website/apps/outline/.yarn/install-state.gz .yarn/install-state.gz
+COPY --from=outline-build /workspace/website/apps/outline/.sequelizerc .sequelizerc
+COPY --from=outline-build /workspace/website/vendor/exui/packages/components /workspace/website/vendor/exui/packages/components
+COPY --from=outline-build /workspace/website/vendor/exui/packages/tokens /workspace/website/vendor/exui/packages/tokens
+RUN ln -s /workspace/website/vendor/exui /workspace/website/exui
+EXPOSE 3000
+CMD ["node", "build/server/index.js", "--no-migrate"]

@@ -6,7 +6,8 @@ import { parseDomain } from "@shared/utils/domains";
 import env from "@server/env";
 import auth from "@server/middlewares/authentication";
 import { transaction } from "@server/middlewares/transaction";
-import { Event, Team } from "@server/models";
+import { Collection, Event, Team, WebsiteIntegration } from "@server/models";
+import { can } from "@server/policies";
 import AuthenticationHelper from "@server/models/helpers/AuthenticationHelper";
 import {
   presentUser,
@@ -22,11 +23,25 @@ import type { APIContext } from "@server/types";
 import { AuthenticationType } from "@server/types";
 import { getSessionsInCookie } from "@server/utils/authentication";
 import RateLimiter from "@server/utils/RateLimiter";
+import {
+  issueCollaborationToken,
+  websiteIdentityClient,
+} from "@server/identity/authenticateExternalSession";
+import { SessionGuardError } from "@server/identity/SessionGuard";
 import type * as T from "./schema";
 
 const router = new Router();
 
 router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
+  const websiteIntegrationEnabled = env.WEBSITE_INTEGRATION_ENABLED;
+  const initialized =
+    !websiteIntegrationEnabled ||
+    !!(await WebsiteIntegration.findByPk("website"));
+  const integrationMode = { websiteIntegrationEnabled, initialized };
+  if (websiteIntegrationEnabled && !initialized) {
+    ctx.body = { data: { ...integrationMode, providers: [] } };
+    return;
+  }
   // If self hosted AND there is only one team then that team becomes the
   // brand for the knowledge base and it's guest signin option is used for the
   // root login page.
@@ -38,6 +53,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
     if (team) {
       ctx.body = {
         data: {
+          ...integrationMode,
           name: team.name,
           customTheme: team.getPreference(TeamPreference.CustomTheme),
           logo: team.getPreference(TeamPreference.PublicBranding)
@@ -64,6 +80,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
     if (team) {
       ctx.body = {
         data: {
+          ...integrationMode,
           name: team.name,
           customTheme: team.getPreference(TeamPreference.CustomTheme),
           logo: team.getPreference(TeamPreference.PublicBranding)
@@ -91,6 +108,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
     if (team) {
       ctx.body = {
         data: {
+          ...integrationMode,
           name: team.name,
           customTheme: team.getPreference(TeamPreference.CustomTheme),
           logo: team.getPreference(TeamPreference.PublicBranding)
@@ -109,6 +127,7 @@ router.post("auth.config", async (ctx: APIContext<T.AuthConfigReq>) => {
   // Otherwise, we're requesting from the standard root signin page
   ctx.body = {
     data: {
+      ...integrationMode,
       providers: (await AuthenticationHelper.providersForTeam()).map(
         presentProviderConfig
       ),
@@ -161,6 +180,19 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
       });
   }
 
+  const policies = presentPolicies(user, [team, user, ...groups]);
+  if (env.WEBSITE_INTEGRATION_ENABLED) {
+    const collections = await Collection.scope({
+      method: ["withMembership", user.id],
+    }).findAll({ where: { teamId: team.id } });
+    const teamPolicy = policies.find((policy) => policy.id === team.id);
+    if (teamPolicy) {
+      teamPolicy.abilities.createDocument = collections.some((collection) =>
+        can(user, "createDocument", collection)
+      );
+    }
+  }
+
   ctx.body = {
     data: {
       user: presentUser(user, {
@@ -173,7 +205,9 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
       // to API or OAuth consumers
       collaborationToken:
         type === AuthenticationType.APP
-          ? user.getCollaborationToken()
+          ? env.WEBSITE_INTEGRATION_ENABLED && ctx.state.externalSession
+            ? issueCollaborationToken(ctx.state.externalSession)
+            : user.getCollaborationToken()
           : undefined,
       availableTeams: uniqBy([...signedInTeams, ...availableTeams], "id").map(
         (availableTeam) =>
@@ -184,7 +218,7 @@ router.post("auth.info", auth(), async (ctx: APIContext<T.AuthInfoReq>) => {
           )
       ),
     },
-    policies: presentPolicies(user, [team, user, ...groups]),
+    policies,
   };
 });
 
@@ -195,6 +229,24 @@ router.post(
   async (ctx: APIContext<T.AuthDeleteReq>) => {
     const { auth, transaction } = ctx.state;
     const { user, token } = auth;
+
+    if (env.WEBSITE_INTEGRATION_ENABLED) {
+      const session = ctx.state.externalSession;
+      const subject = ctx.state.websiteSubject;
+      if (!session || !subject) {
+        throw new SessionGuardError(401);
+      }
+      await websiteIdentityClient().revoke(session.hydraSid, subject);
+      await session.update({ revokedAt: new Date() }, { transaction });
+      ctx.cookies.set("exdocs_access", "", {
+        path: "/docs",
+        httpOnly: true,
+        sameSite: "lax",
+        expires: new Date(0),
+      });
+      ctx.body = { success: true, redirectUrl: "/identity/signed-out" };
+      return;
+    }
 
     await user.rotateJwtSecret({ transaction });
     await Event.createFromContext(ctx, {

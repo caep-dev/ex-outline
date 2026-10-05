@@ -498,26 +498,29 @@ class User extends ParanoidModel<
     const fetchCollectionIds = async () => {
       const collectionStubs = await Collection.findAll({
         attributes: ["id"],
-        where: {
-          teamId: this.teamId,
-          [Op.or]: [
-            ...(this.isGuest
-              ? []
-              : [
+        where:
+          env.WEBSITE_INTEGRATION_ENABLED && this.isAdmin
+            ? { teamId: this.teamId }
+            : {
+                teamId: this.teamId,
+                [Op.or]: [
+                  ...(this.isGuest || env.WEBSITE_INTEGRATION_ENABLED
+                    ? []
+                    : [
+                        {
+                          permission: {
+                            [Op.in]: Object.values(CollectionPermission),
+                          },
+                        },
+                      ]),
                   {
-                    permission: {
-                      [Op.in]: Object.values(CollectionPermission),
-                    },
+                    "$memberships.id$": { [Op.ne]: null },
                   },
-                ]),
-            {
-              "$memberships.id$": { [Op.ne]: null },
-            },
-            {
-              "$groupMemberships.id$": { [Op.ne]: null },
-            },
-          ],
-        },
+                  {
+                    "$groupMemberships.id$": { [Op.ne]: null },
+                  },
+                ],
+              },
         include: [
           {
             association: "memberships",
@@ -557,7 +560,7 @@ class User extends ParanoidModel<
       return Array.from(new Set(collectionStubs.map((c) => c.id)));
     };
 
-    if (hasOptions || skipCache) {
+    if (env.WEBSITE_INTEGRATION_ENABLED || hasOptions || skipCache) {
       return fetchCollectionIds();
     }
 
@@ -568,6 +571,31 @@ class User extends ParanoidModel<
         10
       )) ?? []
     );
+  };
+
+  /** Fresh collection write grants for integrated draft and search visibility. */
+  public editableCollectionIds = async (): Promise<string[]> => {
+    const collections = await Collection.scope({
+      method: ["withMembership", this.id],
+    }).findAll({
+      where: { teamId: this.teamId },
+    });
+    const canWrite = (permission: CollectionPermission | DocumentPermission) =>
+      permission === CollectionPermission.ReadWrite ||
+      permission === CollectionPermission.Admin;
+    return collections
+      .filter(
+        (collection) =>
+          collection.isActive &&
+          (this.isAdmin ||
+            collection.memberships?.some((membership) =>
+              canWrite(membership.permission)
+            ) ||
+            collection.groupMemberships?.some((membership) =>
+              canWrite(membership.permission)
+            ))
+      )
+      .map((collection) => collection.id);
   };
 
   updateActiveAt = async (ctx: Context, force = false) => {

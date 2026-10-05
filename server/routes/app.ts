@@ -5,29 +5,168 @@ import type { Context, Next } from "koa";
 import { escape } from "es-toolkit/compat";
 import { Sequelize } from "sequelize";
 import isUUID from "validator/lib/isUUID";
+import { Node } from "prosemirror-model";
 import {
   TeamPreference,
   type IntegrationType,
   type NavigationNode,
 } from "@shared/types";
 import { unicodeCLDRtoISO639 } from "@shared/utils/date";
+import {
+  developmentPublicUrl,
+  publicBasePath,
+  publicPath,
+  publicUrl,
+} from "@shared/utils/publicPath";
 import { Hour } from "@shared/utils/time";
 import env from "@server/env";
+import { schema } from "@server/editor";
 import { allowScriptSrc } from "@server/middlewares/csp";
-import { Integration } from "@server/models";
+import { Integration, WebsiteIntegration } from "@server/models";
 import { DocumentHelper } from "@server/models/helpers/DocumentHelper";
+import { ProsemirrorHelper } from "@server/models/helpers/ProsemirrorHelper";
 import IntegrationHelper from "@server/models/helpers/IntegrationHelper";
 import presentEnv from "@server/presenters/env";
 import { getTeamFromContext } from "@server/utils/passport";
 import prefetchTags from "@server/utils/prefetchTags";
 import readManifestFile from "@server/utils/readManifestFile";
 import { loadPublicShare } from "@server/commands/shareLoader";
+import {
+  listPublicCollections,
+  listPublicDocuments,
+  resolvePublicDocument,
+  publicDocumentContent,
+} from "@server/commands/publicAccess";
+import { authenticateExternalSession } from "@server/identity/authenticateExternalSession";
+import { SessionGuardError } from "@server/identity/SessionGuard";
 
 const readFile = util.promisify(fs.readFile);
 const entry = "app/index.tsx";
-const viteHost = env.URL.replace(`:${env.PORT}`, ":3101");
+const publicBase = publicBasePath(env.URL);
+const viteHost =
+  process.env.WEBSITE_INTEGRATION_ENABLED === "true"
+    ? env.URL
+    : env.URL.replace(`:${env.PORT}`, ":3101");
 
 let indexHtmlCache: Buffer | undefined;
+
+/**
+ * Renders indexable public content or a guarded private application shell.
+ *
+ * @param ctx the request context containing a document slug.
+ * @param next the next route middleware.
+ * @returns the rendered response, or an indistinguishable 404.
+ * @throws when session verification or public storage is unavailable.
+ */
+export async function renderPublicDocument(ctx: Context, next: Next) {
+  const document = await resolvePublicDocument(ctx.params.documentSlug);
+  if (!document) {
+    try {
+      const identity = await authenticateExternalSession(ctx);
+      if (identity) {
+        return renderApp(ctx, next, { allowIndexing: false });
+      }
+    } catch (error) {
+      if (!(error instanceof SessionGuardError) || error.status !== 401) {
+        throw error;
+      }
+    }
+    ctx.status = 404;
+    ctx.set("Cache-Control", "no-store");
+    return;
+  }
+  const data = await publicDocumentContent(document);
+  const content = await ProsemirrorHelper.toHTML(Node.fromJSON(schema, data), {
+    title: document.title,
+    includeStyles: false,
+    includeHead: false,
+    baseUrl: env.URL,
+  });
+  return renderApp(ctx, next, {
+    title: document.title,
+    description: document.getSummary(),
+    content,
+    canonical: publicUrl(env.URL, document.path),
+    allowIndexing: true,
+  });
+}
+
+/**
+ * Resolves a legacy collection share before redirecting to its public canonical page.
+ *
+ * @param ctx the legacy share request context.
+ * @returns an uncached canonical redirect or an indistinguishable 404.
+ * @throws when public storage is unavailable.
+ */
+export async function renderIntegratedShare(ctx: Context) {
+  ctx.set("Cache-Control", "no-store");
+  const integration = await WebsiteIntegration.findByPk("website");
+  if (!integration) {
+    ctx.status = 404;
+    return;
+  }
+  try {
+    const result = await loadPublicShare({
+      id: ctx.params.shareId,
+      documentId: ctx.params.documentSlug,
+      teamId: integration.teamId,
+    });
+    if (!result.collection) {
+      ctx.status = 404;
+      return;
+    }
+    ctx.redirect(
+      publicUrl(
+        env.URL,
+        result.document?.path ?? `/public/collection/${result.collection.id}`
+      )
+    );
+    ctx.status = 308;
+  } catch (error) {
+    const status = (error as { status?: number }).status;
+    if (status === 400 || status === 403 || status === 404) {
+      ctx.status = 404;
+      return;
+    }
+    throw error;
+  }
+}
+
+/**
+ * Enumerates current public document URLs through the public visibility resolver.
+ *
+ * @param ctx the sitemap request context.
+ * @returns a sitemap response without private documents or caching.
+ */
+export async function renderPublicSitemap(ctx: Context) {
+  const urls: string[] = [];
+  for (let offset = 0; ; offset += 100) {
+    const collections = await listPublicCollections({ offset, limit: 100 });
+    for (const collection of collections.data) {
+      for (let documentOffset = 0; ; documentOffset += 100) {
+        const documents = await listPublicDocuments(collection.id, {
+          offset: documentOffset,
+          limit: 100,
+        });
+        urls.push(
+          ...documents.data.map(
+            (document) =>
+              `<url><loc>${escape(publicUrl(env.URL, document.url))}</loc></url>`
+          )
+        );
+        if (!documents.pagination.hasMore) {
+          break;
+        }
+      }
+    }
+    if (!collections.pagination.hasMore) {
+      break;
+    }
+  }
+  ctx.type = "application/xml";
+  ctx.set("Cache-Control", "no-store");
+  ctx.body = `<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">${urls.join("")}</urlset>`;
+}
 
 /**
  * Formats navigation tree children as markdown list items.
@@ -95,7 +234,7 @@ export const renderApp = async (
     description = "A modern team knowledge base for your internal documentation, product specs, support answers, meeting notes, onboarding, &amp; more…",
     canonical = "",
     content = "",
-    shortcutIcon = `${env.CDN_URL || ""}/images/favicon-32.png`,
+    shortcutIcon = `${env.CDN_URL || ""}${publicPath(publicBase, "/images/favicon-32.png")}`,
     allowIndexing = true,
   } = options;
 
@@ -110,9 +249,29 @@ export const renderApp = async (
 
   const { shareId } = ctx.params;
   const page = await readIndexFile();
+  const publicUrl =
+    env.isDevelopment && !env.WEBSITE_INTEGRATION_ENABLED
+      ? developmentPublicUrl(
+          env.URL,
+          ctx.get("X-Website-Docs-Origin"),
+          (process.env.OUTLINE_DEV_MOUNT_ORIGINS || "")
+            .split(",")
+            .filter(Boolean)
+        )
+      : env.URL;
+  const basePath = publicBasePath(publicUrl);
+  const publicEnvironment = {
+    ...presentEnv(env, options),
+    URL: publicUrl,
+    CDN_URL: env.CDN_URL || basePath,
+    COLLABORATION_URL:
+      publicUrl === env.URL || process.env.COLLABORATION_URL
+        ? env.COLLABORATION_URL
+        : publicUrl.replace(/^http/, "ws"),
+  };
   const environment = `
     <script nonce="${ctx.state.cspNonce}">
-      window.env = ${JSON.stringify(presentEnv(env, options)).replace(
+      window.env = ${JSON.stringify(publicEnvironment).replace(
         /</g,
         "\\u003c"
       )};
@@ -122,7 +281,7 @@ export const renderApp = async (
   const scriptTags = env.isProduction
     ? `<script type="module" nonce="${ctx.state.cspNonce}" src="${
         env.CDN_URL || ""
-      }/static/${readManifestFile()[entry]["file"]}"></script>`
+      }${publicPath(publicBase, `/static/${readManifestFile()[entry]["file"]}`)}"></script>`
     : `<script type="module" nonce="${ctx.state.cspNonce}">
         import RefreshRuntime from "${viteHost}/static/@react-refresh"
         RefreshRuntime.injectIntoGlobalHook(window)
@@ -152,34 +311,34 @@ export const renderApp = async (
 
   if (options.isShare) {
     headTags += `
-    <link rel="sitemap" type="application/xml" href="/api/shares.sitemap?id=${escape(options.rootShareId || shareId)}">
+    <link rel="sitemap" type="application/xml" href="${publicPath(publicBase, "/api/shares.sitemap")}?id=${escape(options.rootShareId || shareId)}">
     `;
   } else {
     headTags += prefetchTags;
     headTags += `
-    <link rel="manifest" href="/static/manifest.webmanifest" />
+    <link rel="manifest" href="${publicPath(publicBase, "/static/manifest.webmanifest")}" />
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/icon-maskable-192.png"
+      href="${env.CDN_URL ?? ""}${publicPath(publicBase, "/images/icon-maskable-192.png")}"
       sizes="192x192"
     />
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/icon-maskable-512.png"
+      href="${env.CDN_URL ?? ""}${publicPath(publicBase, "/images/icon-maskable-512.png")}"
       sizes="512x512"
     />
     <link
       rel="apple-touch-icon"
       type="image/png"
-      href="${env.CDN_URL ?? ""}/images/icon-maskable-1024.png"
+      href="${env.CDN_URL ?? ""}${publicPath(publicBase, "/images/icon-maskable-1024.png")}"
       sizes="1024x1024"
     />
     <link
       rel="search"
       type="application/opensearchdescription+xml"
-      href="/opensearch.xml"
+      href="${publicPath(publicBase, "/opensearch.xml")}"
       title="Outline"
     />
     `;
@@ -194,8 +353,19 @@ export const renderApp = async (
     );
   }
 
+  if (basePath) {
+    headTags = headTags.replace(
+      /\b(href|src)="(\/(?!\/)[^"]*)"/g,
+      (_attribute, name: string, url: string) =>
+        `${name}="${publicPath(basePath, url)}"`
+    );
+  }
+
   // Ensure no caching is performed
-  ctx.response.set("Cache-Control", "no-cache, must-revalidate");
+  ctx.response.set(
+    "Cache-Control",
+    env.WEBSITE_INTEGRATION_ENABLED ? "no-store" : "no-cache, must-revalidate"
+  );
   ctx.response.set("Expires", "-1");
 
   ctx.body = page
@@ -205,7 +375,7 @@ export const renderApp = async (
     .replace(/\{title\}/g, escape(title))
     .replace(/\{description\}/g, escape(description))
     .replace(/\{content\}/g, content)
-    .replace(/\{cdn-url\}/g, env.CDN_URL || "")
+    .replace(/\{cdn-url\}/g, env.CDN_URL || basePath)
     .replace(/\{head-tags\}/g, headTags)
     .replace(/\{slack-app-id\}/g, env.public.SLACK_APP_ID || "")
     .replace(/\{script-tags\}/g, scriptTags)

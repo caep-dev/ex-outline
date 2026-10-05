@@ -14,6 +14,8 @@ import {
   ImportState,
 } from "@shared/types";
 import { errToId, toError } from "@shared/utils/error";
+import { publicBasePath, publicPath } from "@shared/utils/publicPath";
+import env from "~/env";
 import type RootStore from "~/stores/RootStore";
 import type Collection from "~/models/Collection";
 import type Comment from "~/models/Comment";
@@ -914,7 +916,10 @@ function WebsocketProvider({ children }: React.PropsWithChildren<object>) {
 
     function createConnection() {
       currentSocket = io(window.location.origin, {
-        path: "/realtime",
+        path: publicPath(
+          publicBasePath(env.URL || window.location.origin),
+          "/realtime"
+        ),
         transports: ["websocket"],
         reconnectionDelay: 1000,
         reconnectionDelayMax: 30000,
