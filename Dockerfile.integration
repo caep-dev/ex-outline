@@ -11,7 +11,7 @@ WORKDIR /workspace/website
 RUN ln -s vendor/exui exui
 COPY apps/outline apps/outline
 WORKDIR /workspace/website/apps/outline
-ENV WEBSITE_INTEGRATION_ENABLED=true WEBSITE_INTEGRATION_MODE=full URL=http://exwebsite.test:8090/docs HYDRA_PUBLIC_URL=http://identity.exwebsite.test:8090/ OUTLINE_OIDC_CLIENT_ID=ex-outline WEBSITE_INTERNAL_URL=http://server:8080/
+ENV RUNTIME_ENV_INJECTED=true WEBSITE_INTEGRATION_ENABLED=true WEBSITE_INTEGRATION_MODE=deployment URL=https://build.invalid/docs WEBSITE_URL=https://build.invalid/ HYDRA_PUBLIC_URL=https://issuer.build.invalid/ OUTLINE_OIDC_CLIENT_ID=ex-outline WEBSITE_INTERNAL_URL=http://server:8080/
 RUN yarn install --immutable && yarn build && yarn workspaces focus --production
 
 FROM ${NODE_IMAGE} AS outline

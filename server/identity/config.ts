@@ -1,7 +1,7 @@
 import environment from "../utils/environment";
 
 export interface WebsiteIntegrationConfig {
-  readonly mode: "local" | "dev" | "full";
+  readonly mode: "local" | "dev" | "full" | "deployment";
   readonly websiteOrigin: string;
   readonly websiteUrl: string;
   readonly outlineUrl: string;
@@ -22,7 +22,7 @@ export function createWebsiteIntegrationConfig(
   values: Record<string, string | undefined>
 ): Readonly<WebsiteIntegrationConfig> {
   const mode = values.WEBSITE_INTEGRATION_MODE ?? "dev";
-  if (mode !== "local" && mode !== "dev" && mode !== "full") {
+  if (mode !== "local" && mode !== "dev" && mode !== "full" && mode !== "deployment") {
     throw new Error("INTEGRATION_MODE_INVALID");
   }
   const outline = parseUrl(values.URL, "/docs");
@@ -48,6 +48,14 @@ export function createWebsiteIntegrationConfig(
     }
     if (new Set([website.origin, issuer.origin, internal.origin]).size !== 3) {
       throw new Error("INTEGRATION_LOCAL_PORT_CONFLICT");
+    }
+  } else if (mode === "deployment") {
+    if (website.protocol !== "https:" || outline.protocol !== "https:" || issuer.protocol !== "https:" ||
+      !values.WEBSITE_URL || !/^https:\/\/[^/\s\\]+\/docs$/.test(values.URL ?? "") ||
+      !/^https:\/\/[^/\s\\]+\/?$/.test(values.WEBSITE_URL) ||
+      !/^https:\/\/[^/\s\\]+\/?$/.test(values.HYDRA_PUBLIC_URL ?? "") ||
+      !/^https?:\/\/[^/\s\\]+\/?$/.test(values.WEBSITE_INTERNAL_URL ?? "")) {
+      throw new Error("INTEGRATION_DEPLOYMENT_LAYOUT_CONFLICT");
     }
   } else if (
     outline.href !== "http://exwebsite.test:8090/docs" ||

@@ -169,3 +169,20 @@ describe("withFileSecrets", () => {
     expect(process.env.AWS_CONTAINER_AUTHORIZATION_TOKEN).toBeUndefined();
   });
 });
+
+
+it("does not read package environment files after explicit runtime injection", async () => {
+  const dotenv = (await import("@dotenvx/dotenvx")).default;
+  const parse = vi.spyOn(dotenv, "parse");
+  vi.stubEnv("RUNTIME_ENV_INJECTED", "true");
+  vi.resetModules();
+  try {
+    const { default: environment } = await import("./environment");
+    expect(environment.RUNTIME_ENV_INJECTED).toBe("true");
+    expect(parse).not.toHaveBeenCalled();
+  } finally {
+    parse.mockRestore();
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  }
+});

@@ -5,7 +5,8 @@ import dotenv from "@dotenvx/dotenvx";
 let environment: Record<string, string> = {};
 
 const envPath = path.resolve(process.cwd(), `.env`);
-const envDefault = fs.existsSync(envPath)
+const injected = process.env.RUNTIME_ENV_INJECTED === "true";
+const envDefault = !injected && fs.existsSync(envPath)
   ? dotenv.parse(fs.readFileSync(envPath, "utf8"))
   : {};
 
@@ -19,7 +20,7 @@ for (const env of environments) {
     (process.env.NODE_ENV === "development" ||
       envDefault.NODE_ENV === "development");
 
-  if (isEnv || isLocalDevelopment) {
+  if (!injected && (isEnv || isLocalDevelopment)) {
     const resolvedPath = path.resolve(process.cwd(), `.env.${env}`);
     if (fs.existsSync(resolvedPath)) {
       environment = {
