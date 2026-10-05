@@ -20,6 +20,7 @@ export function initI18n(defaultLanguage = "en_US") {
   const lng = unicodeCLDRtoBCP47(language);
 
   if (typeof document !== "undefined") {
+    document.documentElement.lang = lng;
     document.documentElement.dir = isRTLLanguage(language) ? "rtl" : "ltr";
   }
 

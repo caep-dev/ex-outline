@@ -4,7 +4,7 @@ import type { CustomTheme } from "../types";
 import breakpoints from "./breakpoints";
 import { buildExuiTheme } from "./exuiTheme";
 import { isValidHexColor } from "./exuiTheme";
-import type { ExuiLegacyTheme } from "./exuiTheme";
+import type { ExuiEffectiveTokens, ExuiLegacyTheme } from "./exuiTheme";
 
 const defaultColors: Colors = {
   transparent: "transparent",
@@ -309,8 +309,16 @@ const toCustomTheme = (input: Partial<Colors>): Partial<CustomTheme> => ({
  * @param input a partial color palette carrying the workspace brand override.
  * @returns the complete Light theme.
  */
-export const buildLightTheme = (input: Partial<Colors> = {}): DefaultTheme =>
-  buildExuiTheme("light", buildLightLegacy(input), toCustomTheme(input));
+export const buildLightTheme = (
+  input: Partial<Colors> = {},
+  effectiveTokens?: ExuiEffectiveTokens
+): DefaultTheme =>
+  buildExuiTheme(
+    "light",
+    buildLightLegacy(input),
+    toCustomTheme(input),
+    effectiveTokens
+  );
 
 /**
  * Builds the Dark theme from the versioned ExUI token contract.
@@ -318,8 +326,16 @@ export const buildLightTheme = (input: Partial<Colors> = {}): DefaultTheme =>
  * @param input a partial color palette carrying the workspace brand override.
  * @returns the complete Dark theme.
  */
-export const buildDarkTheme = (input: Partial<Colors> = {}): DefaultTheme =>
-  buildExuiTheme("dark", buildDarkLegacy(input), toCustomTheme(input));
+export const buildDarkTheme = (
+  input: Partial<Colors> = {},
+  effectiveTokens?: ExuiEffectiveTokens
+): DefaultTheme =>
+  buildExuiTheme(
+    "dark",
+    buildDarkLegacy(input),
+    toCustomTheme(input),
+    effectiveTokens
+  );
 
 /**
  * Builds the Pitch Black theme from the versioned ExUI token contract. Pitch

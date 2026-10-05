@@ -33,6 +33,11 @@ import type { CustomTheme } from "../types";
  * The ExUI theme groups that Outline can resolve to. `pitchBlack` is a
  * first-class token group rather than a runtime mutation of `dark`.
  */
+export interface ExuiEffectiveTokens extends ThemeTokens {
+  /** Optional consumer foundation override, applied before recipe resolution. */
+  readonly focusShadow?: string;
+}
+
 export type ExuiThemeMode = "light" | "dark" | "pitchBlack";
 
 /**
@@ -263,7 +268,7 @@ export interface ExuiComponentTheme {
 export interface ExuiSemanticTheme {
   readonly mode: ExuiThemeMode;
   /** The complete ExUI theme group before Outline's workspace accent override. */
-  readonly tokens: ThemeTokens;
+  readonly tokens: ExuiEffectiveTokens;
   readonly glass: ThemeTokens["glass"];
   readonly surface: ExuiSurfaceTheme;
   readonly control: ExuiControlTheme;
@@ -352,7 +357,7 @@ function resolveFontWeight(value: RecipeFontWeight): number {
 
 function resolveSemanticColor(
   reference: SemanticReference<ColorSemanticTokenReference>,
-  tokens: ThemeTokens
+  tokens: ExuiEffectiveTokens
 ): string {
   switch (reference.path) {
     case "surface.background":
@@ -452,19 +457,25 @@ function resolveSemanticColor(
   }
 }
 
-function resolveColor(value: RecipeColor, tokens: ThemeTokens): string {
+function resolveColor(value: RecipeColor, tokens: ExuiEffectiveTokens): string {
   if (typeof value === "string") {
     return value;
   }
   return resolveSemanticColor(value, tokens);
 }
 
-function resolveShadow(value: RecipeShadow, tokens: ThemeTokens): string {
+function resolveShadow(
+  value: RecipeShadow,
+  tokens: ExuiEffectiveTokens
+): string {
   if (typeof value === "string") {
     return value;
   }
 
   if (value.kind === "foundation") {
+    if (value.path === "shadows.focus" && tokens.focusShadow) {
+      return tokens.focusShadow;
+    }
     return resolveFoundationShadow(value);
   }
 
@@ -490,7 +501,7 @@ function resolveFoundationShadow(
 
 function resolveSemanticShadow(
   reference: SemanticReference<ShadowSemanticTokenReference>,
-  tokens: ThemeTokens
+  tokens: ExuiEffectiveTokens
 ): string {
   switch (reference.path) {
     case "shadow.card":
@@ -506,7 +517,7 @@ function resolveSemanticShadow(
 
 function resolveState(
   recipe: InteractiveStateRecipe,
-  tokens: ThemeTokens
+  tokens: ExuiEffectiveTokens
 ): ResolvedRecipe<InteractiveStateRecipe> {
   return {
     background: resolveColor(recipe.background, tokens),
@@ -535,7 +546,7 @@ function resolveButtonSize(
 
 function resolveButtonVariant(
   recipe: ButtonVariantRecipe,
-  tokens: ThemeTokens
+  tokens: ExuiEffectiveTokens
 ): ResolvedRecipe<ButtonVariantRecipe> {
   return {
     default: resolveState(recipe.default, tokens),
@@ -548,7 +559,7 @@ function resolveButtonVariant(
 
 function resolvePrimaryButtonVariant(
   recipe: ButtonVariantRecipe,
-  tokens: ThemeTokens,
+  tokens: ExuiEffectiveTokens,
   accent: ExuiAccentTheme
 ): ResolvedRecipe<ButtonVariantRecipe> {
   const resolved = resolveButtonVariant(recipe, tokens);
@@ -601,7 +612,7 @@ function resolveSidebarGeometry(
 
 function resolveMenuItem(
   recipe: MenuItemRecipe,
-  tokens: ThemeTokens
+  tokens: ExuiEffectiveTokens
 ): ResolvedRecipe<MenuItemRecipe> {
   return {
     paddingInline: recipe.paddingInline,
@@ -621,7 +632,7 @@ function resolveMenuItem(
 
 function resolveMenuSubmenuTrigger(
   recipe: MenuSubmenuTriggerRecipe,
-  tokens: ThemeTokens
+  tokens: ExuiEffectiveTokens
 ): ResolvedRecipe<MenuSubmenuTriggerRecipe> {
   return {
     paddingInline: recipe.paddingInline,
@@ -647,7 +658,7 @@ function resolveMenuSubmenuTrigger(
  * @returns the complete resolved component recipe collection.
  */
 export function resolveComponentRecipes(
-  tokens: ThemeTokens,
+  tokens: ExuiEffectiveTokens,
   accent: ExuiAccentTheme
 ): ExuiComponentTheme {
   const recipes = componentRecipes;
@@ -877,7 +888,7 @@ export function deriveInteractionStates(base: string): ExuiInteractionStates {
  * @returns the resolved brand color and its interaction states.
  */
 export function resolveAccent(
-  tokens: ThemeTokens,
+  tokens: ExuiEffectiveTokens,
   customTheme?: Partial<CustomTheme>
 ): ExuiAccentTheme {
   const requestedAccent = customTheme?.accent;
@@ -921,9 +932,11 @@ export function resolveAccent(
  */
 export function buildExuiSemanticTheme(
   mode: ExuiThemeMode,
-  customTheme?: Partial<CustomTheme>
+  customTheme?: Partial<CustomTheme>,
+  effectiveTokens?: ExuiEffectiveTokens
 ): ExuiSemanticTheme {
-  const tokens = exuiTokens.themes[mode];
+  const tokens: ExuiEffectiveTokens =
+    effectiveTokens ?? exuiTokens.themes[mode];
   const accent = resolveAccent(tokens, customTheme);
   const { typography, radii, shadows, density } = exuiTokens;
   const components = resolveComponentRecipes(tokens, accent);
@@ -1059,7 +1072,7 @@ export function buildExuiSemanticTheme(
       small: shadows.small,
       medium: shadows.medium,
       large: shadows.large,
-      focus: shadows.focus,
+      focus: tokens.focusShadow ?? shadows.focus,
       invalid: shadows.invalid,
     },
     components,
@@ -1079,9 +1092,11 @@ export function buildExuiSemanticTheme(
  */
 export function buildExuiLegacyOverrides(
   mode: ExuiThemeMode,
-  customTheme?: Partial<CustomTheme>
+  customTheme?: Partial<CustomTheme>,
+  effectiveTokens?: ExuiEffectiveTokens
 ): Partial<DefaultTheme> {
-  const tokens = exuiTokens.themes[mode];
+  const tokens: ExuiEffectiveTokens =
+    effectiveTokens ?? exuiTokens.themes[mode];
   const accent = resolveAccent(tokens, customTheme);
   const syntax = tokens.editor.syntax;
   const { typography } = exuiTokens;
@@ -1210,11 +1225,12 @@ export function buildExuiLegacyOverrides(
 export function buildExuiTheme(
   mode: ExuiThemeMode,
   legacy: ExuiLegacyTheme,
-  customTheme?: Partial<CustomTheme>
+  customTheme?: Partial<CustomTheme>,
+  effectiveTokens?: ExuiEffectiveTokens
 ): DefaultTheme {
   return {
     ...legacy,
-    ...buildExuiLegacyOverrides(mode, customTheme),
-    exui: buildExuiSemanticTheme(mode, customTheme),
+    ...buildExuiLegacyOverrides(mode, customTheme, effectiveTokens),
+    exui: buildExuiSemanticTheme(mode, customTheme, effectiveTokens),
   };
 }

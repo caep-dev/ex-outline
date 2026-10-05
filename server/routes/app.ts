@@ -11,7 +11,8 @@ import {
   type IntegrationType,
   type NavigationNode,
 } from "@shared/types";
-import { unicodeCLDRtoISO639 } from "@shared/utils/date";
+import { exuiTokens } from "@exre/exui/tokens";
+import { unicodeCLDRtoBCP47, unicodeCLDRtoISO639 } from "@shared/utils/date";
 import {
   developmentPublicUrl,
   publicBasePath,
@@ -269,12 +270,19 @@ export const renderApp = async (
         ? env.COLLABORATION_URL
         : publicUrl.replace(/^http/, "ws"),
   };
+  const initialThemePalette = env.WEBSITE_INTEGRATION_ENABLED
+    ? {
+        light: exuiTokens.themes.light.surface.background,
+        dark: exuiTokens.themes.dark.surface.background,
+      }
+    : undefined;
   const environment = `
     <script nonce="${ctx.state.cspNonce}">
       window.env = ${JSON.stringify(publicEnvironment).replace(
         /</g,
         "\\u003c"
       )};
+      window.websiteThemePalette = ${JSON.stringify(initialThemePalette)?.replace(/</g, "\\u003c") ?? "undefined"};
     </script>
   `;
 
@@ -371,7 +379,12 @@ export const renderApp = async (
   ctx.body = page
     .toString()
     .replace(/\{env\}/g, environment)
-    .replace(/\{lang\}/g, unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE))
+    .replace(
+      /\{lang\}/g,
+      env.WEBSITE_INTEGRATION_ENABLED
+        ? unicodeCLDRtoBCP47(env.DEFAULT_LANGUAGE)
+        : unicodeCLDRtoISO639(env.DEFAULT_LANGUAGE)
+    )
     .replace(/\{title\}/g, escape(title))
     .replace(/\{description\}/g, escape(description))
     .replace(/\{content\}/g, content)

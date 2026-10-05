@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Redirect } from "react-router-dom";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import useStores from "~/hooks/useStores";
+import { isWebsiteIntegration } from "~/utils/websiteIntegration";
 import { changeLanguage } from "~/utils/language";
 import LoadingIndicator from "./LoadingIndicator";
 
@@ -21,7 +22,9 @@ const Authenticated = ({ children }: Props) => {
   // Watching for language changes here as this is the earliest point we might have the user
   // available and means we can start loading translations faster
   useEffect(() => {
-    void changeLanguage(language, i18n);
+    if (!isWebsiteIntegration()) {
+      void changeLanguage(language, i18n);
+    }
   }, [i18n, language]);
 
   const shouldLogout = !auth.authenticated && !auth.isFetching;

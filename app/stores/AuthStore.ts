@@ -49,6 +49,10 @@ export default class AuthStore extends Store<Team> {
   @observable
   public currentUserId?: string | null;
 
+  /** Account whose language was verified by auth.info; never persisted. */
+  @observable
+  public verifiedLanguageUserId?: string;
+
   /* The ID of the team that is currently signed in. */
   @observable
   public currentTeamId?: string | null;
@@ -153,6 +157,7 @@ export default class AuthStore extends Store<Team> {
 
   @action
   rehydrate(data: PersistedData) {
+    this.verifiedLanguageUserId = undefined;
     if (data.policies) {
       this.addPolicies(data.policies);
     }
@@ -257,6 +262,7 @@ export default class AuthStore extends Store<Team> {
         data.groups.map(this.rootStore.groups.add);
         data.groupUsers.map(this.rootStore.groupUsers.add);
         this.currentUserId = data.user.id;
+        this.verifiedLanguageUserId = data.user.id;
         this.currentTeamId = data.team.id;
 
         this.availableTeams = res.data.availableTeams;
@@ -346,6 +352,7 @@ export default class AuthStore extends Store<Team> {
     await client.post(`/users.delete`, data);
     runInAction("AuthStore#deleteUser", () => {
       this.currentUserId = null;
+      this.verifiedLanguageUserId = undefined;
       this.currentTeamId = null;
       this.collaborationToken = null;
       this.availableTeams = this.availableTeams?.filter(
@@ -360,6 +367,7 @@ export default class AuthStore extends Store<Team> {
 
     runInAction("AuthStore#deleteTeam", () => {
       this.currentUserId = null;
+      this.verifiedLanguageUserId = undefined;
       this.currentTeamId = null;
       this.availableTeams = this.availableTeams?.filter(
         (team) => team.id !== this.team?.id
@@ -482,6 +490,7 @@ export default class AuthStore extends Store<Team> {
 
     // clear all credentials from cache (and local storage via autorun)
     this.currentUserId = null;
+    this.verifiedLanguageUserId = undefined;
     this.currentTeamId = null;
     this.collaborationToken = null;
     this.rootStore.clear();

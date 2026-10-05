@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
 import { breakpoints } from "@shared/styles";
 import {
   buildDarkTheme,
@@ -6,6 +6,11 @@ import {
   buildPitchBlackTheme,
 } from "@shared/styles/theme";
 import type { CustomTheme } from "@shared/types";
+import { isWebsiteIntegration } from "~/utils/websiteIntegration";
+import {
+  readWebsiteThemePalette,
+  type WebsiteThemePalette,
+} from "~/utils/websiteThemePalette";
 import { Theme } from "~/stores/UiStore";
 import useMediaQuery from "~/hooks/useMediaQuery";
 import useStores from "./useStores";
@@ -23,6 +28,13 @@ export default function useBuildTheme(
   customTheme: Partial<CustomTheme> = {},
   overrideTheme?: Theme
 ) {
+  const integrated = isWebsiteIntegration();
+  const [palette, setPalette] = useState<WebsiteThemePalette>();
+  useLayoutEffect(() => {
+    if (integrated) {
+      setPalette(readWebsiteThemePalette());
+    }
+  }, [integrated]);
   const { ui } = useStores();
   const params = useQuery();
   const isMobile = useMediaQuery(`(max-width: ${breakpoints.tablet}px)`);
@@ -37,23 +49,27 @@ export default function useBuildTheme(
     ) {
       ui.setThemeOverride(queryTheme);
     }
-  }, [queryTheme, ui]);
+  }, [queryTheme, ui, integrated]);
 
   const resolvedTheme = overrideTheme ?? ui.resolvedTheme;
 
-  const theme = useMemo(
-    () =>
-      isPrinting
-        ? buildLightTheme(customTheme)
-        : isMobile
-          ? resolvedTheme === "dark"
-            ? buildPitchBlackTheme(customTheme)
-            : buildLightTheme(customTheme)
-          : resolvedTheme === "dark"
-            ? buildDarkTheme(customTheme)
-            : buildLightTheme(customTheme),
-    [customTheme, isMobile, isPrinting, resolvedTheme]
-  );
+  const theme = useMemo(() => {
+    if (integrated) {
+      const mode = isPrinting || resolvedTheme !== "dark" ? "light" : "dark";
+      return mode === "dark"
+        ? buildDarkTheme({}, palette?.dark)
+        : buildLightTheme({}, palette?.light);
+    }
+    if (isPrinting) {
+      return buildLightTheme(customTheme);
+    }
+    if (resolvedTheme === "dark") {
+      return isMobile
+        ? buildPitchBlackTheme(customTheme)
+        : buildDarkTheme(customTheme);
+    }
+    return buildLightTheme(customTheme);
+  }, [integrated, palette, customTheme, isMobile, isPrinting, resolvedTheme]);
 
   return theme;
 }

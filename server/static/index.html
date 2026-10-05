@@ -75,7 +75,31 @@
     <div id="root"></div>
     {env}
     <script nonce="{csp-nonce}">
-      if (
+      if (window.websiteThemePalette) {
+        var preference;
+        try {
+          preference = window.localStorage.getItem("theme");
+        } catch (_) {}
+        var isDark =
+          preference === "dark" ||
+          (preference !== "light" &&
+            window.matchMedia &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        var color = window.websiteThemePalette[isDark ? "dark" : "light"];
+        document.documentElement.classList.add(
+          "website-theme-profile",
+          isDark ? "dark" : "light"
+        );
+        document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+        document.body.style.background = color;
+        document.querySelector("#root").style.background = color;
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute("content", color);
+        document
+          .querySelector('meta[name="color-scheme"]')
+          .setAttribute("content", isDark ? "dark" : "light");
+      } else if (
         window.localStorage &&
         window.localStorage.getItem("theme") === "dark"
       ) {

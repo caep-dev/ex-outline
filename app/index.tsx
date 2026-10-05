@@ -6,6 +6,10 @@ import "~/utils/polyfills";
 // once here so the font is available to the application UI. Document content
 // keeps Outline's existing system font stack.
 import "@exre/exui/tokens/font.css";
+import "@exre/exui/tokens/style.css";
+import "@shared/styles/websiteTheme.css";
+import { WebsiteThemePreferenceSync } from "~/components/WebsiteThemePreferenceSync";
+import { WebsiteLanguageProjection } from "~/components/WebsiteLanguageProjection";
 import { LazyMotion, domMax } from "framer-motion";
 import { KBarProvider } from "kbar";
 import { Provider } from "mobx-react";
@@ -71,6 +75,8 @@ if (element) {
     <StrictMode>
       <HelmetProvider>
         <Provider rootStore={stores}>
+          <WebsiteThemePreferenceSync />
+          <WebsiteLanguageProjection />
           <Analytics>
             <Router history={history}>
               <Theme>

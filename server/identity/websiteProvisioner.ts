@@ -1,5 +1,6 @@
 import { createCipheriv, randomBytes } from "node:crypto";
 import { UniqueConstraintError } from "sequelize";
+import { resolveLanguage } from "@shared/i18n";
 import { UserRole } from "@shared/types";
 import env from "@server/env";
 import {
@@ -88,6 +89,7 @@ export async function provisionWebsiteSession(
             email: identity.email,
             avatarUrl: identity.picture,
             role: UserRole.Viewer,
+            language: resolveLanguage(env.DEFAULT_LANGUAGE),
             lastActiveAt: new Date(),
           },
           { transaction }

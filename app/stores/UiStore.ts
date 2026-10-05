@@ -15,6 +15,13 @@ import { isTruthyQueryValue } from "~/utils/urls";
 import { startViewTransition } from "~/utils/viewTransition";
 import type RootStore from "./RootStore";
 
+import { isWebsiteIntegration } from "~/utils/websiteIntegration";
+import {
+  readWebsiteThemePreference,
+  writeWebsiteThemePreference,
+  type WebsiteThemePreference,
+} from "~/utils/websiteThemePreference";
+
 const UI_STORE = "UI_STORE";
 
 export enum Theme {
@@ -174,7 +181,9 @@ class UiStore {
     );
     this.tocVisible = data.tocVisible;
     this.rightSidebar = data.rightSidebar ?? null;
-    this.theme = data.theme || Theme.System;
+    this.theme = isWebsiteIntegration()
+      ? this.websiteTheme(readWebsiteThemePreference())
+      : data.theme || Theme.System;
 
     // system theme listeners
     if (window.matchMedia) {
@@ -210,7 +219,9 @@ class UiStore {
         }
 
         // Note: we do not sync all properties here, sidebar widths cause fighting between windows
-        this.theme = newData.theme;
+        if (!isWebsiteIntegration()) {
+          this.theme = newData.theme;
+        }
         this.languagePromptDismissed = newData.languagePromptDismissed;
         this.sidebarCollapsed = !!newData.sidebarCollapsed;
         this.tocVisible = newData.tocVisible;
@@ -311,10 +322,29 @@ class UiStore {
     startViewTransition(() => {
       flushSync(() => {
         this.theme = theme;
-        this.persist();
+        if (isWebsiteIntegration()) {
+          writeWebsiteThemePreference(theme);
+        } else {
+          this.persist();
+        }
       });
     });
   };
+
+  /** Applies shared changes in memory without storage feedback. */
+  @action
+  syncWebsiteTheme = (theme: WebsiteThemePreference) => {
+    this.theme = this.websiteTheme(theme);
+    this.themeOverride = undefined;
+  };
+
+  private websiteTheme(theme: WebsiteThemePreference): Theme {
+    return theme === "light"
+      ? Theme.Light
+      : theme === "dark"
+        ? Theme.Dark
+        : Theme.System;
+  }
 
   /**
    * Set a theme override from a query parameter. This persists for the session
@@ -324,7 +354,7 @@ class UiStore {
    */
   @action
   setThemeOverride = (theme: Theme | undefined) => {
-    this.themeOverride = theme;
+    this.themeOverride = isWebsiteIntegration() ? undefined : theme;
   };
 
   @action
@@ -547,7 +577,7 @@ class UiStore {
 
   @computed
   get resolvedTheme(): Theme | SystemTheme {
-    if (this.themeOverride) {
+    if (!isWebsiteIntegration() && this.themeOverride) {
       return this.themeOverride;
     }
 
@@ -572,7 +602,13 @@ class UiStore {
   }
 
   private persist = () => {
-    Storage.set(UI_STORE, this.asJson);
+    if (isWebsiteIntegration()) {
+      const { theme: _theme, ...data } = this.asJson;
+      const previous = Storage.get(UI_STORE);
+      Storage.set(UI_STORE, { ...data, theme: previous?.theme });
+    } else {
+      Storage.set(UI_STORE, this.asJson);
+    }
   };
 }
 

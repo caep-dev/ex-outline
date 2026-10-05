@@ -8,6 +8,36 @@ import {
 } from "./exuiTheme";
 
 describe("#buildExuiSemanticTheme", () => {
+  it("applies consumer tokens before resolving legacy, semantic, and recipe fields", () => {
+    const base = exuiTokens.themes.dark;
+    const effective = {
+      ...base,
+      control: {
+        ...base.control,
+        primary: "#fafafa",
+        primaryForeground: "#0a0a0a",
+        hover: "#e5e5e5",
+        active: "#d4d4d4",
+      },
+      text: { ...base.text, link: "#fafafa", placeholder: "#a3a3a3" },
+      border: { ...base.border, focused: "#a3a3a3" },
+      focusShadow: "0 0 0 3px rgb(250 250 250 / 30%)",
+    };
+    const theme = buildDarkTheme({}, effective);
+    expect(theme.accent).toBe(effective.control.primary);
+    expect(theme.link).toBe(effective.text.link);
+    expect(theme.placeholder).toBe(effective.text.placeholder);
+    expect(theme.exui.control.primaryHover).toBe(effective.control.hover);
+    expect(theme.exui.components.button.primary.active.background).toBe(
+      effective.control.active
+    );
+    expect(theme.exui.components.formControl.focus.shadow).toBe(
+      effective.focusShadow
+    );
+    expect(theme.exui.shadow.focus).toBe(effective.focusShadow);
+    expect(theme.inputBorderFocused).toBe(effective.border.focused);
+    expect(base.control.primary).not.toBe(effective.control.primary);
+  });
   it("maps legacy sidebar and editor notice surfaces in every mode", () => {
     for (const [theme, tokens] of [
       [buildLightTheme(), exuiTokens.themes.light],

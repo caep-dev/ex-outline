@@ -352,7 +352,9 @@ export class Environment {
    */
   @Public
   @IsIn(languages)
-  public DEFAULT_LANGUAGE = environment.DEFAULT_LANGUAGE ?? "en_US";
+  public DEFAULT_LANGUAGE = this.WEBSITE_INTEGRATION_ENABLED
+    ? "zh_CN"
+    : (environment.DEFAULT_LANGUAGE ?? "en_US");
 
   /**
    * A comma list of which services should be enabled on this instance – defaults to all.

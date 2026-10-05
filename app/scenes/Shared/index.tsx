@@ -28,6 +28,7 @@ import { Theme } from "~/stores/UiStore";
 import { client } from "~/utils/ApiClient";
 import { AuthorizationError, OfflineError } from "~/utils/errors";
 import isCloudHosted from "~/utils/isCloudHosted";
+import { isWebsiteIntegration } from "~/utils/websiteIntegration";
 import { changeLanguage, detectLanguage } from "~/utils/language";
 import Loading from "../Document/components/Loading";
 import ErrorOffline from "../Errors/ErrorOffline";
@@ -168,7 +169,7 @@ function SharedScene() {
   );
 
   useEffect(() => {
-    if (!user) {
+    if (!user && !isWebsiteIntegration()) {
       void changeLanguage(detectLanguage(), i18n);
     }
   }, [user, i18n]);

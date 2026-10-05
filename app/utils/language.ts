@@ -51,6 +51,9 @@ export async function changeLanguage(
   }
 
   if (typeof document !== "undefined") {
+    if (localeBCP) {
+      document.documentElement.lang = localeBCP;
+    }
     document.documentElement.dir = isRTLLanguage(language) ? "rtl" : "ltr";
   }
 }

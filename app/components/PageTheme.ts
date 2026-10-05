@@ -1,11 +1,12 @@
-import { useEffect } from "react";
+import { useLayoutEffect } from "react";
 import { useTheme } from "styled-components";
+import { isWebsiteIntegration } from "~/utils/websiteIntegration";
 import { light } from "@shared/styles/theme";
 
 export default function PageTheme() {
   const theme = useTheme();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     // theme-color adjusts the title bar color for desktop PWA
     const themeElement = document.querySelector('meta[name="theme-color"]');
 
@@ -15,6 +16,17 @@ export default function PageTheme() {
     );
 
     const applyTheme = (background: string, isDark: boolean) => {
+      if (isWebsiteIntegration()) {
+        const root = document.documentElement;
+        root.classList.add("website-theme-profile");
+        root.classList.toggle("dark", isDark);
+        root.classList.toggle("light", !isDark);
+        root.style.colorScheme = isDark ? "dark" : "light";
+        const container = document.getElementById("root");
+        if (container) {
+          container.style.background = background;
+        }
+      }
       // wider page background beyond the React root
       if (document.body) {
         document.body.style.background = background;
@@ -23,7 +35,10 @@ export default function PageTheme() {
       colorSchemeElement?.setAttribute("content", isDark ? "dark" : "light");
     };
 
-    applyTheme(theme.background, theme.isDark);
+    applyTheme(
+      theme.background,
+      theme.isDark && !window.matchMedia("print").matches
+    );
 
     const handleChange = (event: MediaQueryListEvent) => {
       if (event.matches) {
