@@ -1,4 +1,7 @@
 import type * as UrlHelpers from "~/utils/urls";
+import i18n from "i18next";
+import en from "../../shared/i18n/locales/en_US/translation.json";
+import zh from "../../shared/i18n/locales/zh_CN/translation.json";
 // @vitest-environment jsdom
 import {
   cleanup,
@@ -89,6 +92,9 @@ function renderPublicOnlyReader() {
 }
 
 beforeEach(() => {
+  i18n
+    .addResources("en-US", "translation", en)
+    .addResources("zh-CN", "translation", zh);
   mocks.post.mockReset();
   mocks.redirect.mockReset();
   sessionStorage.clear();
@@ -99,9 +105,130 @@ beforeEach(() => {
   mocks.auth.config.initialized = true;
   mocks.auth.websiteIntegrationInitialized = true;
 });
-afterEach(() => cleanup());
+afterEach(async () => {
+  cleanup();
+  await i18n.changeLanguage("en-US");
+});
+
+it("loads real Chinese public translations and returns to English without translating content", async () => {
+  await i18n.changeLanguage("zh-CN");
+  mocks.post.mockResolvedValue({
+    data: [],
+    pagination: { offset: 0, limit: 100, hasMore: false },
+  });
+  const view = renderPublic("/");
+  expect(await screen.findByText("暂无文档集")).toBeInTheDocument();
+  expect(screen.getByRole("button", { name: "登录" })).toBeInTheDocument();
+  expect(
+    screen.getByRole("navigation", { name: "文档导航" })
+  ).toBeInTheDocument();
+  mocks.auth.integrationAuthUnavailable = true;
+  view.rerender(
+    <MemoryRouter>
+      <WebsitePublic kind="directory" />
+    </MemoryRouter>
+  );
+  expect(
+    await screen.findByText("登录状态暂时不可用，公开文档仍可阅读。")
+  ).toBeInTheDocument();
+  await i18n.changeLanguage("en-US");
+  expect(
+    await screen.findByRole("button", { name: "Login" })
+  ).toBeInTheDocument();
+  expect(
+    screen.queryByText("登录状态暂时不可用，公开文档仍可阅读。")
+  ).toBeNull();
+  expect(
+    screen.getByText(
+      "Sign-in status is unavailable. Public documents remain available."
+    )
+  ).toBeInTheDocument();
+});
 
 describe("integrated public documents", () => {
+  it("translates search empty, failure, retry, and empty results in Chinese", async () => {
+    await i18n.changeLanguage("zh-CN");
+    mocks.post
+      .mockRejectedValueOnce(new Error("unavailable"))
+      .mockResolvedValueOnce({
+        data: [],
+        pagination: { offset: 0, limit: 100, hasMore: false },
+      });
+    renderPublic("/search");
+    expect(screen.getByText("请输入搜索词。")).toBeInTheDocument();
+    fireEvent.change(screen.getByRole("textbox", { name: "搜索公开文档" }), {
+      target: { value: "English content" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "搜索" }));
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "文档暂时不可用。"
+    );
+    fireEvent.click(screen.getByRole("button", { name: "重试" }));
+    expect(await screen.findByText("没有结果")).toBeInTheDocument();
+    expect(mocks.post).toHaveBeenLastCalledWith("/public.documents.search", {
+      query: "English content",
+      offset: 0,
+      limit: 100,
+    });
+  });
+
+  it("keeps reader content intact while translating comment failures in Chinese", async () => {
+    await i18n.changeLanguage("zh-CN");
+    mocks.auth.authenticated = true;
+    const content = {
+      type: "doc",
+      content: [
+        {
+          type: "paragraph",
+          content: [{ type: "text", text: "English body" }],
+        },
+      ],
+    };
+    let listAttempts = 0;
+    mocks.post.mockImplementation((path: string) => {
+      if (path === "/public.documents.info") {
+        return Promise.resolve({
+          data: { id: "doc-1", title: "English title", content },
+        });
+      }
+      if (path === "/comments.list") {
+        listAttempts += 1;
+        return listAttempts === 1
+          ? Promise.reject(new Error("unavailable"))
+          : Promise.resolve({
+              data: [],
+              pagination: { offset: 0, limit: 100, total: 0 },
+            });
+      }
+      if (path === "/comments.create") {
+        return Promise.reject(new Error("unavailable"));
+      }
+      throw new Error(`Unexpected RPC: ${path}`);
+    });
+    renderPublicOnlyReader();
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "评论暂时不可用。"
+    );
+    expect(screen.getByRole("heading", { name: "English title" })).toBeTruthy();
+    expect(screen.getByTestId("reader").textContent).toBe(
+      JSON.stringify(content)
+    );
+    fireEvent.click(screen.getByRole("button", { name: "重试加载评论" }));
+    const submit = screen.getByRole("button", { name: "发布" });
+    await waitFor(() => expect(listAttempts).toBe(2));
+    fireEvent.change(screen.getByRole("textbox", { name: "评论" }), {
+      target: { value: "English comment" },
+    });
+    await waitFor(() => expect(submit).toBeEnabled());
+    fireEvent.click(submit);
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "评论提交失败，请重试。"
+    );
+    expect(screen.getByRole("textbox", { name: "评论" })).toHaveValue(
+      "English comment"
+    );
+  });
+
   it("keeps public reading and explicit retry after a failed OIDC return without automatic redirection", async () => {
     mocks.post.mockResolvedValue({
       data: [],
@@ -119,7 +246,7 @@ describe("integrated public documents", () => {
     renderPublic("/?revision=1#website-signin-unavailable");
     fireEvent.click(screen.getByTestId("session-probe"));
     expect(mocks.redirect).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Login" }));
     expect(mocks.redirect).toHaveBeenCalledTimes(1);
     expect(
       new URL(mocks.redirect.mock.calls[0][0]).searchParams.get("returnTo")
@@ -141,7 +268,7 @@ describe("integrated public documents", () => {
     renderPublic("/doc/welcome-1234567890?revision=1");
     fireEvent.click(screen.getByTestId("session-probe"));
     expect(mocks.redirect).toHaveBeenCalledTimes(1);
-    fireEvent.click(screen.getByRole("button", { name: "Sign in" }));
+    fireEvent.click(screen.getByRole("button", { name: "Login" }));
     expect(mocks.redirect).toHaveBeenCalledTimes(2);
   });
   it("lists only the public RPC projection and loads the selected collection", async () => {
@@ -279,7 +406,7 @@ describe("integrated public documents", () => {
     fireEvent.change(screen.getByRole("textbox", { name: "Comment" }), {
       target: { value: "New comment" },
     });
-    fireEvent.click(screen.getByRole("button", { name: "Post comment" }));
+    fireEvent.click(screen.getByRole("button", { name: "Post" }));
     expect(await screen.findByText("New comment")).toBeTruthy();
     expect(mocks.post).toHaveBeenCalledWith("/comments.list", {
       documentId: "doc-1",
@@ -409,7 +536,7 @@ describe("integrated public documents", () => {
       pagination: { offset: 0, limit: 100, hasMore: false },
     });
     renderPublic("/");
-    expect(await screen.findByText("No public collections yet.")).toBeTruthy();
+    expect(await screen.findByText("No collections")).toBeTruthy();
     expect(screen.queryByTestId("session-probe")).toBeNull();
     expect(screen.getByRole("status")).toHaveTextContent(
       "Public documents remain available"
@@ -428,7 +555,7 @@ describe("integrated public documents", () => {
       screen.getByText("The document library is not initialized yet.")
     ).toBeTruthy();
     expect(screen.queryByTestId("session-probe")).toBeNull();
-    expect(screen.getByRole("button", { name: "Sign in" })).toBeDisabled();
+    expect(screen.getByRole("button", { name: "Login" })).toBeDisabled();
     expect(mocks.post).not.toHaveBeenCalled();
   });
 });

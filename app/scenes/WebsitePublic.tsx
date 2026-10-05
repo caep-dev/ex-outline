@@ -1,3 +1,5 @@
+import { useTranslation } from "react-i18next";
+import { websitePublicTranslation } from "~/utils/websitePublicTranslation";
 import { observer } from "mobx-react";
 import { type FormEvent, useEffect, useRef, useState } from "react";
 import { Link, useHistory, useLocation, useParams } from "react-router-dom";
@@ -74,19 +76,30 @@ function PublicFeedback({
   state: "loading" | "error";
   retry: () => void;
 }) {
+  const { t, i18n } = useTranslation();
   return state === "loading" ? (
-    <p role="status">Loading documents…</p>
+    <p role="status">{t("Loading")}</p>
   ) : (
     <div role="alert">
-      <p>Documents are temporarily unavailable.</p>
+      <p>
+        {t(
+          "Documents are temporarily unavailable.",
+          websitePublicTranslation(
+            i18n.language,
+            "Documents are temporarily unavailable.",
+            "文档暂时不可用。"
+          )
+        )}
+      </p>
       <button type="button" onClick={retry}>
-        Retry
+        {t("Retry", websitePublicTranslation(i18n.language, "Retry", "重试"))}
       </button>
     </div>
   );
 }
 
 function PublicDirectory() {
+  const { t, i18n } = useTranslation();
   const { collectionId } = useParams<{ collectionId?: string }>();
   const [collectionOffset, setCollectionOffset] = useState(0);
   const [documentOffset, setDocumentOffset] = useState(0);
@@ -109,10 +122,10 @@ function PublicDirectory() {
   return (
     <>
       {entries.length === 0 ? (
-        <p>No public collections yet.</p>
+        <p>{t("No collections")}</p>
       ) : (
         <>
-          <h2>Collections</h2>
+          <h2>{t("Collections")}</h2>
           <ul>
             {entries.map((collection) => (
               <li key={collection.id}>
@@ -138,7 +151,14 @@ function PublicDirectory() {
                   setCollectionOffset(Math.max(0, collectionOffset - 100))
                 }
               >
-                Previous collections
+                {t(
+                  "Previous collections",
+                  websitePublicTranslation(
+                    i18n.language,
+                    "Previous collections",
+                    "上一页集合"
+                  )
+                )}
               </button>
             ) : null}
             {collections.data?.pagination.hasMore ? (
@@ -146,15 +166,31 @@ function PublicDirectory() {
                 type="button"
                 onClick={() => setCollectionOffset(collectionOffset + 100)}
               >
-                More collections
+                {t(
+                  "More collections",
+                  websitePublicTranslation(
+                    i18n.language,
+                    "More collections",
+                    "更多集合"
+                  )
+                )}
               </button>
             ) : null}
           </div>
         </>
       )}
       {collectionId ? (
-        <section aria-label="Collection documents">
-          <h2>Documents</h2>
+        <section
+          aria-label={t(
+            "Collection documents",
+            websitePublicTranslation(
+              i18n.language,
+              "Collection documents",
+              "集合文档"
+            )
+          )}
+        >
+          <h2>{t("Documents")}</h2>
           {documents.status !== "ready" ? (
             <PublicFeedback state={documents.status} retry={documents.retry} />
           ) : documents.data?.data.length ? (
@@ -168,7 +204,16 @@ function PublicDirectory() {
               ))}
             </ul>
           ) : (
-            <p>This collection has no public documents.</p>
+            <p>
+              {t(
+                "This collection has no public documents.",
+                websitePublicTranslation(
+                  i18n.language,
+                  "This collection has no public documents.",
+                  "此集合暂无公开文档。"
+                )
+              )}
+            </p>
           )}
           {documents.status === "ready" ? (
             <div>
@@ -179,7 +224,14 @@ function PublicDirectory() {
                     setDocumentOffset(Math.max(0, documentOffset - 100))
                   }
                 >
-                  Previous documents
+                  {t(
+                    "Previous documents",
+                    websitePublicTranslation(
+                      i18n.language,
+                      "Previous documents",
+                      "上一页文档"
+                    )
+                  )}
                 </button>
               ) : null}
               {documents.data?.pagination.hasMore ? (
@@ -187,7 +239,14 @@ function PublicDirectory() {
                   type="button"
                   onClick={() => setDocumentOffset(documentOffset + 100)}
                 >
-                  More documents
+                  {t(
+                    "More documents",
+                    websitePublicTranslation(
+                      i18n.language,
+                      "More documents",
+                      "更多文档"
+                    )
+                  )}
                 </button>
               ) : null}
             </div>
@@ -214,6 +273,7 @@ function PublicComments({
   documentId: string;
   onRevoked: () => void;
 }) {
+  const { t, i18n } = useTranslation();
   const [comments, setComments] = useState<PublicDocumentComment[]>([]);
   const [offset, setOffset] = useState(0);
   const [nextOffset, setNextOffset] = useState<number | null>(null);
@@ -303,14 +363,30 @@ function PublicComments({
   };
 
   return (
-    <section aria-label="Comments">
-      <h2>Comments</h2>
-      {status === "loading" ? <p role="status">Loading comments...</p> : null}
+    <section aria-label={t("Comments")}>
+      <h2>{t("Comments")}</h2>
+      {status === "loading" ? <p role="status">{t("Loading")}</p> : null}
       {status === "error" ? (
         <div role="alert">
-          <p>Comments are unavailable.</p>
+          <p>
+            {t(
+              "Comments are unavailable.",
+              websitePublicTranslation(
+                i18n.language,
+                "Comments are unavailable.",
+                "评论暂时不可用。"
+              )
+            )}
+          </p>
           <button type="button" onClick={() => setReload((count) => count + 1)}>
-            Retry comments
+            {t(
+              "Retry comments",
+              websitePublicTranslation(
+                i18n.language,
+                "Retry comments",
+                "重试加载评论"
+              )
+            )}
           </button>
         </div>
       ) : null}
@@ -318,7 +394,13 @@ function PublicComments({
         <ul>
           {comments.map((comment) => (
             <li key={comment.id}>
-              <strong>{comment.createdBy?.name ?? "Reader"}</strong>
+              <strong>
+                {comment.createdBy?.name ??
+                  t(
+                    "Reader",
+                    websitePublicTranslation(i18n.language, "Reader", "读者")
+                  )}
+              </strong>
               <p>{commentText(comment.data)}</p>
             </li>
           ))}
@@ -326,11 +408,18 @@ function PublicComments({
       ) : null}
       {status === "ready" && nextOffset !== null ? (
         <button type="button" onClick={() => setOffset(nextOffset)}>
-          Load more comments
+          {t(
+            "Load more comments",
+            websitePublicTranslation(
+              i18n.language,
+              "Load more comments",
+              "加载更多评论"
+            )
+          )}
         </button>
       ) : null}
       <form onSubmit={submit}>
-        <label htmlFor="public-document-comment">Comment</label>
+        <label htmlFor="public-document-comment">{t("Comment")}</label>
         <textarea
           id="public-document-comment"
           value={text}
@@ -340,10 +429,19 @@ function PublicComments({
           type="submit"
           disabled={status !== "ready" || submitting || !text.trim()}
         >
-          Post comment
+          {t("Post")}
         </button>
         {submitError ? (
-          <p role="alert">Could not post your comment. Please retry.</p>
+          <p role="alert">
+            {t(
+              "Could not post your comment. Please retry.",
+              websitePublicTranslation(
+                i18n.language,
+                "Could not post your comment. Please retry.",
+                "评论提交失败，请重试。"
+              )
+            )}
+          </p>
         ) : null}
       </form>
     </section>
@@ -355,6 +453,7 @@ export function PublicDocumentView({
 }: {
   allowComments?: boolean;
 }) {
+  const { t } = useTranslation();
   const { documentSlug } = useParams<{ documentSlug: string }>();
   const document = usePublicData<{ data: PublicDocumentInfo }>(
     "/public.documents.info",
@@ -364,7 +463,7 @@ export function PublicDocumentView({
     return <PublicFeedback state={document.status} retry={document.retry} />;
   }
   if (!document.data?.data) {
-    return <p role="alert">Document not found.</p>;
+    return <p role="alert">{t("Not found")}</p>;
   }
   const info = document.data.data;
   return (
@@ -388,6 +487,7 @@ export function PublicDocumentView({
 }
 
 function PublicSearch() {
+  const { t, i18n } = useTranslation();
   const location = useLocation();
   const history = useHistory();
   const query = new URLSearchParams(location.search).get("q")?.trim() ?? "";
@@ -411,16 +511,34 @@ function PublicSearch() {
           );
         }}
       >
-        <label htmlFor="public-search">Search public documents</label>
+        <label htmlFor="public-search">
+          {t(
+            "Search public documents",
+            websitePublicTranslation(
+              i18n.language,
+              "Search public documents",
+              "搜索公开文档"
+            )
+          )}
+        </label>
         <input
           id="public-search"
           value={input}
           onChange={(event) => setInput(event.target.value)}
         />
-        <button type="submit">Search</button>
+        <button type="submit">{t("Search")}</button>
       </form>
       {!query ? (
-        <p>Enter a search term.</p>
+        <p>
+          {t(
+            "Enter a search term.",
+            websitePublicTranslation(
+              i18n.language,
+              "Enter a search term.",
+              "请输入搜索词。"
+            )
+          )}
+        </p>
       ) : results.status !== "ready" ? (
         <PublicFeedback state={results.status} retry={results.retry} />
       ) : results.data?.data.length ? (
@@ -433,7 +551,7 @@ function PublicSearch() {
           ))}
         </ul>
       ) : (
-        <p>No public documents found.</p>
+        <p>{t("No results")}</p>
       )}
       {query && results.status === "ready" ? (
         <div>
@@ -442,12 +560,26 @@ function PublicSearch() {
               type="button"
               onClick={() => setOffset(Math.max(0, offset - 100))}
             >
-              Previous results
+              {t(
+                "Previous results",
+                websitePublicTranslation(
+                  i18n.language,
+                  "Previous results",
+                  "上一页结果"
+                )
+              )}
             </button>
           ) : null}
           {results.data?.pagination.hasMore ? (
             <button type="button" onClick={() => setOffset(offset + 100)}>
-              More results
+              {t(
+                "More results",
+                websitePublicTranslation(
+                  i18n.language,
+                  "More results",
+                  "更多结果"
+                )
+              )}
             </button>
           ) : null}
         </div>
@@ -458,6 +590,7 @@ function PublicSearch() {
 
 /** Public integrated directory, search, and read-only document surface. */
 export function WebsitePublic({ kind }: { kind: PageKind }) {
+  const { t, i18n } = useTranslation();
   const { auth } = useStores();
   const location = useLocation();
   const [status, setStatus] = useState<
@@ -521,27 +654,45 @@ export function WebsitePublic({ kind }: { kind: PageKind }) {
       ) : null}
       <header>
         <h1>
-          <Link to="/">Documents</Link>
+          <Link to="/">{t("Documents")}</Link>
         </h1>
-        <nav aria-label="Documents navigation">
-          <Link to="/">Browse</Link>
-          <Link to="/search">Search</Link>
+        <nav
+          aria-label={t(
+            "Documents navigation",
+            websitePublicTranslation(
+              i18n.language,
+              "Documents navigation",
+              "文档导航"
+            )
+          )}
+        >
+          <Link to="/">{t("Documents")}</Link>
+          <Link to="/search">{t("Search")}</Link>
           {auth.authenticated ? (
-            <Link to="/home">Workspace</Link>
+            <Link to="/home">{t("Workspace")}</Link>
           ) : (
             <button
               type="button"
               onClick={() => signIn()}
               disabled={auth.config?.initialized === false}
             >
-              Sign in
+              {t("Login")}
             </button>
           )}
         </nav>
       </header>
       <main ref={mainRef} tabIndex={-1}>
         {auth.config && !auth.websiteIntegrationInitialized ? (
-          <p>The document library is not initialized yet.</p>
+          <p>
+            {t(
+              "The document library is not initialized yet.",
+              websitePublicTranslation(
+                i18n.language,
+                "The document library is not initialized yet.",
+                "文档库尚未初始化。"
+              )
+            )}
+          </p>
         ) : kind === "directory" ? (
           <PublicDirectory />
         ) : kind === "document" ? (
@@ -556,7 +707,14 @@ export function WebsitePublic({ kind }: { kind: PageKind }) {
       !auth.authenticated ? (
         <div role="status">
           <p>
-            Sign-in status is unavailable. Public documents remain available.
+            {t(
+              "Sign-in status is unavailable. Public documents remain available.",
+              websitePublicTranslation(
+                i18n.language,
+                "Sign-in status is unavailable. Public documents remain available.",
+                "登录状态暂时不可用，公开文档仍可阅读。"
+              )
+            )}
           </p>
           {auth.integrationAuthUnavailable ? (
             <button
@@ -565,7 +723,14 @@ export function WebsitePublic({ kind }: { kind: PageKind }) {
                 void auth.fetchAuth().catch(() => {});
               }}
             >
-              Retry sign-in status
+              {t(
+                "Retry sign-in status",
+                websitePublicTranslation(
+                  i18n.language,
+                  "Retry sign-in status",
+                  "重试检查登录状态"
+                )
+              )}
             </button>
           ) : null}
         </div>
