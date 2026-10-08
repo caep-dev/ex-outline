@@ -34,7 +34,7 @@ export type FormData = {
   icon: string;
   color: string | null;
   sharing: boolean;
-  permission: CollectionPermission | undefined;
+  permission: CollectionPermission | null | undefined;
   commenting?: boolean | null;
   templateManagement: CollectionPermission;
 };
@@ -70,6 +70,8 @@ export const CollectionForm = observer(function CollectionForm_({
   collection?: Collection;
 }) {
   const team = useCurrentTeam();
+  const { auth } = useStores();
+  const integrated = auth.websiteIntegrationEnabled;
   const { t } = useTranslation();
   const dialog = useDialogContext();
 
@@ -114,8 +116,8 @@ export const CollectionForm = observer(function CollectionForm_({
       name: collection?.name ?? "",
       icon: collection?.icon,
       sharing: collection?.sharing ?? true,
-      permission: collection?.permission,
-      commenting: collection?.commenting ?? true,
+      permission: integrated ? null : collection?.permission,
+      commenting: integrated ? true : (collection?.commenting ?? true),
       templateManagement:
         collection?.templateManagement ?? CollectionPermission.Admin,
       color: iconColor,
@@ -217,6 +219,7 @@ export const CollectionForm = observer(function CollectionForm_({
               label={t("Commenting")}
               note={t("Allow commenting on documents within this collection.")}
               checked={!!field.value}
+              disabled={integrated}
               onChange={field.onChange}
             />
           )}
@@ -267,6 +270,7 @@ export const CollectionForm = observer(function CollectionForm_({
             <InputSelectPermission
               ref={field.ref}
               value={field.value}
+              disabled={integrated}
               onChange={(
                 value: CollectionPermission | typeof EmptySelectValue
               ) => {

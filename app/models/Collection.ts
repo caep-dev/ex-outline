@@ -44,7 +44,7 @@ export default class Collection extends ParanoidModel {
   /** The default permission for workspace users. */
   @Field
   @observable
-  permission?: CollectionPermission;
+  permission?: CollectionPermission | null;
 
   /**
    * Whether public sharing is enabled for the collection. Note this can also be disabled at the
