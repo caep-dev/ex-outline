@@ -141,39 +141,38 @@ const insertFiles = async function (
           return;
         }
         if (upload.isImage) {
-          const newImg = new Image();
-          newImg.onload = async () => {
-            const result = findPlaceholder(view.state, upload.id);
-            if (result === null) {
-              return;
-            }
+          await new Promise<void>((resolve, reject) => {
+            const newImg = new Image();
+            newImg.onload = () => resolve();
+            newImg.onerror = () =>
+              reject(new Error(`Error loading image: ${src}`));
+            newImg.src = src;
+          });
 
-            if (view.isDestroyed) {
-              return;
-            }
+          if (view.isDestroyed) {
+            return;
+          }
 
-            const [from, to] = result;
-            view.dispatch(
-              view.state.tr
-                .replaceWith(
-                  from,
-                  to || from,
-                  schema.nodes.image.create({
-                    src,
-                    source: upload.source,
-                    ...upload.dimensions,
-                    ...options.attrs,
-                  })
-                )
-                .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
-            );
-          };
+          const result = findPlaceholder(view.state, upload.id);
+          if (result === null) {
+            return;
+          }
 
-          newImg.onerror = () => {
-            throw new Error(`Error loading image: ${src}`);
-          };
-
-          newImg.src = src;
+          const [from, to] = result;
+          view.dispatch(
+            view.state.tr
+              .replaceWith(
+                from,
+                to || from,
+                schema.nodes.image.create({
+                  src,
+                  source: upload.source,
+                  ...upload.dimensions,
+                  ...options.attrs,
+                })
+              )
+              .setMeta(uploadPlaceholderPlugin, { remove: { id: upload.id } })
+          );
         } else if (upload.isVideo) {
           const result = findPlaceholder(view.state, upload.id);
           if (result === null) {

@@ -9,6 +9,7 @@ import invariant from "invariant";
 import JWT from "jsonwebtoken";
 import safeResolvePath from "resolve-path";
 import { toError } from "@shared/utils/error";
+import { publicBasePath, publicPath } from "@shared/utils/publicPath";
 import env from "@server/env";
 import { InternalError, ValidationError } from "@server/errors";
 import Logger from "@server/logging/Logger";
@@ -44,11 +45,11 @@ export default class LocalStorage extends BaseStorage {
   }
 
   public getUploadUrl() {
-    return "/api/files.create";
+    return publicPath(publicBasePath(env.URL), "/api/files.create");
   }
 
   public getUrlForKey(key: string): string {
-    return `/api/files.get?key=${key}`;
+    return publicPath(publicBasePath(env.URL), `/api/files.get?key=${key}`);
   }
 
   public store = async ({
