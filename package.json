@@ -74,7 +74,7 @@
     "@dnd-kit/sortable": "^7.0.2",
     "@dotenvx/dotenvx": "^1.75.1",
     "@emoji-mart/data": "^1.2.1",
-    "@exre/exui": "portal:../../exui/packages/components",
+    "@exre/exui": "^0.7.0",
     "@fast-csv/parse": "^5.0.7",
     "@firecrawl/pdf-inspector": "^1.11.2",
     "@fortawesome/fontawesome-svg-core": "^7.3.1",

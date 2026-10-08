@@ -109,10 +109,7 @@ export default defineConfig({
         resolve: { alias: [fileMockAlias, ...aliasesAsArray] },
         server: {
           fs: {
-            allow: [
-              path.resolve(__dirname),
-              path.resolve(__dirname, "../../exui"),
-            ],
+            allow: [path.resolve(__dirname)],
           },
         },
         optimizeDeps: {

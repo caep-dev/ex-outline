@@ -4,11 +4,6 @@ FROM ${NODE_IMAGE} AS outline-build
 RUN apt-get update && apt-get install -y --no-install-recommends cmake python3 make g++ && rm -rf /var/lib/apt/lists/*
 RUN npm install -g corepack@0.34.5 && corepack enable
 WORKDIR /workspace/website
-COPY --from=exui . vendor/exui
-WORKDIR /workspace/website/vendor/exui
-RUN pnpm install --frozen-lockfile && pnpm --filter @exre/exui-tokens build && pnpm --filter @exre/exui build
-WORKDIR /workspace/website
-RUN ln -s vendor/exui exui
 COPY apps/outline apps/outline
 WORKDIR /workspace/website/apps/outline
 ENV RUNTIME_ENV_INJECTED=true WEBSITE_INTEGRATION_ENABLED=true WEBSITE_INTEGRATION_MODE=deployment URL=https://build.invalid/docs WEBSITE_URL=https://build.invalid/ HYDRA_PUBLIC_URL=https://issuer.build.invalid/ OUTLINE_OIDC_CLIENT_ID=ex-outline WEBSITE_INTERNAL_URL=http://server:8080/
@@ -27,8 +22,5 @@ COPY --from=outline-build /workspace/website/apps/outline/yarn.lock yarn.lock
 COPY --from=outline-build /workspace/website/apps/outline/.yarnrc.yml .yarnrc.yml
 COPY --from=outline-build /workspace/website/apps/outline/.yarn/install-state.gz .yarn/install-state.gz
 COPY --from=outline-build /workspace/website/apps/outline/.sequelizerc .sequelizerc
-COPY --from=outline-build /workspace/website/vendor/exui/packages/components /workspace/website/vendor/exui/packages/components
-COPY --from=outline-build /workspace/website/vendor/exui/packages/tokens /workspace/website/vendor/exui/packages/tokens
-RUN ln -s /workspace/website/vendor/exui /workspace/website/exui
 EXPOSE 3000
 CMD ["node", "build/server/index.js", "--no-migrate"]
