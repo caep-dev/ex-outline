@@ -1,7 +1,7 @@
-import { LoaderCircle } from "lucide-react";
+import { Files, LoaderCircle } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import styled, { keyframes } from "styled-components";
-import { InfoIcon, WarningIcon } from "@shared/components/LucideIcon";
+import { WarningIcon } from "@shared/components/LucideIcon";
 import { s } from "@shared/styles";
 import { websitePublicTranslation } from "~/utils/websitePublicTranslation";
 import Button from "~/components/Button";
@@ -15,7 +15,7 @@ interface DocsStatusProps {
 }
 
 /**
- * Renders a localized, accessible document loading or failure state.
+ * Renders a localized, accessible document loading, empty, or failure state.
  *
  * @param props state, safe message, and optional retry callback.
  * @returns an icon, title, content, and action.
@@ -42,7 +42,7 @@ export function DocsStatus({
       ) : isError ? (
         <WarningIcon aria-hidden />
       ) : (
-        <InfoIcon aria-hidden />
+        <EmptyHero aria-hidden size={64} strokeWidth={1.25} />
       )}
       <h2>{title}</h2>
       <p>{content}</p>
@@ -72,6 +72,32 @@ const Panel = styled.section`
   p {
     color: ${s("textSecondary")};
   }
+
+  &[data-docs-state="empty"] {
+    min-height: 330px;
+    justify-content: center;
+
+    h2 {
+      margin: 24px 0 0;
+      font-size: 20px;
+      line-height: 1.45;
+      font-weight: 600;
+      letter-spacing: -0.3px;
+    }
+
+    p {
+      max-width: 350px;
+      margin: 8px 0 0;
+      font-size: 14px;
+      line-height: 1.8;
+      text-wrap: balance;
+    }
+  }
+`;
+
+const EmptyHero = styled(Files)`
+  flex-shrink: 0;
+  color: ${s("textTertiary")};
 `;
 
 const Spinner = styled(LoaderCircle)`

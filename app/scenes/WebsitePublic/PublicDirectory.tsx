@@ -99,8 +99,22 @@ export const PublicDirectory = observer(function PublicDirectory() {
           ) : collections.status === "ready" ? (
             <DocsStatus
               state="empty"
-              title={t("No collections")}
-              content={t("No collections")}
+              title={t(
+                "No public collections",
+                websitePublicTranslation(
+                  i18n.language,
+                  "No public collections",
+                  "暂无公开文档集"
+                )
+              )}
+              content={t(
+                "Public collections will appear here. Check back later.",
+                websitePublicTranslation(
+                  i18n.language,
+                  "Public collections will appear here. Check back later.",
+                  "公开的文档集将在这里展示。稍后再来看看吧。"
+                )
+              )}
             />
           ) : null}
           {collections.status !== "ready" && (
