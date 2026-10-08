@@ -436,6 +436,55 @@ it("uses shared search input and public results with only supported query fields
     limit: 100,
   });
 });
+it("submits public search with Enter and clears collection scope through the native filter", async () => {
+  mocks.fetch.mockImplementation((path) =>
+    Promise.resolve(
+      path === "/public.collections.list" ? page([collection]) : page([])
+    )
+  );
+  renderPublic("/search?q=topic&collectionId=collection-1");
+  const input = await screen.findByRole("searchbox", { name: "Search" });
+  await userEvent.clear(input);
+  await userEvent.type(input, "  guide  {Enter}");
+  await waitFor(() =>
+    expect(mocks.fetch).toHaveBeenCalledWith(
+      "/public.documents.search",
+      "POST",
+      {
+        query: "guide",
+        collectionId: "collection-1",
+        offset: 0,
+        limit: 100,
+      }
+    )
+  );
+  await userEvent.click(await screen.findByRole("button", { name: "Guides" }));
+  await userEvent.click(
+    await screen.findByRole("menuitem", { name: "Any collection" })
+  );
+  await waitFor(() =>
+    expect(screen.getByTestId("reading-location")).toHaveTextContent(
+      "/search?q=guide"
+    )
+  );
+  expect(screen.getByTestId("reading-location")).not.toHaveTextContent(
+    "collectionId"
+  );
+  await waitFor(() =>
+    expect(mocks.fetch).toHaveBeenCalledWith(
+      "/public.documents.search",
+      "POST",
+      {
+        query: "guide",
+        collectionId: undefined,
+        offset: 0,
+        limit: 100,
+      }
+    )
+  );
+  expect(mocks.post).not.toHaveBeenCalled();
+  expect(mocks.redirect).not.toHaveBeenCalled();
+});
 it("does not load public DTOs or sign in before workspace bootstrap", () => {
   mocks.auth.config = {
     websiteIntegrationEnabled: true,
@@ -932,4 +981,12 @@ it("opens the existing mobile sidebar so public login and search are reachable",
     within(navigation).getByRole("button", { name: "Login" })
   ).toBeTruthy();
   expect(within(navigation).getByRole("link", { name: "Search" })).toBeTruthy();
+});
+it("offers one sidebar toggle on the mobile public search page", async () => {
+  mocks.mobile = true;
+  renderPublic("/search?q=topic");
+  await screen.findByRole("searchbox", { name: "Search" });
+  expect(
+    screen.getAllByRole("button", { name: "Expand sidebar" })
+  ).toHaveLength(1);
 });

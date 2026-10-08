@@ -5,12 +5,15 @@ import styled from "styled-components";
 import breakpoint from "styled-components-breakpoint";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import Button from "~/components/Button";
+import Flex from "~/components/Flex";
+import Text from "~/components/Text";
+import { HStack } from "~/components/primitives/HStack";
 
 interface DocsSearchFormProps {
   label: string;
   query: string;
   onSearch: (query: string) => void;
+  placeholder?: string;
   children?: React.ReactNode;
 }
 
@@ -24,32 +27,113 @@ export function DocsSearchForm({
   label,
   query,
   onSearch,
+  placeholder,
   children,
 }: DocsSearchFormProps) {
-  const [value, setValue] = React.useState(query);
-  React.useEffect(() => setValue(query), [query]);
+  const inputRef = React.useRef<HTMLInputElement>(null);
   return (
     <form
       role="search"
       onSubmit={(event) => {
         event.preventDefault();
-        onSearch(value.trim());
+        onSearch(inputRef.current?.value.trim() ?? "");
       }}
     >
-      <SearchLabel>
-        {label}
-        <SearchAdornment aria-hidden />
-        <DocsSearchField
-          type="search"
-          value={value}
-          onChange={(event) => setValue(event.target.value)}
-        />
-      </SearchLabel>
-      <Button type="submit">{label}</Button>
+      <DocsSearchInput
+        key={query}
+        ref={inputRef}
+        name="query"
+        aria-label={label}
+        placeholder={placeholder ?? `${label}…`}
+        defaultValue={query}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" && event.nativeEvent.isComposing) {
+            event.preventDefault();
+          }
+        }}
+      />
       {children}
     </form>
   );
 }
+
+/** Shared member search input, including its focus and search icon behavior. */
+export const DocsSearchInput = React.forwardRef<
+  HTMLInputElement,
+  React.InputHTMLAttributes<HTMLInputElement> & { defaultValue: string }
+>(function DocsSearchInput({ defaultValue, ...rest }, forwardedRef) {
+  const inputRef = React.useRef<HTMLInputElement | null>(null);
+  const handleRef = React.useCallback(
+    (input: HTMLInputElement | null) => {
+      inputRef.current = input;
+      if (typeof forwardedRef === "function") {
+        forwardedRef(input);
+      } else if (forwardedRef) {
+        forwardedRef.current = input;
+      }
+    },
+    [forwardedRef]
+  );
+  React.useEffect(() => {
+    const length = defaultValue.length;
+    inputRef.current?.setSelectionRange(length, length);
+    const timeout = setTimeout(() => inputRef.current?.focus(), 100);
+    return () => clearTimeout(timeout);
+  }, [defaultValue]);
+  return (
+    <SearchInputWrapper align="center">
+      <SearchAdornment aria-hidden onClick={() => inputRef.current?.focus()} />
+      <NativeSearchInput
+        {...rest}
+        defaultValue={defaultValue}
+        ref={handleRef}
+        spellCheck="false"
+        type="search"
+        autoFocus
+      />
+    </SearchInputWrapper>
+  );
+});
+
+/** Shared quiet empty state for public and member searches. */
+export function DocsSearchEmpty({ embedded = false }: { embedded?: boolean }) {
+  const { t } = useTranslation();
+  return (
+    <DocsSearchCentered $embedded={embedded} column role="status">
+      <Text as="p" type="secondary">
+        {t("No documents found for your search filters.")}
+      </Text>
+    </DocsSearchCentered>
+  );
+}
+
+/** Shared placement of the search controls in a page or embedded dialog. */
+export const DocsSearchWrapper = styled(Flex)<{ $embedded: boolean }>`
+  ${breakpoint("tablet")`
+    margin-top: ${(props: { $embedded: boolean }) =>
+      props.$embedded ? "0" : "40px"};
+  `};
+`;
+
+/** Shared centered layout for search feedback. */
+export const DocsSearchCentered = styled(Flex)<{ $embedded: boolean }>`
+  text-align: center;
+  margin: ${(props) => (props.$embedded ? "48px auto" : "30vh auto 0")};
+  max-width: 380px;
+  transform: ${(props) => (props.$embedded ? "none" : "translateY(-50%)")};
+`;
+
+/** Shared responsive row for caller-owned authorized search filters. */
+export const DocsSearchFilters = styled(HStack)`
+  flex-wrap: wrap;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  transition: opacity 100ms ease-in-out;
+  padding: 8px 0;
+  ${breakpoint("tablet")`
+    padding: 0;
+  `};
+`;
 
 /** Shared input styling for public and member search. */
 export const DocsSearchField = styled.input`
@@ -256,25 +340,30 @@ const ResultExcerpt = styled.span`
   overflow: hidden;
 `;
 
-const SearchLabel = styled.label`
-  display: block;
+const SearchInputWrapper = styled(Flex)`
   position: relative;
-  ${DocsSearchField} {
-    margin-top: 0.5rem;
+  margin-bottom: 8px;
+`;
+
+const NativeSearchInput = styled(DocsSearchField)`
+  ::-webkit-search-cancel-button {
+    -webkit-appearance: none;
   }
 `;
 
 const SearchAdornment = styled(SearchIcon)`
   position: absolute;
   inset-inline-start: 12px;
-  bottom: 9px;
-  color: ${s("textSecondary")};
+  color: ${s("placeholder")};
 `;
 
 const Results = styled.ul`
   list-style: none;
   padding: 0;
   margin: 0;
+  ${DocsSearchResultLink} {
+    width: auto;
+  }
   li {
     margin: 0;
   }

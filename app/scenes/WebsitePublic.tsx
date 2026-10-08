@@ -40,10 +40,12 @@ export function WebsitePublic({
   return (
     <DocsLayout title={t("Documents")} sidebar={<PublicNavigation />}>
       <Flex column auto>
-        <Header
-          hasSidebar
-          title={publicDocs.document.data?.title ?? t("Documents")}
-        />
+        {!(kind === "search" && initialized && configStatus === "ready") && (
+          <Header
+            hasSidebar
+            title={publicDocs.document.data?.title ?? t("Documents")}
+          />
+        )}
         {configStatus !== "ready" ? (
           <DocsStatus
             state={configStatus === "loading" ? "loading" : "error"}

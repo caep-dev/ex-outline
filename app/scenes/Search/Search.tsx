@@ -7,7 +7,6 @@ import { useTranslation } from "react-i18next";
 import { useHistory, useLocation, useRouteMatch } from "react-router-dom";
 import { Waypoint } from "react-waypoint";
 import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { Pagination } from "@shared/constants";
 import type { Filter } from "@shared/helpers/FilterHelper";
 import { DURATION_BY_DATE_FILTER } from "@shared/helpers/FilterHelper";
@@ -19,7 +18,13 @@ import type {
 import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
-import { DocsSearchResultList } from "~/components/DocsSearch";
+import {
+  DocsSearchResultList,
+  DocsSearchWrapper as ResultsWrapper,
+  DocsSearchCentered as Centered,
+  DocsSearchFilters as Filters,
+  DocsSearchEmpty,
+} from "~/components/DocsSearch";
 import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -46,7 +51,6 @@ import SearchInput from "./components/SearchInput";
 import { SearchLoading } from "./components/SearchLoading";
 import { SortInput } from "./components/SortInput";
 import UserFilter from "./components/UserFilter";
-import { HStack } from "~/components/primitives/HStack";
 import useMobile from "~/hooks/useMobile";
 
 /**
@@ -477,11 +481,7 @@ function Search({
               </Fade>
             ) : showEmpty ? (
               <Fade>
-                <Centered $embedded={embedded} column>
-                  <Text as="p" type="secondary">
-                    {t("No documents found for your search filters.")}
-                  </Text>
-                </Centered>
+                <DocsSearchEmpty embedded={embedded} />
               </Fade>
             ) : null}
             <ModelSelectionProvider
@@ -549,20 +549,6 @@ function Search({
   );
 }
 
-const Centered = styled(Flex)<{ $embedded: boolean }>`
-  text-align: center;
-  margin: ${(props) => (props.$embedded ? "48px auto" : "30vh auto 0")};
-  max-width: 380px;
-  transform: ${(props) => (props.$embedded ? "none" : "translateY(-50%)")};
-`;
-
-const ResultsWrapper = styled(Flex)<{ $embedded: boolean }>`
-  ${breakpoint("tablet")`
-    margin-top: ${(props: { $embedded: boolean }) =>
-      props.$embedded ? "0" : "40px"};
-  `};
-`;
-
 const ResultList = styled(Flex)<{ $embedded: boolean }>`
   margin-bottom: ${(props) => (props.$embedded ? "16px" : "150px")};
 `;
@@ -571,18 +557,6 @@ const StyledArrowKeyNavigation = styled(ArrowKeyNavigation)`
   display: flex;
   flex-direction: column;
   flex: 1;
-`;
-
-const Filters = styled(HStack)`
-  flex-wrap: wrap;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  transition: opacity 100ms ease-in-out;
-  padding: 8px 0;
-
-  ${breakpoint("tablet")`
-    padding: 0;
-  `};
 `;
 
 const SearchTitlesFilter = styled(Switch)`
