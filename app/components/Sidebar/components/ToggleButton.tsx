@@ -19,4 +19,15 @@ const ToggleButton = styled(Button).attrs({
   }
 `;
 
+/** Renders the sidebar collapse control with a transparent resting state. */
+export const CollapseButton = styled(ToggleButton)`
+  &:not(:hover):not(:focus-visible):not(:active) {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+`;
+
 export default ToggleButton;

@@ -1,9 +1,9 @@
-import { useEffect, type RefObject } from "react";
+import { useEffect, useRef, type RefObject } from "react";
 import { observer } from "mobx-react";
 import { useLocation } from "react-router-dom";
 import useStores from "~/hooks/useStores";
 
-/** Moves focus once per integrated route/identity, after its visible content is ready. */
+/** Moves focus after integrated route changes, leaving initial page focus alone. */
 export const DocsNavigationFocus = observer(function DocsNavigationFocus({
   layoutRef,
 }: {
@@ -12,11 +12,12 @@ export const DocsNavigationFocus = observer(function DocsNavigationFocus({
   const { auth } = useStores();
   const { pathname } = useLocation();
   const enabled = auth.websiteIntegrationEnabled;
-  const generation = auth.sessionGeneration;
-  const authenticated = auth.authenticated;
+  const previousPathname = useRef(pathname);
   useEffect(() => {
     const root = layoutRef.current;
-    if (!enabled || !root) {
+    const routeChanged = previousPathname.current !== pathname;
+    previousPathname.current = pathname;
+    if (!enabled || !root || !routeChanged) {
       return;
     }
     let complete = false;
@@ -87,6 +88,6 @@ export const DocsNavigationFocus = observer(function DocsNavigationFocus({
       root.removeEventListener("input", handleTyping);
       cancelAnimationFrame(frame);
     };
-  }, [enabled, pathname, generation, authenticated, layoutRef]);
+  }, [enabled, pathname, layoutRef]);
   return null;
 });

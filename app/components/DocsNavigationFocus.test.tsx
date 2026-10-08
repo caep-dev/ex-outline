@@ -4,6 +4,8 @@ import { observable, runInAction } from "mobx";
 import { useState } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { Router, Link, Route } from "react-router-dom";
+import { ThemeProvider } from "styled-components";
+import { light } from "@shared/styles/theme";
 import type RootStore from "~/stores/RootStore";
 import UiStore from "~/stores/UiStore";
 import { renderWithTheme } from "~/test/renderWithTheme";
@@ -99,12 +101,11 @@ function mount() {
   );
 }
 
-it("focuses real route titles and visible loading/error/readiness, ignoring sidebar status", async () => {
+it("leaves initial page focus alone, then focuses route changes and visible readiness", async () => {
   const user = userEvent.setup();
   mount();
-  await waitFor(() =>
-    expect(screen.getByRole("heading", { name: "Overview" })).toHaveFocus()
-  );
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  expect(screen.getByRole("heading", { name: "Overview" })).not.toHaveFocus();
   await user.click(screen.getByRole("link", { name: "Search" }));
   await waitFor(() =>
     expect(screen.getByRole("heading", { name: "Search" })).toHaveFocus()
@@ -124,12 +125,11 @@ it("focuses real route titles and visible loading/error/readiness, ignoring side
   );
 });
 
-it("skips query typing, pagination/hash and ordinary rerenders but refocuses a new identity", async () => {
+it("preserves input focus across query/hash changes and identity verification", async () => {
   history.replace("/search");
   mount();
-  await waitFor(() =>
-    expect(screen.getByRole("heading", { name: "Search" })).toHaveFocus()
-  );
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  expect(screen.getByRole("heading", { name: "Search" })).not.toHaveFocus();
   const query = screen.getByRole("textbox", { name: "Query" });
   query.focus();
   fireEvent.change(query, { target: { value: "term" } });
@@ -142,9 +142,8 @@ it("skips query typing, pagination/hash and ordinary rerenders but refocuses a n
       mocks.auth.authenticated = true;
     })
   );
-  await waitFor(() =>
-    expect(screen.getByRole("heading", { name: "Search" })).toHaveFocus()
-  );
+  await new Promise((resolve) => requestAnimationFrame(resolve));
+  expect(query).toHaveFocus();
 });
 
 it("waits for a visible target and leaves standalone focus unchanged", async () => {
@@ -159,14 +158,17 @@ it("waits for a visible target and leaves standalone focus unchanged", async () 
   );
   await new Promise((resolve) => requestAnimationFrame(resolve));
   expect(screen.getByText("Hidden title")).not.toHaveFocus();
+  act(() => history.push("/ready"));
   rerender(
-    <HelmetProvider>
-      <Router history={history}>
-        <DocsLayout>
-          <h1>Ready title</h1>
-        </DocsLayout>
-      </Router>
-    </HelmetProvider>
+    <ThemeProvider theme={light}>
+      <HelmetProvider>
+        <Router history={history}>
+          <DocsLayout>
+            <h1>Ready title</h1>
+          </DocsLayout>
+        </Router>
+      </HelmetProvider>
+    </ThemeProvider>
   );
   await waitFor(() => expect(screen.getByText("Ready title")).toHaveFocus());
   act(() =>
@@ -181,8 +183,8 @@ it("waits for a visible target and leaves standalone focus unchanged", async () 
   expect(title).not.toHaveFocus();
 });
 it("does not take focus from typing while a pending route becomes ready", async () => {
-  history.replace("/doc/guide-1234567890");
   mount();
+  act(() => history.push("/doc/guide-1234567890"));
   await waitFor(() =>
     expect(screen.getByText("Safe reason").parentElement).toHaveFocus()
   );

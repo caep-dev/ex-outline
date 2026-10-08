@@ -297,6 +297,11 @@ export const WebsiteIdentityController = observer(
         ) : (
           <DocsRecoveryLayout>
             <DocsStatus
+              layout={
+                !readingUnavailable && resumeStatus === "loading"
+                  ? "page"
+                  : "inline"
+              }
               state={readingUnavailable ? "unavailable" : resumeStatus}
               title={t("Documents")}
               content={

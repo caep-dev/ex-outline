@@ -13,6 +13,7 @@ import { PublicDirectory } from "./WebsitePublic/PublicDirectory";
 import { PublicDocumentView } from "./WebsitePublic/PublicDocument";
 import { PublicNavigation } from "./WebsitePublic/PublicNavigation";
 import { PublicSearch } from "./WebsitePublic/PublicSearch";
+import { PublicReadingNavigation } from "./WebsitePublic/PublicReadingNavigation";
 
 export { PublicDocumentView } from "./WebsitePublic/PublicDocument";
 
@@ -24,7 +25,7 @@ export function WebsitePublic({
 }) {
   const { t, i18n } = useTranslation();
   const { auth, publicDocs } = useStores();
-  const { unavailable, configStatus, retry } = useWebsiteIdentity();
+  const { configStatus, retry } = useWebsiteIdentity();
   const location = useLocation();
   const generation = publicDocs.generation;
   const initialized = auth.websiteIntegrationInitialized;
@@ -40,14 +41,16 @@ export function WebsitePublic({
   return (
     <DocsLayout title={t("Documents")} sidebar={<PublicNavigation />}>
       <Flex column auto>
-        {!(kind === "search" && initialized && configStatus === "ready") && (
+        {(!initialized || configStatus !== "ready") && (
           <Header
             hasSidebar
-            title={publicDocs.document.data?.title ?? t("Documents")}
+            title={t("Documents")}
+            left={<PublicReadingNavigation />}
           />
         )}
         {configStatus !== "ready" ? (
           <DocsStatus
+            layout="page"
             state={configStatus === "loading" ? "loading" : "error"}
             title={t("Documents")}
             content={
@@ -66,6 +69,7 @@ export function WebsitePublic({
           />
         ) : !initialized ? (
           <DocsStatus
+            layout="page"
             state="unavailable"
             title={t("Documents")}
             content={t(
@@ -83,22 +87,6 @@ export function WebsitePublic({
           <PublicDocumentView />
         ) : (
           <PublicSearch />
-        )}
-        {unavailable && configStatus === "ready" && (
-          <DocsStatus
-            state="error"
-            focusTarget={false}
-            title={t("Login")}
-            content={t(
-              "Sign-in status is unavailable. Public documents remain available.",
-              websitePublicTranslation(
-                i18n.language,
-                "Sign-in status is unavailable. Public documents remain available.",
-                "登录状态暂时不可用，公开文档仍可阅读。"
-              )
-            )}
-            onRetry={retry}
-          />
         )}
       </Flex>
     </DocsLayout>

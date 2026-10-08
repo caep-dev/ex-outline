@@ -1,20 +1,22 @@
 import type { Location } from "history";
-import CenteredContent from "~/components/CenteredContent";
-import PageTitle from "~/components/PageTitle";
-import PlaceholderDocument from "~/components/PlaceholderDocument";
-import Container from "./Container";
+import { useTranslation } from "react-i18next";
+import { DocsStatus } from "~/components/DocsStatus";
+import Scene from "~/components/Scene";
 
 type Props = {
   location: Location<{ title?: string }>;
 };
 
 export default function Loading({ location }: Props) {
+  const { t } = useTranslation();
   return (
-    <Container column auto>
-      {location.state?.title && <PageTitle title={location.state.title} />}
-      <CenteredContent>
-        <PlaceholderDocument />
-      </CenteredContent>
-    </Container>
+    <Scene title={location.state?.title ?? t("Loading")} centered={false}>
+      <DocsStatus
+        state="loading"
+        layout="page"
+        title={t("Loading")}
+        content={t("Loading")}
+      />
+    </Scene>
   );
 }

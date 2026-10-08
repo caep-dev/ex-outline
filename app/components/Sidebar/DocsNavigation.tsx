@@ -7,10 +7,10 @@ import {
   CollectionIcon,
   DocumentIcon,
 } from "@shared/components/LucideIcon";
-import { ChevronDown, ChevronRight } from "lucide-react";
-import { s } from "@shared/styles";
 import { websitePublicTranslation } from "~/utils/websitePublicTranslation";
 import Scrollable from "~/components/Scrollable";
+import Disclosure from "./components/Disclosure";
+import { Header } from "./components/Header";
 import Section from "./components/Section";
 import SidebarLink from "./components/SidebarLink";
 import { SidebarBrand } from "./components/SidebarBrand";
@@ -76,6 +76,7 @@ export function DocsNavigation({
     <>
       {beforeCollections}
       <Section aria-label={t("Collections")}>
+        {view.items.length > 0 && <Header title={t("Collections")} />}
         {view.items.map((item) => (
           <NavigationRow
             key={item.id}
@@ -144,9 +145,10 @@ function NavigationRow({
 }: NavigationRowProps) {
   const { t, i18n } = useTranslation();
   const expanded = view.expandedIds.has(item.id);
+  const hasDisclosure = item.kind === "collection" || item.children.length > 0;
   const active =
     item.kind === "collection"
-      ? view.activeCollectionId === item.id
+      ? !view.activeDocumentId && view.activeCollectionId === item.id
       : view.activeDocumentId === item.id;
   const handleToggle = React.useCallback(
     () => onToggle(item.id),
@@ -156,8 +158,10 @@ function NavigationRow({
   return (
     <>
       <Row>
-        {(item.kind === "collection" || item.children.length > 0) && (
-          <Disclosure
+        {hasDisclosure && (
+          <RowDisclosure
+            $depth={depth}
+            expanded={expanded}
             type="button"
             aria-label={`${
               expanded
@@ -172,23 +176,19 @@ function NavigationRow({
             } ${item.label}`}
             aria-expanded={expanded}
             onClick={handleToggle}
-          >
-            {expanded ? (
-              <ChevronDown size={16} aria-hidden />
-            ) : (
-              <ChevronRight size={16} aria-hidden />
-            )}
-          </Disclosure>
+          />
         )}
         <SidebarLink
           to={item.to}
           label={item.label}
           icon={
-            item.kind === "collection" ? (
-              <CollectionIcon aria-hidden />
-            ) : (
-              <DocumentIcon aria-hidden />
-            )
+            <RowIcon $disclosure={hasDisclosure}>
+              {item.kind === "collection" ? (
+                <CollectionIcon aria-hidden />
+              ) : (
+                <DocumentIcon aria-hidden />
+              )}
+            </RowIcon>
           }
           depth={depth}
           active={active}
@@ -206,30 +206,52 @@ function NavigationRow({
             view={view}
             onToggle={onToggle}
             renderCollectionStatus={renderCollectionStatus}
-            depth={depth + 1}
+            depth={
+              item.kind === "collection" ? Math.max(depth + 1, 2) : depth + 1
+            }
           />
         ))}
     </>
   );
 }
 
-const Row = styled.div`
-  display: flex;
-  align-items: center;
-  position: relative;
-  min-width: 0;
+const RowDisclosure = styled(Disclosure)<{ $depth: number }>`
+  inset-inline-start: ${(props) =>
+    `calc(${props.$depth * 16}px + ${props.$depth ? props.theme.exui.components.sidebarItem.nested.paddingInline : props.theme.exui.components.sidebarItem.default.paddingInline})`};
+  top: 50%;
+  transform: translateY(-50%);
+  margin: 0;
+  z-index: 1;
+  opacity: 0;
+  @media (hover: none) {
+    opacity: 1;
+  }
 `;
 
-const Disclosure = styled.button`
-  flex: none;
-  border: 0;
-  background: transparent;
-  color: ${s("textSecondary")};
-  cursor: pointer;
-  width: 24px;
-  height: 28px;
-  &:focus-visible {
-    outline: 2px solid ${s("accent")};
+const RowIcon = styled.span<{ $disclosure: boolean }>`
+  display: inline-flex;
+  width: inherit;
+  height: inherit;
+  > svg {
+    width: inherit;
+    height: inherit;
+  }
+  @media (hover: none) {
+    opacity: ${(props) => (props.$disclosure ? 0 : 1)};
+  }
+`;
+
+const Row = styled.div`
+  position: relative;
+  min-width: 0;
+  &:hover,
+  &:focus-within {
+    ${RowDisclosure} {
+      opacity: 1;
+    }
+    ${RowDisclosure} ~ a ${RowIcon} {
+      opacity: 0;
+    }
   }
 `;
 

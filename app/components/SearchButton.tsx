@@ -17,6 +17,8 @@ import useKeyDown from "~/hooks/useKeyDown";
 interface Props {
   /** The initial collection scope; omitted to search all collections. */
   collectionId?: string;
+  /** Whether to keep the trigger transparent until hovered. */
+  borderOnHover?: boolean;
 }
 
 /**
@@ -25,7 +27,7 @@ interface Props {
  * @param props the initial collection scope.
  * @returns the search button and its modal.
  */
-export function SearchButton({ collectionId }: Props) {
+export function SearchButton({ collectionId, borderOnHover }: Props) {
   const { t } = useTranslation();
   const label = collectionId
     ? t("Search in collection")
@@ -55,6 +57,7 @@ export function SearchButton({ collectionId }: Props) {
         ref={triggerRef}
         icon={<SearchIcon />}
         neutral
+        borderOnHover={borderOnHover}
         onClick={handleOpen}
         aria-label={label}
         aria-haspopup="dialog"

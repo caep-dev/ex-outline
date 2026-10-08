@@ -123,13 +123,19 @@ vi.mock("~/components/Editor", async () => {
       {
         value,
         publicReader,
+        readOnly,
         onInit,
-      }: { value: unknown; publicReader: boolean; onInit: () => void },
+      }: {
+        value: unknown;
+        publicReader: boolean;
+        readOnly: boolean;
+        onInit?: () => void;
+      },
       ref
     ) {
       // The lazy core may initialize before the wrapper assigns its forwarded ref.
       React.useLayoutEffect(() => {
-        onInit();
+        onInit?.();
       }, [onInit]);
       React.useImperativeHandle(ref, () => ({
         getHeadings: () =>
@@ -137,7 +143,11 @@ vi.mock("~/components/Editor", async () => {
         scrollToAnchor: mocks.scrollToAnchor,
       }));
       return (
-        <div data-testid="reader" data-public={publicReader}>
+        <div
+          data-testid="reader"
+          data-public={publicReader}
+          data-readonly={readOnly}
+        >
           {JSON.stringify(value)}
         </div>
       );
@@ -275,6 +285,10 @@ afterEach(async () => {
 
 it("shows the shared public navigation and lazily loads an expanded collection", async () => {
   renderPublic("/");
+  expect(screen.getByRole("button", { name: "Collapse sidebar" })).toHaveStyle({
+    background: "transparent",
+    boxShadow: "none",
+  });
   const nav = await screen.findByRole("navigation", {
     name: "Documents navigation",
   });
@@ -359,11 +373,17 @@ it("collects initial headings when onInit precedes the forwarded editor ref", as
     { id: "table-heading", title: "Inside table", level: 2, inTable: true },
   ];
   renderPublic("/doc/welcome-1234567890");
-  const links = await screen.findAllByRole("link", {
-    name: "Overview",
-  });
-  expect(screen.queryByRole("link", { name: "Inside table" })).toBeNull();
-  fireEvent.click(links[0]);
+  await screen.findByRole("button", { name: "Contents" });
+  const contents = document.getElementById("docs-reading-contents");
+  if (!contents) {
+    throw new Error("Expected initialized desktop contents");
+  }
+  expect(
+    within(contents).queryByRole("link", { name: "Inside table", hidden: true })
+  ).toBeNull();
+  fireEvent.click(
+    within(contents).getByRole("link", { name: "Overview", hidden: true })
+  );
   expect(mocks.scrollToAnchor).toHaveBeenCalledWith("#overview");
 });
 it("toggles mobile public contents with the keyboard and selects a heading without member preference calls", async () => {
@@ -375,19 +395,25 @@ it("toggles mobile public contents with the keyboard and selects a heading witho
   ];
   renderPublic("/doc/welcome-1234567890");
   const toggle = await screen.findByRole("button", { name: "Contents" });
+  expect(screen.queryByRole("navigation", { name: "Contents" })).toBeNull();
+  toggle.focus();
+  await user.keyboard("{Enter}");
+  expect(await screen.findByRole("dialog")).toBeVisible();
   expect(screen.getAllByRole("navigation", { name: "Contents" })).toHaveLength(
     1
   );
-  expect(screen.getByRole("navigation", { name: "Contents" })).toBeVisible();
-  toggle.focus();
+  await user.keyboard("{Escape}");
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(toggle).toHaveFocus());
   await user.keyboard("{Enter}");
-  expect(screen.queryByRole("navigation", { name: "Contents" })).toBeNull();
+  (await screen.findByRole("link", { name: "Details" })).focus();
   await user.keyboard("{Enter}");
-  await user.click(screen.getByRole("link", { name: "Details" }));
   expect(mocks.scrollToAnchor).toHaveBeenCalledWith("#details");
   expect(screen.getByTestId("reading-location")).toHaveTextContent(
     "/doc/welcome-1234567890#details"
   );
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await waitFor(() => expect(toggle).toHaveFocus());
   expect(mocks.post).not.toHaveBeenCalled();
   expect(
     mocks.fetch.mock.calls.every((call) => call[0].startsWith("/public."))
@@ -402,6 +428,11 @@ it("removes a revoked document instead of retaining its title", async () => {
   renderPublic("/doc/welcome-1234567890");
   expect(await screen.findByRole("alert")).toHaveTextContent("Not found");
   expect(screen.queryByRole("heading", { name: "Welcome" })).toBeNull();
+  const missing = screen.getByRole("alert");
+  expect(within(missing).getAllByText("Not found")).toHaveLength(1);
+  expect(within(missing).queryByRole("button", { name: "Retry" })).toBeNull();
+  fireEvent.click(within(missing).getByRole("link", { name: "Back to home" }));
+  expect(screen.getByTestId("reading-location")).toHaveTextContent("/");
 });
 it("a collection route loads all document pages with shared navigation state", async () => {
   renderPublic("/public/collection/collection-1");
@@ -760,11 +791,11 @@ it("keeps public reading and explicit sign-in after a failed OIDC return", async
   fireEvent.click(screen.getByTestId("session-probe"));
   expect(mocks.redirect).not.toHaveBeenCalled();
   expect(await screen.findByRole("heading", { name: "Welcome" })).toBeTruthy();
-  expect(screen.getByRole("alert")).toHaveTextContent(
-    "Public documents remain available"
-  );
+  expect(within(screen.getByRole("main")).queryByRole("alert")).toBeNull();
   fireEvent.click(
-    within(screen.getByRole("alert")).getByRole("button", { name: "Retry" })
+    within(
+      screen.getByRole("navigation", { name: "Documents navigation" })
+    ).getByRole("button", { name: "Retry" })
   );
   expect(mocks.redirect).toHaveBeenCalledTimes(1);
 });
@@ -796,8 +827,12 @@ it("retries configuration failure through the actual error Retry and restores pu
 it("retries a Website probe by remounting the probe without launching anonymous OIDC", async () => {
   renderPublic("/");
   fireEvent.click(screen.getByRole("button", { name: "Unavailable probe" }));
-  const error = await screen.findByRole("alert");
-  fireEvent.click(within(error).getByRole("button", { name: "Retry" }));
+  const navigation = screen.getByRole("navigation", {
+    name: "Documents navigation",
+  });
+  fireEvent.click(
+    await within(navigation).findByRole("button", { name: "Retry" })
+  );
   expect(mocks.probeMount).toHaveBeenCalledTimes(2);
   expect(mocks.auth.fetchAuth).not.toHaveBeenCalled();
   expect(mocks.redirect).not.toHaveBeenCalled();
@@ -807,7 +842,9 @@ it("ignores the old probe after an explicit retry and preserves one automatic OI
   const previous = mocks.probeCallbacks[0];
   fireEvent.click(screen.getByRole("button", { name: "Unavailable probe" }));
   fireEvent.click(
-    within(await screen.findByRole("alert")).getByRole("button", {
+    within(
+      screen.getByRole("navigation", { name: "Documents navigation" })
+    ).getByRole("button", {
       name: "Retry",
     })
   );
@@ -952,7 +989,7 @@ it.each([1, 2])(
     expect(screen.getAllByRole("main")).toHaveLength(1);
   }
 );
-it("does not probe when identity is unavailable but public reading and retry remain accessible", async () => {
+it("keeps identity failure and its retry in navigation while public reading stays available", async () => {
   mocks.auth.integrationAuthUnavailable = true;
   mocks.auth.fetchAuth.mockRejectedValue(new Error("unavailable"));
   renderPublic("/");
@@ -961,14 +998,45 @@ it("does not probe when identity is unavailable but public reading and retry rem
   expect(
     await within(main).findByRole("link", { name: "Guides" })
   ).toBeTruthy();
-  expect(within(main).getByRole("alert")).toHaveTextContent(
-    "Public documents remain available"
-  );
-  fireEvent.click(within(main).getByRole("button", { name: "Retry" }));
+  expect(within(main).queryByRole("alert")).toBeNull();
+  expect(within(main).queryByRole("button", { name: "Retry" })).toBeNull();
+  const navigation = screen.getByRole("navigation", {
+    name: "Documents navigation",
+  });
+  expect(
+    within(navigation).getByRole("button", { name: "Login" })
+  ).toBeEnabled();
+  fireEvent.click(within(navigation).getByRole("button", { name: "Retry" }));
   expect(mocks.auth.fetchAuth).toHaveBeenCalledTimes(1);
 });
-it("opens the existing mobile sidebar so public login and search are reachable", async () => {
+it("keeps an empty directory free of identity alerts and removes sidebar retry when the probe recovers", async () => {
+  mocks.fetch.mockResolvedValue(page([]));
+  renderPublic("/");
+  const main = screen.getByRole("main");
+  const navigation = screen.getByRole("navigation", {
+    name: "Documents navigation",
+  });
+  await within(main).findByRole("heading", { name: "No public collections" });
+  expect(
+    within(navigation).queryByRole("button", { name: "Retry" })
+  ).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Unavailable probe" }));
+  expect(within(main).queryByRole("alert")).toBeNull();
+  expect(
+    within(navigation).getByRole("button", { name: "Retry" })
+  ).toBeEnabled();
+  fireEvent.click(within(navigation).getByRole("button", { name: "Retry" }));
+  expect(
+    within(navigation).queryByRole("button", { name: "Retry" })
+  ).toBeNull();
+  expect(
+    within(main).getByRole("heading", { name: "No public collections" })
+  ).toBeVisible();
+  expect(mocks.redirect).not.toHaveBeenCalled();
+});
+it("opens the mobile sidebar so login, identity retry, and search stay reachable", async () => {
   mocks.mobile = true;
+  mocks.auth.integrationAuthUnavailable = true;
   renderPublic("/");
   expect(
     screen.queryByRole("navigation", { name: "Documents navigation" })
@@ -980,6 +1048,9 @@ it("opens the existing mobile sidebar so public login and search are reachable",
   expect(
     within(navigation).getByRole("button", { name: "Login" })
   ).toBeTruthy();
+  expect(
+    within(navigation).getByRole("button", { name: "Retry" })
+  ).toBeEnabled();
   expect(within(navigation).getByRole("link", { name: "Search" })).toBeTruthy();
 });
 it("offers one sidebar toggle on the mobile public search page", async () => {
@@ -989,4 +1060,273 @@ it("offers one sidebar toggle on the mobile public search page", async () => {
   expect(
     screen.getAllByRole("button", { name: "Expand sidebar" })
   ).toHaveLength(1);
+});
+
+it.each([
+  "/",
+  "/public/collection/collection-1",
+  "/doc/welcome-1234567890",
+  "/search?q=topic",
+])(
+  "gives the ready public scene exactly one mobile header at %s",
+  async (path) => {
+    mocks.mobile = true;
+    renderPublic(path);
+    const main = screen.getByRole("main");
+    if (path.startsWith("/search")) {
+      await within(main).findByRole("searchbox", { name: "Search" });
+    } else {
+      await waitFor(() =>
+        expect(within(main).queryByRole("status")).toBeNull()
+      );
+    }
+    await waitFor(() =>
+      expect(
+        screen.getAllByRole("button", { name: "Expand sidebar" })
+      ).toHaveLength(1)
+    );
+    if (!path.startsWith("/search")) {
+      expect(
+        main.querySelectorAll("[data-public-reading-toolbar]")
+      ).toHaveLength(1);
+    }
+  }
+);
+
+it.each([
+  "configuration-loading",
+  "configuration-error",
+  "not-initialized",
+  "document-error",
+  "document-unavailable",
+  "collection-error",
+])("keeps one safe header during %s", async (phase) => {
+  mocks.mobile = true;
+  let path = "/doc/welcome-1234567890";
+  if (phase.startsWith("configuration")) {
+    mocks.auth.config = undefined;
+    mocks.auth.fetchConfig.mockImplementation(() =>
+      phase === "configuration-loading"
+        ? new Promise(() => {})
+        : Promise.reject(new Error("unavailable"))
+    );
+  } else if (phase === "not-initialized") {
+    if (mocks.auth.config) {
+      mocks.auth.config.initialized = false;
+    }
+    mocks.auth.websiteIntegrationInitialized = false;
+  } else {
+    if (phase === "collection-error") {
+      path = "/public/collection/collection-1";
+    }
+    mocks.fetch.mockRejectedValue(
+      phase === "document-unavailable"
+        ? new NotFoundError()
+        : new Error("unavailable")
+    );
+  }
+  renderPublic(path);
+  await within(screen.getByRole("main")).findByRole(
+    phase === "configuration-loading" ? "status" : "alert"
+  );
+  expect(
+    screen.getAllByRole("button", { name: "Expand sidebar" })
+  ).toHaveLength(1);
+  expect(screen.queryByRole("button", { name: "Contents" })).toBeNull();
+  expect(screen.queryByText("Welcome")).toBeNull();
+  const main = screen.getByRole("main");
+  expect(main.querySelectorAll("[data-public-reading-toolbar]")).toHaveLength(
+    1
+  );
+});
+
+it("places document navigation outside the article and shows only the public document as current", async () => {
+  renderPublic(info.url);
+  await screen.findByRole("heading", { name: info.title });
+  const main = screen.getByRole("main");
+  const toolbar = main.querySelector("[data-public-reading-toolbar]");
+  expect(toolbar?.closest("article")).toBeNull();
+  expect(toolbar).toHaveTextContent(collection.name);
+  const navigation = screen.getByRole("navigation", {
+    name: "Documents navigation",
+  });
+  await within(navigation).findByRole("link", { name: info.title });
+  expect(navigation.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+  expect(
+    within(navigation).getByRole("link", { name: collection.name })
+  ).not.toHaveAttribute("aria-current");
+  await waitFor(() =>
+    expect(main.querySelector("time")).toHaveAttribute(
+      "datetime",
+      info.updatedAt
+    )
+  );
+});
+
+it("omits invalid public update metadata", async () => {
+  mocks.fetch.mockImplementation((path) =>
+    Promise.resolve(
+      path === "/public.documents.info"
+        ? { data: { ...info, updatedAt: "invalid" } }
+        : path === "/public.collections.list"
+          ? page([collection])
+          : page([doc])
+    )
+  );
+  renderPublic(info.url);
+  await screen.findByRole("heading", { name: info.title });
+  expect(screen.getByRole("article").querySelector("time")).toBeNull();
+});
+
+it("renders collection Markdown through the public read-only editor and lists only roots", async () => {
+  mocks.fetch.mockImplementation((path) =>
+    Promise.resolve(
+      path === "/public.collections.list"
+        ? page([
+            {
+              ...collection,
+              description: "**Public guide** [Link](https://example.test)",
+            },
+          ])
+        : page([
+            doc,
+            {
+              ...doc,
+              id: "child",
+              title: "Nested only",
+              url: "/doc/nested",
+              parentDocumentId: doc.id,
+            },
+          ])
+    )
+  );
+  renderPublic(collection.url);
+  const main = screen.getByRole("main");
+  const description = await within(main).findByTestId("reader");
+  expect(description).toHaveAttribute("data-public", "true");
+  expect(description).toHaveAttribute("data-readonly", "true");
+  expect(description).toHaveTextContent("**Public guide**");
+  expect(
+    await within(main).findByRole("link", { name: info.title })
+  ).toBeTruthy();
+  expect(within(main).queryByRole("link", { name: "Nested only" })).toBeNull();
+  expect(within(main).getByRole("link", { name: "Search" })).toHaveAttribute(
+    "href",
+    "/search?collectionId=collection-1"
+  );
+  expect(
+    mocks.fetch.mock.calls.every(([path]) => path.startsWith("/public."))
+  ).toBe(true);
+  expect(mocks.post).not.toHaveBeenCalled();
+});
+
+it("omits an empty collection description", async () => {
+  mocks.fetch.mockImplementation((path) =>
+    Promise.resolve(
+      path === "/public.collections.list"
+        ? page([{ ...collection, description: "  " }])
+        : page([])
+    )
+  );
+  renderPublic(collection.url);
+  const main = screen.getByRole("main");
+  await within(main).findByText("This collection has no public documents.");
+  expect(within(main).queryByTestId("reader")).toBeNull();
+});
+
+it("reacts to nested public document disclosures without navigating", async () => {
+  mocks.fetch.mockImplementation((path) =>
+    Promise.resolve(
+      path === "/public.documents.info"
+        ? { data: info }
+        : path === "/public.collections.list"
+          ? page([collection])
+          : page([
+              doc,
+              {
+                ...doc,
+                id: "nested",
+                title: "Nested guide",
+                url: "/doc/nested",
+                parentDocumentId: doc.id,
+              },
+              {
+                ...doc,
+                id: "deep",
+                title: "Deep guide",
+                url: "/doc/deep",
+                parentDocumentId: "nested",
+              },
+            ])
+    )
+  );
+  renderPublic(info.url);
+  const nav = screen.getByRole("navigation", { name: "Documents navigation" });
+  fireEvent.click(
+    await within(nav).findByRole("button", { name: `Expand ${doc.title}` })
+  );
+  fireEvent.click(
+    await within(nav).findByRole("button", { name: "Expand Nested guide" })
+  );
+  expect(
+    await within(nav).findByRole("link", { name: "Deep guide" })
+  ).toBeVisible();
+  expect(screen.getByTestId("reading-location")).toHaveTextContent(info.url);
+  fireEvent.click(
+    within(nav).getByRole("button", { name: "Collapse Nested guide" })
+  );
+  expect(within(nav).queryByRole("link", { name: "Deep guide" })).toBeNull();
+});
+
+it("escapes collection summaries and preserves overview pagination", async () => {
+  let reads = 0;
+  mocks.fetch.mockImplementation(() =>
+    Promise.resolve(
+      ++reads === 1
+        ? page(
+            [{ ...collection, description: '<img src=x onerror="alert(1)">' }],
+            0,
+            true
+          )
+        : page(
+            [
+              {
+                ...collection,
+                id: "second",
+                name: "Second",
+                url: "/public/collection/second",
+              },
+            ],
+            1
+          )
+    )
+  );
+  renderPublic("/");
+  const main = screen.getByRole("main");
+  await within(main).findByRole("link", { name: collection.name });
+  expect(main.querySelectorAll("li a")).toHaveLength(1);
+  expect(main.querySelector("li img")).toBeNull();
+  expect(main).toHaveTextContent('<img src=x onerror="alert(1)">');
+  fireEvent.click(
+    within(main).getByRole("button", { name: "More collections" })
+  );
+  await within(main).findByRole("link", { name: "Second" });
+  expect(
+    within(main).queryByRole("button", { name: "More collections" })
+  ).toBeNull();
+});
+
+it("closes mobile contents on identity invalidation and initializes a fresh reader", async () => {
+  mocks.mobile = true;
+  mocks.editorHeadings = [
+    { id: "overview", title: "Overview", level: 1, inTable: false },
+  ];
+  renderPublic(info.url);
+  fireEvent.click(await screen.findByRole("button", { name: "Contents" }));
+  await screen.findByRole("dialog");
+  mocks.editorHeadings = [];
+  act(() => mocks.store?.invalidate());
+  await waitFor(() => expect(screen.queryByRole("dialog")).toBeNull());
+  await screen.findByRole("heading", { name: info.title });
+  expect(screen.queryByRole("button", { name: "Contents" })).toBeNull();
 });

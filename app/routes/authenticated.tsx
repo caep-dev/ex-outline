@@ -5,8 +5,7 @@ import { Switch, Redirect } from "react-router-dom";
 import DocumentNew from "~/scenes/DocumentNew";
 import Error404 from "~/scenes/Errors/Error404";
 import AuthenticatedLayout from "~/components/AuthenticatedLayout";
-import CenteredContent from "~/components/CenteredContent";
-import PlaceholderDocument from "~/components/PlaceholderDocument";
+import FullscreenLoading from "~/components/FullscreenLoading";
 import Route from "~/components/ProfiledRoute";
 import { SplitView } from "~/components/SplitView";
 import WebsocketProvider from "~/components/WebsocketProvider";
@@ -65,13 +64,7 @@ function AuthenticatedRoutes() {
   return (
     <WebsocketProvider>
       <AuthenticatedLayout>
-        <Suspense
-          fallback={
-            <CenteredContent>
-              <PlaceholderDocument />
-            </CenteredContent>
-          }
-        >
+        <Suspense fallback={<FullscreenLoading />}>
           <SplitView>
             <Switch>
               {canCreateAny && (

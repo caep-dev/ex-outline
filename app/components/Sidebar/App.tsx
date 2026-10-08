@@ -39,7 +39,7 @@ import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
 import Starred from "./components/Starred";
-import ToggleButton from "./components/ToggleButton";
+import { CollapseButton } from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
 import useMobile from "~/hooks/useMobile";
 
@@ -180,16 +180,6 @@ const ArchiveArea = styled.div`
   max-height: 35vh;
   overflow-y: auto;
   overscroll-behavior: contain;
-`;
-
-const CollapseButton = styled(ToggleButton)`
-  &:not(:hover):not(:focus-visible):not(:active) {
-    background: transparent;
-    border-color: transparent;
-    box-shadow: none;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
-  }
 `;
 
 export default observer(AppSidebar);

@@ -24,6 +24,10 @@ import Collaborators from "~/components/Collaborators";
 import DocumentBreadcrumb from "~/components/DocumentBreadcrumb";
 import { useDocumentContext } from "~/components/DocumentContext";
 import Flex from "~/components/Flex";
+import {
+  GlassToolbar,
+  GlassNavigationToolbar as NavigationToolbar,
+} from "~/components/GlassToolbar";
 import Header from "~/components/Header";
 import Star from "~/components/Star";
 import Tooltip from "~/components/Tooltip";
@@ -185,16 +189,18 @@ function DocumentHeader({
       $hidden={isEditingFocus}
       hasSidebar
       left={
-        isMobile ? (
-          <TableOfContentsMenu />
-        ) : (
-          <DocumentBreadcrumb document={document}>
-            {toc}{" "}
-            <StarAction>
-              <Star document={document} color={theme.textSecondary} />
-            </StarAction>
-          </DocumentBreadcrumb>
-        )
+        <NavigationToolbar data-document-toolbar="navigation">
+          {isMobile ? (
+            <TableOfContentsMenu />
+          ) : (
+            <DocumentBreadcrumb document={document}>
+              {toc}{" "}
+              <StarAction>
+                <Star document={document} color={theme.textSecondary} />
+              </StarAction>
+            </DocumentBreadcrumb>
+          )}
+        </NavigationToolbar>
       }
       title={
         <Flex gap={4} align="center">
@@ -220,94 +226,103 @@ function DocumentHeader({
               limit={isCompact ? 3 : undefined}
             />
           )}
-          {(isEditing || !user?.separateEditMode) && wasNew && can.update && (
-            <Action>
-              <TemplatesMenu
-                isCompact={isCompact}
-                document={document}
-                onSelectTemplate={onSelectTemplate}
-              />
-            </Action>
-          )}
-          {can.update &&
-            can.createChildDocument &&
-            !isRevision &&
-            !isCompact &&
-            !isMobile && (
+          <GlassToolbar
+            role="group"
+            aria-label={t("Document options")}
+            data-document-toolbar="actions"
+          >
+            {(isEditing || !user?.separateEditMode) && wasNew && can.update && (
               <Action>
-                <NewChildDocumentMenu document={document} />
+                <TemplatesMenu
+                  isCompact={isCompact}
+                  document={document}
+                  onSelectTemplate={onSelectTemplate}
+                />
               </Action>
             )}
-          {isEditing && (
-            <Action>
-              <Tooltip
-                content={isDraft ? t("Save draft") : t("Done editing")}
-                shortcut={`${metaDisplay}+enter`}
-                placement="bottom"
-              >
-                <Button
-                  onClick={handleSave}
-                  disabled={savingIsDisabled}
-                  neutral={isDraft}
-                  hideIcon
+            {can.update &&
+              can.createChildDocument &&
+              !isRevision &&
+              !isCompact &&
+              !isMobile && (
+                <Action>
+                  <NewChildDocumentMenu document={document} />
+                </Action>
+              )}
+            {isEditing && (
+              <Action>
+                <Tooltip
+                  content={isDraft ? t("Save draft") : t("Done editing")}
+                  shortcut={`${metaDisplay}+enter`}
+                  placement="bottom"
                 >
-                  {isDraft ? t("Save draft") : t("Done editing")}
-                </Button>
-              </Tooltip>
-            </Action>
-          )}
-          {can.update &&
-            !isEditing &&
-            user?.separateEditMode &&
-            !isRevision &&
-            editAction}
-          {!isEditing && !isRevision && can.update && (
-            <Action>
-              <ShareButton document={document} />
-            </Action>
-          )}
-          {revision && (
-            <>
-              <Action>
-                <ChangesNavigation revision={revision} editorRef={editorRef} />
-              </Action>
-              <Action>
-                <Tooltip content={t("Restore version")} placement="bottom">
                   <Button
-                    action={restoreRevision}
-                    disabled={revision.createdAt === document.updatedAt}
-                    neutral
-                    hideOnActionDisabled
+                    onClick={handleSave}
+                    disabled={savingIsDisabled}
+                    neutral={isDraft}
+                    hideIcon
                   >
-                    {t("Restore")}
+                    {isDraft ? t("Save draft") : t("Done editing")}
                   </Button>
                 </Tooltip>
               </Action>
-            </>
-          )}
-          {can.publish && (
+            )}
+            {can.update &&
+              !isEditing &&
+              user?.separateEditMode &&
+              !isRevision &&
+              editAction}
+            {!isEditing && !isRevision && can.update && (
+              <Action>
+                <ShareButton document={document} />
+              </Action>
+            )}
+            {revision && (
+              <>
+                <Action>
+                  <ChangesNavigation
+                    revision={revision}
+                    editorRef={editorRef}
+                  />
+                </Action>
+                <Action>
+                  <Tooltip content={t("Restore version")} placement="bottom">
+                    <Button
+                      action={restoreRevision}
+                      disabled={revision.createdAt === document.updatedAt}
+                      neutral
+                      hideOnActionDisabled
+                    >
+                      {t("Restore")}
+                    </Button>
+                  </Tooltip>
+                </Action>
+              </>
+            )}
+            {can.publish && (
+              <Action>
+                <Button
+                  action={publishDocument}
+                  disabled={publishingIsDisabled}
+                  hideOnActionDisabled
+                  hideIcon
+                >
+                  {document.collectionId ? t("Publish") : `${t("Publish")}…`}
+                </Button>
+              </Action>
+            )}
             <Action>
-              <Button
-                action={publishDocument}
-                disabled={publishingIsDisabled}
-                hideOnActionDisabled
-                hideIcon
-              >
-                {document.collectionId ? t("Publish") : `${t("Publish")}…`}
-              </Button>
+              <DocumentMenu
+                document={document}
+                align="end"
+                neutral
+                onSelectTemplate={onSelectTemplate}
+                onFindAndReplace={editor?.commands.openFindAndReplace}
+                showToggleEmbeds={canToggleEmbeds}
+                showDisplayOptions
+              />
             </Action>
-          )}
-          <Action>
-            <DocumentMenu
-              document={document}
-              align="end"
-              neutral
-              onSelectTemplate={onSelectTemplate}
-              onFindAndReplace={editor?.commands.openFindAndReplace}
-              showToggleEmbeds={canToggleEmbeds}
-              showDisplayOptions
-            />
-          </Action>
+          </GlassToolbar>
         </>
       )}
     />
@@ -339,8 +354,7 @@ const StarAction = styled.span`
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border-radius: ${(props) =>
-      props.theme.exui.components.button.action.radius};
+    border-radius: ${(props) => props.theme.exui.radii.full};
     transition: background 100ms ease-in-out;
 
     &:hover {

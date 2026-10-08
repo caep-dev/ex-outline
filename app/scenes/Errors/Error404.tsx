@@ -1,41 +1,27 @@
-import { useTranslation, Trans } from "react-i18next";
-import Button from "~/components/Button";
-import Empty from "~/components/Empty";
-import Heading from "~/components/Heading";
+import { useTranslation } from "react-i18next";
+import { DocsStatus } from "~/components/DocsStatus";
 import Scene from "~/components/Scene";
-import {
-  navigateToHome,
-  navigateToSearch,
-} from "~/actions/definitions/navigation";
-import { HStack } from "~/components/primitives/HStack";
-import { VStack } from "~/components/primitives/VStack";
-import useCurrentUser from "~/hooks/useCurrentUser";
+import { websitePublicTranslation } from "~/utils/websitePublicTranslation";
 
 const Error404 = () => {
-  const { t } = useTranslation();
-  const user = useCurrentUser({ rejectOnEmpty: false });
+  const { t, i18n } = useTranslation();
 
   return (
-    <Scene title={t("Not found")}>
-      <Heading>{t("Not found")}</Heading>
-      <VStack spacing={20} style={{ maxWidth: 500 }} align="initial">
-        <Empty size="large">
-          <Trans>
-            The page you’re looking for cannot be found. It might have been
-            deleted or the link is incorrect.
-          </Trans>
-        </Empty>
-        {user && (
-          <HStack>
-            <Button action={navigateToHome} neutral hideIcon>
-              {t("Home")}
-            </Button>
-            <Button action={navigateToSearch} neutral>
-              {t("Search")}…
-            </Button>
-          </HStack>
+    <Scene title={t("Not found")} centered={false}>
+      <DocsStatus
+        state="not-found"
+        layout="page"
+        title={t("Not found")}
+        content={t(
+          "The page you’re looking for cannot be found. It might have been deleted or the link is incorrect.",
+          websitePublicTranslation(
+            i18n.language,
+            "The page you’re looking for cannot be found. It might have been deleted or the link is incorrect.",
+            "你访问的页面无法找到。它可能已被删除，或链接有误。"
+          )
         )}
-      </VStack>
+        homeTo="/"
+      />
     </Scene>
   );
 };

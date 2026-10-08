@@ -17,6 +17,7 @@ import type Collection from "~/models/Collection";
 import type DocumentsStore from "~/stores/DocumentsStore";
 import CenteredContent from "~/components/CenteredContent";
 import { CollectionBreadcrumb } from "~/components/CollectionBreadcrumb";
+import { GlassNavigationToolbar } from "~/components/GlassToolbar";
 import Heading from "~/components/Heading";
 import CollectionIcon from "~/components/Icons/CollectionIcon";
 import PlaceholderList from "~/components/List/Placeholder";
@@ -146,11 +147,16 @@ const CollectionScene = observer(function CollectionScene_() {
       centered={false}
       textTitle={collection.name}
       left={
-        collection.isArchived ? (
-          <CollectionBreadcrumb collection={collection} />
-        ) : (
-          <CollectionSearchButton collectionId={collection.id} />
-        )
+        <GlassNavigationToolbar data-collection-toolbar="navigation">
+          {collection.isArchived ? (
+            <CollectionBreadcrumb collection={collection} />
+          ) : (
+            <CollectionSearchButton
+              collectionId={collection.id}
+              borderOnHover
+            />
+          )}
+        </GlassNavigationToolbar>
       }
       title={
         <>

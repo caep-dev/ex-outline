@@ -16,11 +16,11 @@ import breakpoint from "styled-components-breakpoint";
 import useMeasure from "react-use-measure";
 import { HEADER_HEIGHT } from "@shared/constants";
 import { depths } from "@shared/styles";
-import ToggleButton from "~/components/Sidebar/components/ToggleButton";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import Button from "~/components/Button";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
+import { GlassToolbar } from "~/components/GlassToolbar";
 import { useSplitView } from "~/components/SplitView/context";
 import { SidebarToggleContext } from "~/components/SidebarToggleContext";
 import Tooltip from "~/components/Tooltip";
@@ -131,17 +131,21 @@ function Header(
             $visible={ui.sidebarIsClosed}
             aria-hidden={!ui.sidebarIsClosed}
           >
-            <Tooltip content={t("Expand sidebar")} side="bottom">
-              <ToggleButton
-                onClick={handleOpenSidebar}
-                icon={<SidebarToggleIcon aria-hidden />}
-                aria-label={t("Expand sidebar")}
-                aria-controls="sidebar"
-                aria-expanded={!ui.sidebarIsClosed}
-                disabled={!ui.sidebarIsClosed}
-                tabIndex={ui.sidebarIsClosed ? 0 : -1}
-              />
-            </Tooltip>
+            <GlassToolbar data-sidebar-toggle-toolbar>
+              <Tooltip content={t("Expand sidebar")} side="bottom">
+                <Button
+                  onClick={handleOpenSidebar}
+                  icon={<SidebarToggleIcon aria-hidden />}
+                  aria-label={t("Expand sidebar")}
+                  aria-controls="sidebar"
+                  aria-expanded={!ui.sidebarIsClosed}
+                  disabled={!ui.sidebarIsClosed}
+                  tabIndex={ui.sidebarIsClosed ? 0 : -1}
+                  neutral
+                  borderOnHover
+                />
+              </Tooltip>
+            </GlassToolbar>
           </SidebarToggleSlot>
         )}
         {left || hasMobileSidebar ? (
@@ -205,7 +209,7 @@ const SidebarToggleSlot = styled.div<SidebarToggleSlotProps>`
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  width: ${(props) => (props.$visible ? "40px" : "0")};
+  width: ${(props) => (props.$visible ? "48px" : "0")};
   opacity: ${(props) => (props.$visible ? 1 : 0)};
   transform: translateX(${(props) => (props.$visible ? 0 : "-6px")});
   visibility: ${(props) => (props.$visible ? "visible" : "hidden")};

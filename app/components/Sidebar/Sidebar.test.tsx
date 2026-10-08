@@ -6,6 +6,8 @@ import { Provider } from "mobx-react";
 import { HelmetProvider } from "react-helmet-async";
 import { MemoryRouter } from "react-router-dom";
 import Header from "~/components/Header";
+import Button from "~/components/Button";
+import { GlassToolbar } from "~/components/GlassToolbar";
 import Layout from "~/components/Layout";
 import { SplitViewContext } from "~/components/SplitView/context";
 import RootStore from "~/stores/RootStore";
@@ -37,10 +39,12 @@ function renderSidebar({
   canCollapse = true,
   direction = "ltr",
   secondaryPane = false,
+  withToolbar = false,
 }: {
   canCollapse?: boolean;
   direction?: "ltr" | "rtl";
   secondaryPane?: boolean;
+  withToolbar?: boolean;
 } = {}) {
   const stores = new RootStore();
   stores.ui.collapseSidebar();
@@ -66,7 +70,17 @@ function renderSidebar({
                   isFocused: true,
                 }}
               >
-                <Header hasSidebar title="Documents" />
+                <Header
+                  hasSidebar
+                  title="Documents"
+                  actions={
+                    withToolbar ? (
+                      <GlassToolbar data-testid="header-actions">
+                        <Button neutral>Action</Button>
+                      </GlassToolbar>
+                    ) : undefined
+                  }
+                />
               </SplitViewContext.Provider>
             </Layout>
           </DirectionProvider>
@@ -90,6 +104,21 @@ afterEach(() => {
 });
 
 describe("collapsed sidebar", () => {
+  it("matches the header actions' glass surface and compact control geometry", () => {
+    const { getByRole, getByTestId } = renderSidebar({ withToolbar: true });
+    const toggle = getByRole("button", { name: "Expand sidebar" });
+    const surface = toggle.closest("[data-sidebar-toggle-toolbar]") ?? toggle;
+    const actions = getByTestId("header-actions");
+
+    expect(getComputedStyle(surface).boxShadow).toBe(
+      getComputedStyle(actions).boxShadow
+    );
+    expect(surface).toHaveStyle("padding: 4px");
+    expect(toggle).toHaveStyle("height: 32px");
+    fireEvent.click(toggle);
+    expect(toggle).toBeDisabled();
+  });
+
   it("offers a header button that permanently expands the sidebar", () => {
     const { getByRole, stores } = renderSidebar();
     fireEvent.click(getByRole("button", { name: "Expand sidebar" }));

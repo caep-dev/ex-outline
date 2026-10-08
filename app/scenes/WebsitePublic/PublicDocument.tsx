@@ -1,41 +1,56 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+} from "react";
 import { observer } from "mobx-react";
-import { useHistory, useLocation, useParams, Link } from "react-router-dom";
+import { useHistory, useLocation, useParams } from "react-router-dom";
+import styled, { createGlobalStyle } from "styled-components";
+import { MenuIcon, CloseIcon } from "@shared/components/LucideIcon";
 import type { PublicDocumentInfo } from "@shared/types/websiteIntegration";
+import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { HeadingPrefixStyle } from "@shared/types";
 import { publicBasePath, publicUrl } from "@shared/utils/publicPath";
 import Editor from "~/components/Editor";
 import Header from "~/components/Header";
 import Flex from "~/components/Flex";
+import Button from "~/components/Button";
+import PageTitle from "~/components/PageTitle";
+import Text from "~/components/Text";
+import Time from "~/components/Time";
+import {
+  Drawer,
+  DrawerTrigger,
+  DrawerContent,
+  DrawerTitle,
+  DrawerHandle,
+} from "~/components/primitives/Drawer";
 import { useTranslation } from "react-i18next";
 import type { Editor as EditorInstance } from "~/editor";
 import env from "~/env";
 import useStores from "~/hooks/useStores";
+import useMobile from "~/hooks/useMobile";
 import {
   DocumentReadingFrame,
+  ReadingContentsView,
   type ReadingHeading,
 } from "~/scenes/Document/components/DocumentReadingFrame";
 import { PublicComments } from "./PublicComments";
 import { PublicFeedback } from "./PublicFeedback";
+import { PublicReadingNavigation } from "./PublicReadingNavigation";
 
 /** Resolves a fresh public document and never mounts a member document model. */
 export const PublicDocumentView = observer(function PublicDocumentView({
   allowComments = false,
-  showHeader = false,
 }: {
   allowComments?: boolean;
-  showHeader?: boolean;
 }) {
   const { publicDocs, auth } = useStores();
   const { documentSlug } = useParams<{ documentSlug: string }>();
   const generation = publicDocs.generation;
   const { t } = useTranslation();
-  const header = showHeader && (
-    <Header
-      hasSidebar
-      title={publicDocs.document.data?.title ?? t("Documents")}
-    />
-  );
   useEffect(() => {
     void publicDocs.loadDocument(documentSlug);
     return () => publicDocs.leaveRoute();
@@ -48,12 +63,20 @@ export const PublicDocumentView = observer(function PublicDocumentView({
   ) {
     return (
       <Flex column auto>
-        {header}
+        <PageTitle title={t("Documents")} />
+        <Header
+          hasSidebar
+          title={t("Documents")}
+          left={<PublicReadingNavigation />}
+        />
         <PublicFeedback
+          layout="page"
           state={
             publicDocs.documentKey === documentSlug ? state.status : "loading"
           }
-          reason={state.reason}
+          reason={
+            publicDocs.documentKey === documentSlug ? state.reason : undefined
+          }
           retry={() => {
             void publicDocs.loadDocument(documentSlug);
           }}
@@ -63,7 +86,6 @@ export const PublicDocumentView = observer(function PublicDocumentView({
   }
   return (
     <Flex column auto>
-      {header}
       <PublicDocumentReader
         key={`${generation}:${state.data.id}`}
         info={state.data}
@@ -80,7 +102,7 @@ export const PublicDocumentView = observer(function PublicDocumentView({
   );
 });
 
-function PublicDocumentReader({
+const PublicDocumentReader = observer(function PublicDocumentReader({
   info,
   allowComments,
   onRevoked,
@@ -92,9 +114,47 @@ function PublicDocumentReader({
   const { publicDocs } = useStores();
   const history = useHistory();
   const location = useLocation();
+  const { t } = useTranslation();
+  const isMobile = useMobile();
+  const surface = useRef<HTMLDivElement>(null);
+  const [hasContentsSpace, setHasContentsSpace] = useState(true);
+  const useContentsDrawer = isMobile || !hasContentsSpace;
   const editor = useRef<EditorInstance | null>(null);
   const [headings, setHeadings] = useState<ReadingHeading[]>([]);
   const [showContents, setShowContents] = useState(true);
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const contentsAvailable = headings.some((heading) => heading.level <= 4);
+  useLayoutEffect(() => {
+    const grid = surface.current?.querySelector<HTMLElement>(
+      "[data-public-reading-grid]"
+    );
+    if (!grid || isMobile) {
+      return undefined;
+    }
+    const measure = () => {
+      // Read the shared grid rather than duplicating its em-based reading width
+      // or assuming that a desktop viewport always leaves a usable TOC gutter.
+      const columns = getComputedStyle(grid).gridTemplateColumns.split(" ");
+      const gutter = columns.length === 3 ? Number.parseFloat(columns[2]) : NaN;
+      if (Number.isFinite(gutter)) {
+        setHasContentsSpace(gutter >= EditorStyleHelper.tocWidth);
+      }
+    };
+    measure();
+    const resize = new ResizeObserver(measure);
+    resize.observe(grid);
+    return () => resize.disconnect();
+  }, [isMobile]);
+  useEffect(() => {
+    if (!useContentsDrawer || !contentsAvailable) {
+      setDrawerOpen(false);
+    }
+  }, [useContentsDrawer, contentsAvailable]);
+  useEffect(() => {
+    const handlePrint = () => setDrawerOpen(false);
+    window.addEventListener("beforeprint", handlePrint);
+    return () => window.removeEventListener("beforeprint", handlePrint);
+  }, []);
   const handleInit = useCallback(() => {
     const next: ReadingHeading[] =
       editor.current?.getHeadings().filter((heading) => !heading.inTable) ?? [];
@@ -128,6 +188,7 @@ function PublicDocumentReader({
     (id: string) => {
       history.push({ ...history.location, hash: `#${id}` });
       void editor.current?.scrollToAnchor(`#${id}`);
+      setDrawerOpen(false);
     },
     [history]
   );
@@ -165,39 +226,131 @@ function PublicDocumentReader({
     },
     [history, handleNavigateHeading]
   );
-  return (
-    <DocumentReadingFrame
-      title={info.title}
-      breadcrumb={publicDocs.collections.data
-        ?.filter((collection) => collection.id === info.collectionId)
-        .map((collection) => (
-          <Link key={collection.id} to={collection.url}>
-            {collection.name}
-          </Link>
-        ))}
-      headings={headings}
-      showContents={showContents}
-      onToggleContents={() => setShowContents((visible) => !visible)}
-      navigateHeading={handleNavigateHeading}
-      editor={
-        <>
-          <Editor
-            ref={attachEditor}
-            id={info.id}
-            publicReader
-            readOnly
-            value={info.content}
-            defaultValue={info.content}
-            headingPrefix={HeadingPrefixStyle.None}
-            scrollTo={location.hash}
-            onInit={handleInit}
-            onClickLink={handleClickLink}
-          />
-          {allowComments && (
-            <PublicComments documentId={info.id} onRevoked={onRevoked} />
-          )}
-        </>
+  const collection = publicDocs.collections.data?.find(
+    (item) => item.id === info.collectionId
+  );
+  const contentsButton = contentsAvailable && (
+    <Button
+      neutral
+      borderOnHover
+      icon={<MenuIcon aria-hidden />}
+      aria-label={t("Contents")}
+      aria-expanded={useContentsDrawer ? drawerOpen : showContents}
+      aria-controls={
+        useContentsDrawer ? "public-mobile-contents" : "docs-reading-contents"
+      }
+      onClick={
+        useContentsDrawer
+          ? undefined
+          : () => setShowContents((visible) => !visible)
       }
     />
   );
-}
+  return (
+    <Flex column auto ref={surface}>
+      <PublicReaderPrintStyles />
+      <Drawer
+        open={useContentsDrawer && drawerOpen}
+        onOpenChange={setDrawerOpen}
+      >
+        <PageTitle title={info.title} />
+        <Header
+          hasSidebar
+          title={info.title}
+          left={
+            <PublicReadingNavigation collection={collection}>
+              {useContentsDrawer && contentsAvailable ? (
+                <DrawerTrigger asChild>{contentsButton}</DrawerTrigger>
+              ) : (
+                contentsButton
+              )}
+            </PublicReadingNavigation>
+          }
+        />
+        <DocumentReadingFrame
+          title={info.title}
+          metadata={
+            Number.isFinite(Date.parse(info.updatedAt)) ? (
+              <Text type="tertiary">
+                {t("Last updated")} <Time dateTime={info.updatedAt} addSuffix />
+              </Text>
+            ) : undefined
+          }
+          headings={headings}
+          showContents={!useContentsDrawer && showContents}
+          navigateHeading={handleNavigateHeading}
+          editor={
+            <>
+              <Editor
+                ref={attachEditor}
+                id={info.id}
+                publicReader
+                readOnly
+                value={info.content}
+                defaultValue={info.content}
+                headingPrefix={HeadingPrefixStyle.None}
+                scrollTo={location.hash}
+                onInit={handleInit}
+                onClickLink={handleClickLink}
+              />
+              {allowComments && (
+                <PublicComments documentId={info.id} onRevoked={onRevoked} />
+              )}
+            </>
+          }
+        />
+        {useContentsDrawer && contentsAvailable && (
+          <DrawerContent
+            id="public-mobile-contents"
+            aria-describedby={undefined}
+          >
+            <DrawerHandle />
+            <DrawerTitle hidden>{t("Contents")}</DrawerTitle>
+            <Text
+              weight="bold"
+              style={{ textAlign: "center", padding: "8px 0" }}
+            >
+              {t("Contents")}
+            </Text>
+            <Button
+              neutral
+              borderOnHover
+              icon={<CloseIcon aria-hidden />}
+              aria-label={t("Close")}
+              onClick={() => setDrawerOpen(false)}
+            />
+            <MobileContents>
+              <ReadingContentsView
+                headings={headings}
+                navigateHeading={handleNavigateHeading}
+                title={t("Contents")}
+                mobileVisible
+              />
+            </MobileContents>
+          </DrawerContent>
+        )}
+      </Drawer>
+    </Flex>
+  );
+});
+
+const MobileContents = styled.div`
+  min-height: 0;
+  overflow-y: auto;
+  max-height: 65vh;
+  padding: 0 16px 16px;
+  @media print {
+    display: none;
+  }
+`;
+
+// The shared primitive portals the surface and overlay outside this reader.
+// Scope print suppression to this reader's drawer, including its close animation.
+const PublicReaderPrintStyles = createGlobalStyle`
+  @media print {
+    [data-vaul-drawer]:has(#public-mobile-contents),
+    [data-vaul-overlay]:has(~ [data-vaul-drawer] #public-mobile-contents) {
+      display: none !important;
+    }
+  }
+`;

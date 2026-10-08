@@ -68,18 +68,19 @@ function PublicOnlyGate({
       ? result.access
       : "checking";
   if (access === "checking") {
-    return <PublicFeedback state="loading" />;
+    return <PublicFeedback state="loading" layout="fullscreen" />;
   }
   if (access === "error") {
     return (
       <PublicFeedback
+        layout="fullscreen"
         state="error"
         retry={() => setAttempt((value) => value + 1)}
       />
     );
   }
   if (access === "public") {
-    return <PublicDocumentView allowComments showHeader />;
+    return <PublicDocumentView allowComments />;
   }
   return <>{children}</>;
 }

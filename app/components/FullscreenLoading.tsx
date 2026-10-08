@@ -1,22 +1,15 @@
-import styled from "styled-components";
-import Empty from "~/components/Empty";
-import Fade from "~/components/Fade";
-import Flex from "~/components/Flex";
+import { useTranslation } from "react-i18next";
+import { DocsStatus } from "~/components/DocsStatus";
 
+/** Renders the shared loading state in the available full-height surface. */
 export default function FullscreenLoading() {
+  const { t } = useTranslation();
   return (
-    <Fade timing={500}>
-      <Centered>
-        <Empty>Loading…</Empty>
-      </Centered>
-    </Fade>
+    <DocsStatus
+      state="loading"
+      layout="fullscreen"
+      title={t("Loading")}
+      content={t("Loading")}
+    />
   );
 }
-
-const Centered = styled(Flex)`
-  text-align: center;
-  width: 100%;
-  height: 100%;
-  align-items: center;
-  justify-content: center;
-`;

@@ -11,6 +11,7 @@ import { Link } from "react-router-dom";
 import type Collection from "~/models/Collection";
 import { Action } from "~/components/Actions";
 import Button from "~/components/Button";
+import { GlassToolbar } from "~/components/GlassToolbar";
 import Tooltip from "~/components/Tooltip";
 import usePolicy from "~/hooks/usePolicy";
 import CollectionMenu from "~/menus/CollectionMenu";
@@ -61,16 +62,22 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
   }, [collection, sidebarContext]);
 
   return (
-    <>
+    <GlassToolbar
+      data-collection-toolbar="actions"
+      role="group"
+      aria-label={t("Collection options")}
+    >
       {canManage && can.createDocument && (
         <Action>
           <Tooltip content={t("New document")} shortcut="n" placement="bottom">
             <Button
               as={Link}
+              data-slot="action-button"
               to={collection ? newDocumentPath(collection.id) : ""}
               disabled={!collection}
               icon={<PlusIcon />}
-              neutral={isEditing}
+              neutral
+              borderOnHover
             >
               {t("New doc")}
             </Button>
@@ -85,7 +92,12 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
             shortcut="e"
             placement="bottom"
           >
-            <Button icon={<EditIcon />} onClick={goToEdit} neutral>
+            <Button
+              icon={<EditIcon />}
+              onClick={goToEdit}
+              neutral
+              borderOnHover
+            >
               {t("Edit")}
             </Button>
           </Tooltip>
@@ -105,7 +117,7 @@ function Actions({ collection, isEditing, sidebarContext }: Props) {
       <Action>
         <CollectionMenu collection={collection} align="end" neutral />
       </Action>
-    </>
+    </GlassToolbar>
   );
 }
 

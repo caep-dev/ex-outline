@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import styled, { css } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
@@ -8,7 +8,6 @@ import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { s } from "@shared/styles";
 import { light } from "@shared/styles/theme";
 import { TOCPosition } from "@shared/types";
-import Button from "~/components/Button";
 
 export interface ReadingHeading {
   id: string;
@@ -19,80 +18,67 @@ export interface ReadingHeading {
 
 interface DocumentReadingFrameProps {
   title: string;
-  breadcrumb?: ReactNode;
+  metadata?: ReactNode;
   editor: ReactNode;
-  actions?: ReactNode;
   headings?: readonly ReadingHeading[];
   navigateHeading?: (id: string) => void;
   fullWidth?: boolean;
   tocPosition?: TOCPosition | false;
   showContents?: boolean;
-  onToggleContents?: () => void;
   ready?: boolean;
 }
 
 /**
  * Renders the shared reading geometry and static document content.
  *
- * @param props title, content, actions, and optional contents navigation.
+ * @param props title, metadata, content, and optional contents navigation.
  * @returns an identity-free document reading surface.
  */
 export function DocumentReadingFrame({
   title,
-  breadcrumb,
+  metadata,
   editor,
-  actions,
   headings = [],
   navigateHeading,
   fullWidth = false,
   tocPosition = TOCPosition.Right,
   showContents = true,
-  onToggleContents,
   ready = true,
 }: DocumentReadingFrameProps) {
   const { t } = useTranslation();
-  const [localContents, setLocalContents] = useState(true);
   const contentsAvailable =
     tocPosition !== false &&
     headings.some((heading) => heading.level <= 4) &&
     !!navigateHeading;
-  const hasContents =
-    contentsAvailable &&
-    showContents &&
-    (onToggleContents ? true : localContents);
+  const hasContents = contentsAvailable && showContents;
   return (
     <ReadingArticle aria-label={title}>
-      <ReadingMain fullWidth={fullWidth} tocPosition={tocPosition}>
+      <ReadingMain
+        data-public-reading-grid
+        fullWidth={fullWidth}
+        tocPosition={tocPosition}
+      >
         <ReadingBody
           docFullWidth={fullWidth}
           showContents={hasContents}
           tocPosition={tocPosition}
         >
-          {breadcrumb && <Breadcrumb>{breadcrumb}</Breadcrumb>}
-          <Header>
-            <ReadingTitle
-              tabIndex={-1}
-              data-docs-focus={ready ? "true" : "false"}
-            >
-              {title}
-            </ReadingTitle>
-            {contentsAvailable && (
-              <Button
-                type="button"
-                neutral
-                icon={<MenuIcon aria-hidden />}
-                aria-expanded={hasContents}
-                aria-controls="docs-reading-contents"
-                onClick={
-                  onToggleContents ??
-                  (() => setLocalContents((visible) => !visible))
-                }
-              >
-                {t("Contents")}
-              </Button>
-            )}
-            {actions}
-          </Header>
+          <ReadingTitle
+            tabIndex={-1}
+            data-docs-focus={ready ? "true" : "false"}
+          >
+            {title}
+          </ReadingTitle>
+          {metadata}
+          {contentsAvailable && (
+            <ReadingPrintContents aria-hidden="true">
+              <ReadingContentsView
+                headings={headings}
+                title={t("Contents")}
+                mobileVisible
+              />
+            </ReadingPrintContents>
+          )}
           {editor}
         </ReadingBody>
         {hasContents && (
@@ -105,7 +91,6 @@ export function DocumentReadingFrame({
               headings={headings}
               navigateHeading={navigateHeading}
               title={t("Contents")}
-              mobileVisible
             />
           </PublicReadingContents>
         )}
@@ -191,17 +176,6 @@ const ReadingArticle = styled.article`
   width: 100%;
   min-width: 0;
   color: ${s("text")};
-`;
-
-const Breadcrumb = styled.nav`
-  padding-top: 16px;
-  color: ${s("textSecondary")};
-`;
-
-const Header = styled.header`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 `;
 
 /** Static document title typography shared by editable and public titles. */
@@ -323,12 +297,16 @@ export const ReadingPrintContents = styled.div`
 `;
 
 const PublicReadingContents = styled(ReadingContents)`
-  padding: 0 32px 24px;
-  ${breakpoint("tablet")`
-    padding: 0;
-  `};
+  display: none;
+  min-width: 0;
+  max-width: 100%;
+  ${breakpoint("tablet")`display: block;`};
   @media print {
-    display: block;
+    display: none;
+  }
+  nav {
+    max-width: 100%;
+    overflow-wrap: anywhere;
   }
 `;
 

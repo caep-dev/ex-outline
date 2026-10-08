@@ -54,6 +54,7 @@ export function DocsReadingResume() {
   return (
     <DocsRecoveryLayout>
       <DocsStatus
+        layout={error ? "inline" : "page"}
         state={error ? "error" : "loading"}
         title={t("Documents")}
         content={

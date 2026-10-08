@@ -86,7 +86,7 @@ function NewChildDocumentMenu({ document }: Props) {
         align="end"
         ariaLabel={t("New child document")}
       >
-        <Button icon={<PlusIcon />} neutral>
+        <Button icon={<PlusIcon />} neutral borderOnHover>
           {t("New doc")}
         </Button>
       </DropdownMenu>

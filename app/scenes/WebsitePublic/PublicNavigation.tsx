@@ -4,9 +4,10 @@ import { Link } from "react-router-dom";
 import Sidebar from "~/components/Sidebar/Sidebar";
 import { DocsNavigation } from "~/components/Sidebar/DocsNavigation";
 import { SidebarToggleIcon } from "@shared/components/LucideIcon";
-import ToggleButton from "~/components/Sidebar/components/ToggleButton";
+import { CollapseButton } from "~/components/Sidebar/components/ToggleButton";
 import SidebarButton from "~/components/Sidebar/components/SidebarButton";
-import { LogIn } from "lucide-react";
+import { LogIn, RotateCw } from "lucide-react";
+import Tooltip from "~/components/Tooltip";
 import useMobile from "~/hooks/useMobile";
 import useStores from "~/hooks/useStores";
 import { useWebsiteIdentity } from "~/components/WebsiteIdentityController";
@@ -22,8 +23,13 @@ export const PublicNavigation = observer(function PublicNavigation({
 }) {
   const { publicDocs, auth, ui } = useStores();
   const { t, i18n } = useTranslation();
-  const { signIn } = useWebsiteIdentity();
+  const { signIn, unavailable, configStatus, retry } = useWebsiteIdentity();
   const isMobile = useMobile();
+  const navigation = publicDocs.navigation;
+  const retryLabel = t(
+    "Retry",
+    websitePublicTranslation(i18n.language, "Retry", "重试")
+  );
   return (
     <Sidebar showAccountMenu={!recovery && auth.authenticated}>
       <nav
@@ -45,12 +51,18 @@ export const PublicNavigation = observer(function PublicNavigation({
         <DocsNavigation
           homePath="/"
           searchPath="/search"
-          view={publicDocs.navigation}
+          view={{
+            ...navigation,
+            expandedIds: new Set(navigation.expandedIds),
+            activeCollectionId: navigation.activeDocumentId
+              ? undefined
+              : navigation.activeCollectionId,
+          }}
           onToggle={(id) => publicDocs.toggle(id)}
           scrollCollections
           brandActions={
             isMobile ? null : (
-              <ToggleButton
+              <CollapseButton
                 icon={<SidebarToggleIcon aria-hidden />}
                 aria-label={
                   ui.sidebarIsClosed
@@ -118,7 +130,19 @@ export const PublicNavigation = observer(function PublicNavigation({
                 image={<LogIn size={18} aria-hidden />}
                 onClick={signIn}
                 disabled={auth.config?.initialized === false}
-              />
+              >
+                {!recovery && unavailable && configStatus === "ready" && (
+                  <Tooltip content={retryLabel}>
+                    <SidebarButton
+                      position="bottom"
+                      title=""
+                      aria-label={retryLabel}
+                      image={<RotateCw size={16} aria-hidden />}
+                      onClick={retry}
+                    />
+                  </Tooltip>
+                )}
+              </SidebarButton>
             )
           }
         />

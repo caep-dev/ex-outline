@@ -50,11 +50,12 @@ const SidebarButton = observer(
             {...rest}
             onClick={onClick}
             $position={position}
+            $iconOnly={!title}
             as="button"
             ref={ref}
             role="button"
           >
-            <Content>
+            <Content justify={title ? "flex-start" : "center"}>
               {image}
               {title && <Title>{title}</Title>}
             </Content>
@@ -76,6 +77,7 @@ const StyledMoreIcon = styled(MoreIcon)`
 
 const Container = styled(Flex)<{ $position: "top" | "bottom" }>`
   overflow: hidden;
+  gap: ${(props) => (props.$position === "bottom" ? "4px" : "0")};
   padding-top: ${(props) =>
     props.$position === "top" && Desktop.hasInsetTitlebar() ? 40 : 0}px;
   ${draggableOnDesktop()}
@@ -94,11 +96,14 @@ const Content = styled(HStack)`
 
 const Button = styled(Flex)<{
   $position: "top" | "bottom";
+  $iconOnly: boolean;
 }>`
-  flex: 1;
+  flex: ${(props) =>
+    props.$position === "bottom" && props.$iconOnly ? "0 0 36px" : "1"};
+  box-sizing: border-box;
   color: ${s("textTertiary")};
   align-items: center;
-  padding: 12px;
+  padding: ${(props) => (props.$position === "bottom" ? "6px 8px" : "12px")};
   font-size: ${(props) =>
     props.theme.exui.components.sidebarItem.default.fontSize};
   font-weight: ${(props) =>
@@ -107,8 +112,20 @@ const Button = styled(Flex)<{
     props.theme.exui.components.sidebarItem.default.radius};
   border: 0;
   margin: 8px;
+  margin-inline: ${(props) =>
+    props.$position === "bottom"
+      ? props.$iconOnly
+        ? "0 8px"
+        : "8px 0"
+      : "8px"};
   background: none;
   flex-shrink: 0;
+  min-height: ${(props) => (props.$position === "bottom" ? "36px" : "auto")};
+  min-width: ${(props) => (props.$position === "bottom" ? "36px" : "0")};
+  width: ${(props) =>
+    props.$position === "bottom" && props.$iconOnly ? "36px" : "auto"};
+  height: ${(props) =>
+    props.$position === "bottom" && props.$iconOnly ? "36px" : "auto"};
 
   -webkit-appearance: none;
   text-decoration: none;
@@ -120,7 +137,7 @@ const Button = styled(Flex)<{
   ${undraggableOnDesktop()}
   ${extraArea(4)}
   ${breakpoint("tablet")`
-    padding: 8px;
+    padding: ${(props: { $position: "top" | "bottom" }) => (props.$position === "bottom" ? "6px 8px" : "8px")};
   `}
 
   &:not(:disabled) {

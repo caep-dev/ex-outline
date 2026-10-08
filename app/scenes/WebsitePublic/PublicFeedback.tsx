@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import { DocsStatus } from "~/components/DocsStatus";
+import { DocsStatus, type DocsStatusLayout } from "~/components/DocsStatus";
 import type { PublicResource } from "~/stores/PublicDocsStore";
 import { websitePublicTranslation } from "~/utils/websitePublicTranslation";
 
@@ -8,10 +8,12 @@ export function PublicFeedback({
   state,
   reason,
   retry,
+  layout = "inline",
 }: {
   state: PublicResource<never>["status"];
   retry?: () => void;
   reason?: PublicResource<never>["reason"];
+  layout?: DocsStatusLayout;
 }) {
   const { t, i18n } = useTranslation();
   const loading = state === "idle" || state === "loading";
@@ -48,10 +50,25 @@ export function PublicFeedback({
     t(detail[0], websitePublicTranslation(i18n.language, detail[0], detail[1]));
   return (
     <DocsStatus
-      state={loading ? "loading" : unavailable ? "unavailable" : "error"}
+      state={loading ? "loading" : unavailable ? "not-found" : "error"}
+      layout={layout}
       title={t(loading ? "Loading" : unavailable ? "Not found" : "Error")}
-      content={loading ? t("Loading") : unavailable ? t("Not found") : failure}
+      content={
+        loading
+          ? t("Loading")
+          : unavailable
+            ? t(
+                "The page you’re looking for cannot be found. It might have been deleted or the link is incorrect.",
+                websitePublicTranslation(
+                  i18n.language,
+                  "The page you’re looking for cannot be found. It might have been deleted or the link is incorrect.",
+                  "你访问的页面无法找到。它可能已被删除，或链接有误。"
+                )
+              )
+            : failure
+      }
       onRetry={retry}
+      homeTo={unavailable && layout !== "inline" ? "/" : undefined}
     />
   );
 }

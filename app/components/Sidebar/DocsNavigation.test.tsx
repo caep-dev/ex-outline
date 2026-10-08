@@ -13,6 +13,102 @@ vi.mock("~/utils/history", async () => ({
 }));
 
 describe("DocsNavigation", () => {
+  it("uses member indentation for three document levels and highlights only the current document", async () => {
+    const user = userEvent.setup();
+    const onToggle = vi.fn();
+    history.replace("/doc/grandchild");
+    const { getByRole, container } = renderWithTheme(
+      <Router history={history}>
+        <DocsNavigation
+          homePath="/"
+          searchPath="/search"
+          onToggle={onToggle}
+          view={{
+            items: [
+              {
+                id: "collection",
+                kind: "collection",
+                label: "Guides",
+                to: "/public/collection/collection",
+                children: [
+                  {
+                    id: "root",
+                    kind: "document",
+                    label: "Root",
+                    to: "/doc/root",
+                    children: [
+                      {
+                        id: "child",
+                        kind: "document",
+                        label: "Child",
+                        to: "/doc/child",
+                        children: [
+                          {
+                            id: "grandchild",
+                            kind: "document",
+                            label: "Grandchild",
+                            to: "/doc/grandchild",
+                            children: [],
+                          },
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            ],
+            expandedIds: new Set(["collection", "root", "child"]),
+            activeCollectionId: "collection",
+            activeDocumentId: "grandchild",
+          }}
+        />
+      </Router>
+    );
+    expect(getByRole("heading", { name: "Collections" })).toBeVisible();
+    for (const [name, indent] of [
+      ["Root", 32],
+      ["Child", 48],
+      ["Grandchild", 64],
+    ] as const) {
+      expect(getByRole("link", { name }).style.paddingInlineStart).toMatch(
+        new RegExp(`calc\\(${indent}px`)
+      );
+    }
+    expect(container.querySelectorAll('[aria-current="page"]')).toHaveLength(1);
+    expect(getByRole("link", { name: "Guides" })).not.toHaveAttribute(
+      "aria-current"
+    );
+    const disclosure = getByRole("button", { name: "Collapse Root" });
+    expect(disclosure.closest("a")).toBeNull();
+    expect(disclosure.parentElement).toBe(
+      getByRole("link", { name: "Root" }).parentElement
+    );
+    disclosure.focus();
+    await user.keyboard("{Enter}");
+    expect(onToggle).toHaveBeenCalledExactlyOnceWith("root");
+    expect(history.location.pathname).toBe("/doc/grandchild");
+    onToggle.mockClear();
+    await user.click(getByRole("link", { name: "Child" }));
+    await vi.waitFor(() =>
+      expect(history.location.pathname).toBe("/doc/child")
+    );
+    expect(onToggle).not.toHaveBeenCalled();
+  });
+
+  it("does not add an empty public group to the member collections slot", () => {
+    const { getAllByRole } = renderWithTheme(
+      <MemoryRouter>
+        <DocsNavigation
+          homePath="/"
+          searchPath="/search"
+          onToggle={() => {}}
+          view={{ items: [], expandedIds: new Set() }}
+          beforeCollections={<h3>Collections</h3>}
+        />
+      </MemoryRouter>
+    );
+    expect(getAllByRole("heading", { name: "Collections" })).toHaveLength(1);
+  });
   it.each(["/search", "/doc/guide-1234567890"])(
     "returns to the overview on a mouse click from %s",
     async (path) => {

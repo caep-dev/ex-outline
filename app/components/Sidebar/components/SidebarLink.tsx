@@ -3,7 +3,6 @@ import * as React from "react";
 import styled, { useTheme, css } from "styled-components";
 import type { DefaultTheme, ThemeProps } from "styled-components";
 import breakpoint from "styled-components-breakpoint";
-import EventBoundary from "@shared/components/EventBoundary";
 import { ellipsis, hover, s } from "@shared/styles";
 import { isMobile } from "@shared/utils/browser";
 import NudeButton from "~/components/NudeButton";
@@ -71,6 +70,19 @@ const activeDropStyle = {
 // native HTML5 drag from initiating on the draggable row.
 const stopPropagation = (ev: React.MouseEvent) => {
   ev.stopPropagation();
+};
+
+// Keep the trigger's handlers intact, then cancel the enclosing anchor's
+// native activation as well as NavLink's mouse/keyboard navigation handlers.
+const handleActionEvent = (ev: React.SyntheticEvent) => {
+  ev.stopPropagation();
+  if (
+    ev.type === "click" &&
+    ev.target instanceof Node &&
+    ev.currentTarget.contains(ev.target)
+  ) {
+    ev.preventDefault();
+  }
 };
 
 function SidebarLink(
@@ -173,7 +185,20 @@ function SidebarLink(
           {unreadBadge && <UnreadBadge style={unreadStyle} />}
         </Content>
       </ContextMenu>
-      {menu && <Actions $showActions={$showActions}>{menu}</Actions>}
+      {menu && (
+        <Actions
+          $showActions={$showActions}
+          onClick={handleActionEvent}
+          onMouseDown={handleActionEvent}
+          onMouseUp={handleActionEvent}
+          onPointerDown={handleActionEvent}
+          onPointerUp={handleActionEvent}
+          onKeyDown={handleActionEvent}
+          onKeyUp={handleActionEvent}
+        >
+          {menu}
+        </Actions>
+      )}
     </>
   );
 
@@ -185,6 +210,7 @@ function SidebarLink(
         $isDraft={isDraft}
         $disabled={disabled}
         $nested={Boolean(depth)}
+        $ellipsis={ellipsis}
         style={active ? activeStyle : style}
         onClick={handleClick}
         onMouseEnter={handleMouseEnter}
@@ -206,6 +232,7 @@ function SidebarLink(
       $isDraft={isDraft}
       $disabled={disabled}
       $nested={Boolean(depth)}
+      $ellipsis={ellipsis}
       style={active ? activeStyle : style}
       activeStyle={isActiveDrop ? activeDropStyle : activeStyle}
       onClick={handleClick}
@@ -252,7 +279,7 @@ const Content = styled.span`
   min-width: 0;
 `;
 
-const Actions = styled(EventBoundary)<{ $showActions?: boolean }>`
+const Actions = styled.span<{ $showActions?: boolean }>`
   display: inline-flex;
   visibility: ${(props) => (props.$showActions ? "visible" : "hidden")};
 
@@ -304,6 +331,7 @@ interface LinkStyleProps {
   $isDraft?: boolean;
   $disabled?: boolean;
   $nested?: boolean;
+  $ellipsis?: boolean;
 }
 
 const Link = styled(NavLink)<LinkStyleProps>`
@@ -371,7 +399,7 @@ const Link = styled(NavLink)<LinkStyleProps>`
       ? props.theme.exui.components.sidebarItem.nested.fontSize
       : props.theme.exui.components.sidebarItem.default.fontSize};
   cursor: var(--pointer);
-  overflow: hidden;
+  overflow: ${(props) => (props.$ellipsis ? "hidden" : "visible")};
   border: 1px solid
     ${(props) => props.theme.exui.components.sidebarItem.default.border};
   box-shadow: ${(props) =>
