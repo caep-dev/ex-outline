@@ -8,6 +8,7 @@ import type { Optional } from "utility-types";
 import EditorContainer from "@shared/editor/components/Styles";
 import { AttachmentPreset } from "@shared/types";
 import { ProsemirrorHelper } from "@shared/utils/ProsemirrorHelper";
+import { richExtensions, withComments } from "@shared/editor/nodes";
 import ClickablePadding from "~/components/ClickablePadding";
 import ErrorBoundary from "~/components/ErrorBoundary";
 import type { Props as EditorProps, Editor as SharedEditor } from "~/editor";
@@ -20,18 +21,24 @@ import lazyWithRetry from "~/utils/lazyWithRetry";
 import useShare from "@shared/hooks/useShare";
 
 const LazyLoadedEditor = lazyWithRetry(() => import("~/editor"));
+const publicExtensions = withComments(richExtensions);
 
 export type Props = Optional<
   EditorProps,
   "placeholder" | "defaultValue" | "onClickLink" | "embeds" | "extensions"
 > & {
   embedsDisabled?: boolean;
+  /** Uses static embeds and disables member integrations and write capabilities. */
+  publicReader?: boolean;
   onSynced?: () => Promise<void>;
   onPublish?: (event: React.MouseEvent) => void;
   editorStyle?: React.CSSProperties;
 };
 
-function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
+function Editor(
+  { publicReader = false, ...props }: Props,
+  ref: React.RefObject<SharedEditor> | null
+) {
   const {
     id,
     onChange,
@@ -43,9 +50,10 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
   const { comments } = useStores();
   const { shareId } = useShare();
   const { t } = useTranslation();
-  const embeds = useEmbeds(!shareId);
+  const embeds = useEmbeds(!shareId && !publicReader, publicReader);
   const localRef = React.useRef<SharedEditor>();
-  const preferences = useCurrentUser({ rejectOnEmpty: false })?.preferences;
+  const currentUser = useCurrentUser({ rejectOnEmpty: false });
+  const preferences = publicReader ? undefined : currentUser?.preferences;
   const previousCommentIds = React.useRef<string[]>();
 
   // Upload progress tracking for delayed toast
@@ -79,7 +87,7 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
     [id]
   );
 
-  const { handleClickLink } = useEditorClickHandlers({ shareId });
+  const { handleClickLink } = useEditorClickHandlers({ shareId, publicReader });
 
   // Show toast only after uploads have been running for 2 seconds
   const handleFileUploadStart = React.useCallback(() => {
@@ -232,11 +240,20 @@ function Editor(props: Props, ref: React.RefObject<SharedEditor> | null) {
           <LazyLoadedEditor
             key={props.extensions?.length || 0}
             ref={mergeRefs([ref, localRef, handleRefChanged])}
-            uploadFile={handleUploadFile}
             embeds={embeds}
             userPreferences={preferences}
             {...props}
-            onClickLink={handleClickLink}
+            publicReader={publicReader}
+            extensions={publicReader ? publicExtensions : props.extensions}
+            readOnly={publicReader || props.readOnly}
+            canUpdate={publicReader ? false : props.canUpdate}
+            canComment={publicReader ? false : props.canComment}
+            uploadFile={publicReader ? undefined : handleUploadFile}
+            onClickLink={
+              publicReader && props.onClickLink
+                ? props.onClickLink
+                : handleClickLink
+            }
             onChange={handleChange}
             onFileUploadStart={handleFileUploadStart}
             onFileUploadStop={handleFileUploadStop}

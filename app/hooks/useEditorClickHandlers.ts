@@ -17,9 +17,14 @@ import { isFirefox } from "@shared/utils/browser";
 type Params = {
   /** The share ID of the document being viewed, if any */
   shareId?: string;
+  /** Avoids member models and split-view behavior for public DTO readers. */
+  publicReader?: boolean;
 };
 
-export default function useEditorClickHandlers({ shareId }: Params) {
+export default function useEditorClickHandlers({
+  shareId,
+  publicReader = false,
+}: Params) {
   const history = useHistory();
   const { documents, ui } = useStores();
   const handleClickLink = useCallback(
@@ -84,7 +89,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           navigateTo = sharedModelPath(shareId, navigateTo);
         }
 
-        if (isDocumentUrl(navigateTo)) {
+        if (!publicReader && isDocumentUrl(navigateTo)) {
           const document = documents.get(navigateTo);
           if (document) {
             navigateTo = document.path;
@@ -104,6 +109,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
           ui.setPresentingDocument(null);
           history.push(navigateTo, { sidebarContext: "collections" }); // optimistic preference of "collections"
         } else if (
+          !publicReader &&
           isSplitViewModifierEvent(event) &&
           event.button !== 1 &&
           isSplittablePath(parsePath(navigateTo).pathname)
@@ -116,7 +122,7 @@ export default function useEditorClickHandlers({ shareId }: Params) {
         window.open(href, "_blank");
       }
     },
-    [history, shareId, documents, ui]
+    [history, shareId, publicReader, documents, ui]
   );
 
   return { handleClickLink };

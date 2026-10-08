@@ -32,6 +32,7 @@ import Desktop from "~/utils/Desktop";
 import history from "~/utils/history";
 import { closeSplitPane } from "~/utils/splitView";
 import { TooltipProvider } from "./TooltipContext";
+import { websitePublicTranslation } from "~/utils/websitePublicTranslation";
 
 export { HEADER_HEIGHT };
 
@@ -56,7 +57,7 @@ function Header(
   ref: React.RefObject<HTMLDivElement> | null
 ) {
   const { ui } = useStores();
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { pane, isSplitView } = useSplitView();
   const isMobile = useMobile();
   const hasMobileSidebar = hasSidebar && isMobile;
@@ -149,6 +150,20 @@ function Header(
               <MobileMenuButton
                 onClick={ui.toggleMobileSidebar}
                 icon={<MenuIcon />}
+                aria-label={
+                  ui.mobileSidebarVisible
+                    ? t(
+                        "Close sidebar",
+                        websitePublicTranslation(
+                          i18n.language,
+                          "Close sidebar",
+                          "关闭侧边栏"
+                        )
+                      )
+                    : t("Expand sidebar")
+                }
+                aria-controls="sidebar"
+                aria-expanded={ui.mobileSidebarVisible}
                 neutral
               />
             )}

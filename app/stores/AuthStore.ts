@@ -9,6 +9,8 @@ import type { WebsiteIntegrationMode } from "@shared/types/websiteIntegration";
 import type { WebsiteIntegrationSignOut } from "@shared/types/websiteIntegration";
 import Storage from "@shared/utils/Storage";
 import { getCookieDomain, parseDomain } from "@shared/utils/domains";
+import { docsReturnPath } from "@shared/utils/docsReadingReturnPath";
+import { preflightDocsReading } from "~/utils/docsReadingPreflight";
 import { publicBasePath } from "@shared/utils/publicPath";
 import type RootStore from "~/stores/RootStore";
 import Team from "~/models/Team";
@@ -43,6 +45,15 @@ export type Config = WebsiteIntegrationMode & {
 };
 
 export default class AuthStore extends Store<Team> {
+  /** Changes whenever a session is verified or cleared, including the same user. */
+  @observable public sessionGeneration = 0;
+
+  /** Disables writes immediately while integrated revocation is pending. */
+  @observable public logoutPending = false;
+
+  private logoutAttempt = 0;
+  private authRequest = 0;
+
   private name = "AUTH_STORE";
 
   /* The ID of the user that is currently signed in. */
@@ -157,6 +168,7 @@ export default class AuthStore extends Store<Team> {
 
   @action
   rehydrate(data: PersistedData) {
+    this.sessionGeneration += 1;
     this.verifiedLanguageUserId = undefined;
     if (data.policies) {
       this.addPolicies(data.policies);
@@ -241,6 +253,10 @@ export default class AuthStore extends Store<Team> {
 
   @action
   fetchAuth = async () => {
+    const generation = this.sessionGeneration;
+    const request = ++this.authRequest;
+    const current = () =>
+      request === this.authRequest && generation === this.sessionGeneration;
     this.isFetching = true;
     this.integrationAuthUnavailable = false;
 
@@ -248,6 +264,9 @@ export default class AuthStore extends Store<Team> {
       const res = await client.post("/auth.info", undefined, {
         credentials: "same-origin",
       });
+      if (!current()) {
+        return;
+      }
       invariant(res?.data, "Auth not available");
 
       if (this.websiteIntegrationEnabled) {
@@ -255,6 +274,8 @@ export default class AuthStore extends Store<Team> {
       }
 
       runInAction("AuthStore#refresh", () => {
+        this.sessionGeneration += 1;
+        this.logoutPending = false;
         const { data } = res;
         this.addPolicies(res.policies);
         this.add(data.team);
@@ -304,6 +325,9 @@ export default class AuthStore extends Store<Team> {
         }
       });
     } catch (err) {
+      if (!current()) {
+        return;
+      }
       if (
         err instanceof Error &&
         "error" in err &&
@@ -328,7 +352,9 @@ export default class AuthStore extends Store<Team> {
       }
       throw err;
     } finally {
-      this.isFetching = false;
+      if (request === this.authRequest) {
+        this.isFetching = false;
+      }
     }
   };
 
@@ -351,6 +377,7 @@ export default class AuthStore extends Store<Team> {
   deleteUser = async (data: { code: string }) => {
     await client.post(`/users.delete`, data);
     runInAction("AuthStore#deleteUser", () => {
+      this.sessionGeneration += 1;
       this.currentUserId = null;
       this.verifiedLanguageUserId = undefined;
       this.currentTeamId = null;
@@ -366,6 +393,7 @@ export default class AuthStore extends Store<Team> {
     await client.post(`/teams.delete`, data);
 
     runInAction("AuthStore#deleteTeam", () => {
+      this.sessionGeneration += 1;
       this.currentUserId = null;
       this.verifiedLanguageUserId = undefined;
       this.currentTeamId = null;
@@ -412,7 +440,7 @@ export default class AuthStore extends Store<Team> {
   }) => {
     // if this logout was forced from an authenticated route then
     // save the current path so we can go back there once signed in
-    if (savePath) {
+    if (savePath && !this.websiteIntegrationEnabled) {
       const { pathname, search } = window.location;
       const basePath = this.websiteIntegrationEnabled
         ? publicBasePath(env.URL)
@@ -426,82 +454,125 @@ export default class AuthStore extends Store<Team> {
       setPostLoginPath(logicalPath);
     }
 
-    let websiteSignOut: WebsiteIntegrationSignOut | undefined;
-    if (revokeToken) {
-      try {
-        // invalidate authentication token on server and unset auth cookie
-        if (this.websiteIntegrationEnabled) {
-          const response =
-            await client.post<WebsiteIntegrationSignOut>(`/auth.delete`);
-          if (
-            response.success !== true ||
-            response.redirectUrl !== "/identity/signed-out"
-          ) {
-            throw new Error("Invalid integrated sign-out response");
+    const generation = this.sessionGeneration;
+    const attempt = ++this.logoutAttempt;
+    const current = () =>
+      generation === this.sessionGeneration && attempt === this.logoutAttempt;
+    const integrated = this.websiteIntegrationEnabled;
+    this.logoutPending = integrated;
+    let returnPath = "/docs/";
+    try {
+      if (integrated && revokeToken && userInitiated) {
+        const candidate = docsReturnPath(
+          window.location.pathname + window.location.search,
+          new URL(env.URL).origin
+        );
+        try {
+          if (await preflightDocsReading(candidate, new URL(env.URL).origin)) {
+            returnPath = candidate;
           }
-          websiteSignOut = response;
-        } else {
-          await client.post(`/auth.delete`);
+        } catch {
+          // Private, revoked, and unavailable targets never leave this attempt.
         }
-      } catch (err) {
-        if (this.websiteIntegrationEnabled) {
-          throw err;
-        }
-        Logger.error("Failed to delete authentication", toError(err));
       }
-    }
+      if (!current()) {
+        return;
+      }
+      let websiteSignOut: WebsiteIntegrationSignOut | undefined;
+      if (revokeToken) {
+        try {
+          // invalidate authentication token on server and unset auth cookie
+          if (this.websiteIntegrationEnabled) {
+            const response =
+              await client.post<WebsiteIntegrationSignOut>(`/auth.delete`);
+            if (
+              response.success !== true ||
+              response.redirectUrl !== "/identity/signed-out"
+            ) {
+              throw new Error("Invalid integrated sign-out response");
+            }
+            websiteSignOut = response;
+          } else {
+            await client.post(`/auth.delete`);
+          }
+        } catch (err) {
+          if (this.websiteIntegrationEnabled) {
+            throw err;
+          }
+          Logger.error("Failed to delete authentication", toError(err));
+        }
+      }
 
-    // remove session record on apex cookie
-    const team = this.team;
+      if (!current()) {
+        return;
+      }
 
-    if (team) {
-      const sessions = JSON.parse(getCookie("sessions") || "{}");
-      delete sessions[team.id];
-      setCookie("sessions", JSON.stringify(sessions), {
-        domain: getCookieDomain(window.location.hostname, isCloudHosted),
-      });
-    }
+      // remove session record on apex cookie
+      const team = this.team;
 
-    if (
-      userInitiated &&
-      !this.websiteIntegrationEnabled &&
-      (env.OIDC_LOGOUT_URI || this.lastSignedIn === "oidc")
-    ) {
-      // Route through the server so it can build a spec-compliant RP-initiated
-      // logout URL (including the id_token_hint) for the OIDC provider.
-      this.logoutRedirectUri = "/auth/oidc.logout";
-    }
+      if (team) {
+        const sessions = JSON.parse(getCookie("sessions") || "{}");
+        delete sessions[team.id];
+        setCookie("sessions", JSON.stringify(sessions), {
+          domain: getCookieDomain(window.location.hostname, isCloudHosted),
+        });
+      }
 
-    if (clearCache && websiteSignOut) {
-      // The Website session has already been revoked; local cleanup must not
-      // leave a usable-looking Outline session if IndexedDB removal fails.
-      try {
+      if (
+        userInitiated &&
+        !this.websiteIntegrationEnabled &&
+        (env.OIDC_LOGOUT_URI || this.lastSignedIn === "oidc")
+      ) {
+        // Route through the server so it can build a spec-compliant RP-initiated
+        // logout URL (including the id_token_hint) for the OIDC provider.
+        this.logoutRedirectUri = "/auth/oidc.logout";
+      }
+
+      if (clearCache && websiteSignOut) {
+        // The Website session has already been revoked; local cleanup must not
+        // leave a usable-looking Outline session if IndexedDB removal fails.
+        try {
+          await deleteAllDatabases();
+        } catch (err) {
+          Logger.error(
+            "Failed to clear document cache after sign-out",
+            toError(err)
+          );
+        }
+      } else if (clearCache) {
+        // clear IndexedDB databases used for document caching
         await deleteAllDatabases();
-      } catch (err) {
-        Logger.error(
-          "Failed to clear document cache after sign-out",
-          toError(err)
+      }
+
+      if (!current()) {
+        return;
+      }
+
+      // clear all credentials from cache (and local storage via autorun)
+      this.sessionGeneration += 1;
+      this.currentUserId = null;
+      this.verifiedLanguageUserId = undefined;
+      this.currentTeamId = null;
+      this.collaborationToken = null;
+      this.rootStore.clear();
+
+      if (websiteSignOut) {
+        const query = new URLSearchParams({ docsReturnTo: returnPath });
+        window.location.assign(
+          `${websiteSignOut.redirectUrl}?${query.toString()}`
         );
       }
-    } else if (clearCache) {
-      // clear IndexedDB databases used for document caching
-      await deleteAllDatabases();
-    }
 
-    // clear all credentials from cache (and local storage via autorun)
-    this.currentUserId = null;
-    this.verifiedLanguageUserId = undefined;
-    this.currentTeamId = null;
-    this.collaborationToken = null;
-    this.rootStore.clear();
-
-    if (websiteSignOut) {
-      window.location.assign(websiteSignOut.redirectUrl);
-    }
-
-    // Tell the host application we logged out, if any – allows window cleanup.
-    if (Desktop.isElectron()) {
-      void Desktop.bridge?.onLogout?.();
+      // Tell the host application we logged out, if any – allows window cleanup.
+      if (Desktop.isElectron()) {
+        void Desktop.bridge?.onLogout?.();
+      }
+    } finally {
+      if (attempt === this.logoutAttempt) {
+        runInAction(() => {
+          this.logoutPending = false;
+        });
+      }
     }
   };
 }

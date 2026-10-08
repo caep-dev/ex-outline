@@ -4,9 +4,8 @@ import { DndProvider } from "react-dnd";
 import { useLocation } from "react-router-dom";
 import { EditorAwareHTML5Backend } from "~/components/EditorAwareHTML5Backend";
 import ErrorSuspended from "~/scenes/Errors/ErrorSuspended";
-import Layout from "~/components/Layout";
+import { DocsLayout } from "~/components/DocsLayout";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
-import { RightSidebarProvider } from "~/components/RightSidebarContext";
 import Sidebar from "~/components/Sidebar";
 import useCurrentTeam from "~/hooks/useCurrentTeam";
 import useKeyDown from "~/hooks/useKeyDown";
@@ -22,10 +21,8 @@ import {
   settingsPath,
   homePath,
 } from "~/utils/routeHelpers";
-import { DocumentContextProvider } from "./DocumentContext";
 import Fade from "./Fade";
 import NotificationBadge from "./NotificationBadge";
-import { PortalContext } from "./Portal";
 import CommandBar from "./CommandBar";
 
 const SettingsSidebar = lazyWithRetry(
@@ -39,7 +36,6 @@ type Props = {
 const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   const { ui, auth } = useStores();
   const location = useLocation();
-  const layoutRef = React.useRef<HTMLDivElement>(null);
   const canCollection = usePolicy(ui.activeCollectionId);
   const team = useCurrentTeam();
   const [spendPostLoginPath] = usePostLoginPath();
@@ -98,27 +94,21 @@ const AuthenticatedLayout: React.FC = ({ children }: Props) => {
   );
 
   return (
-    <DocumentContextProvider>
-      <RightSidebarProvider>
-        <PortalContext.Provider value={layoutRef.current}>
-          <DndProvider backend={EditorAwareHTML5Backend}>
-            <Layout
-              title={team.name}
-              sidebar={sidebar}
-              sidebarCanCollapse={!isSettings}
-              ref={layoutRef}
-            >
-              <RegisterKeyDown trigger="n" handler={goToNewDocument} />
-              <RegisterKeyDown trigger="t" handler={goToSearch} />
-              <RegisterKeyDown trigger="/" handler={goToSearch} />
-              {children}
-              <CommandBar />
-              <NotificationBadge />
-            </Layout>
-          </DndProvider>
-        </PortalContext.Provider>
-      </RightSidebarProvider>
-    </DocumentContextProvider>
+    <DndProvider backend={EditorAwareHTML5Backend}>
+      <DocsLayout
+        title={team.name}
+        sidebar={sidebar}
+        sidebarCanCollapse={!isSettings}
+        documentContext
+      >
+        <RegisterKeyDown trigger="n" handler={goToNewDocument} />
+        <RegisterKeyDown trigger="t" handler={goToSearch} />
+        <RegisterKeyDown trigger="/" handler={goToSearch} />
+        {children}
+        <CommandBar />
+        <NotificationBadge />
+      </DocsLayout>
+    </DndProvider>
   );
 };
 

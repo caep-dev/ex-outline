@@ -1,6 +1,8 @@
 import invariant from "invariant";
 import { lowerFirst } from "es-toolkit/compat";
 import pluralize from "pluralize";
+import { comparer, reaction } from "mobx";
+import { PublicDocsStore } from "./PublicDocsStore";
 import ApiKeysStore from "./ApiKeysStore";
 import AuthStore from "./AuthStore";
 import AuthenticationProvidersStore from "./AuthenticationProvidersStore";
@@ -72,6 +74,7 @@ export default class RootStore {
   fileOperations: FileOperationsStore;
   webhookSubscriptions: WebhookSubscriptionsStore;
   userMemberships: UserMembershipsStore;
+  publicDocs: PublicDocsStore;
 
   constructor() {
     // Models
@@ -110,9 +113,22 @@ export default class RootStore {
     this.registerStore(DocumentPresenceStore, "presence");
     this.registerStore(DialogsStore, "dialogs");
     this.registerStore(UiStore, "ui");
+    this.publicDocs = new PublicDocsStore();
 
     // AuthStore must be initialized last as it makes use of the other stores.
     this.registerStore(AuthStore, "auth");
+    reaction(
+      () => [
+        this.auth.sessionGeneration,
+        this.auth.currentUserId,
+        this.auth.currentTeamId,
+        this.auth.collaborationToken,
+        this.auth.authenticated,
+        this.auth.integrationAuthUnavailable,
+      ],
+      () => this.publicDocs.invalidate(),
+      { equals: comparer.structural }
+    );
 
     // AuthStore will have synchronously rehydrated the current team from
     // localStorage at this point, if a session exists.

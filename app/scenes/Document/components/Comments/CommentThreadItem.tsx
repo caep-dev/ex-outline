@@ -33,6 +33,7 @@ import Time from "~/components/Time";
 import Tooltip from "~/components/Tooltip";
 import { resolveCommentActionFactory } from "~/actions/definitions/comments";
 import useBoolean from "~/hooks/useBoolean";
+import useStores from "~/hooks/useStores";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import CommentMenu from "~/menus/CommentMenu";
 import lazyWithRetry from "~/utils/lazyWithRetry";
@@ -121,6 +122,7 @@ function CommentThreadItem({
   const { setFocusedCommentId } = useDocumentContext();
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const { auth } = useStores();
   const [data, setData] = React.useState(comment.data);
   const showAuthor = firstOfAuthor;
   const showTime = useShowTime(comment.createdAt, previousCommentCreatedAt);
@@ -147,16 +149,22 @@ function CommentThreadItem({
 
   const handleAddReaction = React.useCallback(
     async (emoji: string) => {
+      if (auth.logoutPending) {
+        return;
+      }
       await comment.addReaction({ emoji, user });
     },
-    [comment, user]
+    [comment, user, auth]
   );
 
   const handleRemoveReaction = React.useCallback(
     async (emoji: string) => {
+      if (auth.logoutPending) {
+        return;
+      }
       await comment.removeReaction({ emoji, user });
     },
-    [comment, user]
+    [comment, user, auth]
   );
 
   const handleUpdate = React.useCallback(
@@ -188,6 +196,9 @@ function CommentThreadItem({
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
+    if (auth.logoutPending) {
+      return;
+    }
 
     try {
       handleSetReadOnly();
@@ -240,7 +251,7 @@ function CommentThreadItem({
           <React.Suspense fallback={null}>
             <StyledCommentEditor
               key={String(isEditing)}
-              readOnly={!isEditing}
+              readOnly={!isEditing || auth.logoutPending}
               value={comment.data}
               defaultValue={data}
               onChange={handleChange}
@@ -251,7 +262,11 @@ function CommentThreadItem({
           </React.Suspense>
           {isEditing && (
             <Flex align="flex-end" gap={8}>
-              <ButtonSmall type="submit" borderOnHover>
+              <ButtonSmall
+                disabled={auth.logoutPending}
+                type="submit"
+                borderOnHover
+              >
                 {t("Save")}
               </ButtonSmall>
               <ButtonSmall onClick={handleCancel} neutral borderOnHover>
@@ -267,7 +282,7 @@ function CommentThreadItem({
                   onAddReaction={handleAddReaction}
                   onRemoveReaction={handleRemoveReaction}
                   picker={
-                    !comment.isResolved ? (
+                    !comment.isResolved && !auth.logoutPending ? (
                       <Action
                         as={ReactionPicker}
                         onSelect={handleAddReaction}
@@ -282,7 +297,7 @@ function CommentThreadItem({
           </ResizingHeightContainer>
         </Body>
         <EventBoundary>
-          {!isEditing && (
+          {!isEditing && !auth.logoutPending && (
             <Actions gap={4}>
               {!comment.isResolved && (
                 <>

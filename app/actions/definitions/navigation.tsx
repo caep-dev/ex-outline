@@ -48,6 +48,8 @@ import { NavigationSection, RecentSearchesSection } from "~/actions/sections";
 import Desktop from "~/utils/Desktop";
 import isCloudHosted from "~/utils/isCloudHosted";
 import { toast } from "sonner";
+import i18n from "i18next";
+import { websitePublicTranslation } from "~/utils/websitePublicTranslation";
 import {
   homePath,
   searchPath,
@@ -229,14 +231,33 @@ export const logout = createAction({
   analyticsName: "Log out",
   section: NavigationSection,
   icon: <LogoutIcon />,
-  perform: async () => {
+  disabled: () => stores.auth.logoutPending,
+  perform: async (context) => {
+    const { t } = context;
     try {
       await stores.auth.logout({
         userInitiated: true,
         clearCache: true,
       });
     } catch {
-      toast.error("Could not sign out. Please try again.");
+      toast.error(
+        t(
+          "Unable to sign out. Try again.",
+          websitePublicTranslation(
+            i18n.language,
+            "Unable to sign out. Try again.",
+            "\u65e0\u6cd5\u9000\u51fa\u767b\u5f55\uff0c\u8bf7\u91cd\u8bd5\u3002"
+          )
+        ),
+        {
+          action: {
+            label: t("Retry"),
+            onClick: () => {
+              void logout.perform(context);
+            },
+          },
+        }
+      );
     }
   },
 });

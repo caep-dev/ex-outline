@@ -7,8 +7,8 @@
 import { SearchIcon } from "@shared/components/LucideIcon";
 import * as React from "react";
 import styled, { useTheme } from "styled-components";
-import { s } from "@shared/styles";
 import Flex from "~/components/Flex";
+import { DocsSearchField } from "~/components/DocsSearch";
 
 interface Props extends React.HTMLAttributes<HTMLInputElement> {
   name: string;
@@ -57,33 +57,9 @@ const Wrapper = styled(Flex)`
   margin-bottom: 8px;
 `;
 
-const StyledInput = styled.input`
-  width: 100%;
-  height: ${(props) => props.theme.exui.components.formControl.base.height};
-  box-sizing: border-box;
-  padding-block: 6px;
-  padding-inline: 40px 12px;
-  font-size: 1rem;
-  line-height: 24px;
-  font-weight: ${(props) => props.theme.exui.typography.fontWeightRegular};
-  outline: none;
-  border: 0;
-  background: ${s("inputBackground")};
-  border-radius: 9999px;
-  color: ${s("text")};
-
-  &:focus-visible {
-    box-shadow: ${(props) =>
-      props.theme.exui.components.formControl.focus.shadow};
-  }
-
+const StyledInput = styled(DocsSearchField)`
   ::-webkit-search-cancel-button {
     -webkit-appearance: none;
-  }
-  &::placeholder {
-    color: ${(props) =>
-      props.theme.exui.components.formControl.base.placeholder};
-    opacity: 1;
   }
 `;
 

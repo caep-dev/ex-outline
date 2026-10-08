@@ -1,6 +1,6 @@
 import { Suspense } from "react";
 import { observer } from "mobx-react";
-import { Switch, Redirect } from "react-router-dom";
+import { Switch, Redirect, useLocation } from "react-router-dom";
 import DesktopRedirect from "~/scenes/DesktopRedirect";
 import DelayedMount from "~/components/DelayedMount";
 import FullscreenLoading from "~/components/FullscreenLoading";
@@ -10,6 +10,8 @@ import lazy from "~/utils/lazyWithRetry";
 import { matchDocumentSlug as documentSlug } from "~/utils/routeHelpers";
 import useAutoRefresh from "~/hooks/useAutoRefresh";
 import useStores from "~/hooks/useStores";
+import { DocsReadingResume } from "~/components/DocsReadingResume";
+import { WebsiteIdentityController } from "~/components/WebsiteIdentityController";
 
 const Authenticated = lazy(() => import("~/components/Authenticated"));
 const AuthenticatedRoutes = lazy(() => import("./authenticated"));
@@ -28,6 +30,11 @@ function Routes() {
   const { auth } = useStores();
   const integrated = auth.websiteIntegrationEnabled;
   const signedIn = auth.authenticated && !auth.isFetching;
+  const location = useLocation<{
+    docsReadingResume?: boolean;
+    docsReadingDirectory?: boolean;
+  }>();
+  const readingResume = location.state?.docsReadingResume === true;
 
   return (
     <Suspense
@@ -38,31 +45,39 @@ function Routes() {
       }
     >
       {integrated ? (
-        <Switch>
-          {signedIn ? (
-            <Redirect exact from="/" to="/home" />
+        <WebsiteIdentityController>
+          {readingResume ? (
+            <DocsReadingResume />
           ) : (
-            <Route exact path="/" component={PublicDirectory} />
+            <Switch>
+              {signedIn && !location.state?.docsReadingDirectory ? (
+                <Redirect exact from="/" to="/home" />
+              ) : (
+                <Route exact path="/" component={PublicDirectory} />
+              )}
+              <Route
+                exact
+                path="/public/collection/:collectionId"
+                component={PublicDirectory}
+              />
+              <Redirect exact from="/create" to="/" />
+              <Route exact path="/logout" component={Logout} />
+              {!signedIn && (
+                <Route exact path="/search" component={PublicSearch} />
+              )}
+              {!signedIn && (
+                <Route
+                  exact
+                  path={`/doc/${documentSlug}`}
+                  component={PublicDocument}
+                />
+              )}
+              <Authenticated>
+                <AuthenticatedRoutes />
+              </Authenticated>
+            </Switch>
           )}
-          <Route
-            exact
-            path="/public/collection/:collectionId"
-            component={PublicDirectory}
-          />
-          <Redirect exact from="/create" to="/" />
-          <Route exact path="/logout" component={Logout} />
-          {!signedIn && <Route exact path="/search" component={PublicSearch} />}
-          {!signedIn && (
-            <Route
-              exact
-              path={`/doc/${documentSlug}`}
-              component={PublicDocument}
-            />
-          )}
-          <Authenticated>
-            <AuthenticatedRoutes />
-          </Authenticated>
-        </Switch>
+        </WebsiteIdentityController>
       ) : env.ROOT_SHARE_ID ? (
         <Switch>
           <Route exact path="/" component={Shared} />

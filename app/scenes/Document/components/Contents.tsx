@@ -1,22 +1,16 @@
-import { exuiTokens } from "@exre/exui/tokens";
 import { observer } from "mobx-react";
-import { glassSurface } from "@shared/styles/glass";
 import { useState, useEffect, useMemo, useRef, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useHistory } from "react-router-dom";
-import styled from "styled-components";
-import breakpoint from "styled-components-breakpoint";
 import { EmojiText } from "@shared/components/EmojiText";
-import { MenuIcon } from "@shared/components/LucideIcon";
 import { HeadingPrefixHelper } from "@shared/editor/extensions/HeadingPrefix";
-import { EditorStyleHelper } from "@shared/editor/styles/EditorStyleHelper";
 import { DocumentPreference, HeadingPrefixStyle } from "@shared/types";
-import { depths, hideScrollbars, s } from "@shared/styles";
 import { supportsPassiveListener } from "@shared/utils/browser";
 import { useDocumentContext } from "~/components/DocumentContext";
 import useWindowScrollPosition from "~/hooks/useWindowScrollPosition";
 import { patchLocation } from "~/utils/history";
 import { decodeURIComponentSafe } from "~/utils/urls";
+import { ReadingContentsView } from "./DocumentReadingFrame";
 
 const HEADING_OFFSET = 20;
 
@@ -70,22 +64,10 @@ function Contents() {
       ? selectedSlug
       : scrolledSlug;
 
-  const handleClick = useCallback(
-    (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
-      // Let modified clicks (open in new tab, copy link, etc.) fall through to
-      // the native anchor behavior.
-      if (
-        event.button !== 0 ||
-        event.metaKey ||
-        event.ctrlKey ||
-        event.shiftKey ||
-        event.altKey
-      ) {
-        return;
-      }
+  const handleNavigate = useCallback(
+    (id: string) => {
       // Navigate via history so the location state (active sidebar context) is
       // retained rather than dropped by a native hash navigation.
-      event.preventDefault();
       setSelectedSlug(id);
       history.push(patchLocation(history.location, { hash: `#${id}` }));
 
@@ -153,116 +135,24 @@ function Contents() {
     }
   }, [activeSlug]);
 
-  // calculate the minimum heading level and adjust all the headings to make
-  // that the top-most. This prevents the contents from being weirdly indented
-  // if all of the headings in the document start at level 3, for example.
-  const minHeading = items.reduce(
-    (memo, { heading }) => (heading.level < memo ? heading.level : memo),
-    Infinity
-  );
-  const headingAdjustment = minHeading - 1;
   const { t } = useTranslation();
-
-  if (items.length === 0) {
-    return <StickyWrapper />;
-  }
-
   return (
-    <StickyWrapper>
-      <Heading>
-        <MenuIcon size={16} aria-hidden />
-        {t("Contents")}
-      </Heading>
-      <List>
-        {items.map(({ heading, label }) => (
-          <ListItem
-            key={heading.id}
-            ref={(el) => (itemRefs.current[heading.id] = el)}
-            level={heading.level - headingAdjustment}
-            active={activeSlug === heading.id}
-          >
-            <Link
-              href={`#${heading.id}`}
-              onClick={(event) => handleClick(event, heading.id)}
-            >
-              {label && <Prefix>{label}</Prefix>}
-              <EmojiText>{heading.title}</EmojiText>
-            </Link>
-          </ListItem>
-        ))}
-      </List>
-    </StickyWrapper>
+    <ReadingContentsView
+      headings={items.map(({ heading, label }) => ({
+        id: heading.id,
+        level: heading.level,
+        title: heading.title,
+        label,
+      }))}
+      activeHeading={activeSlug}
+      navigateHeading={handleNavigate}
+      onItemRef={(id, element) => {
+        itemRefs.current[id] = element;
+      }}
+      headingTitle={(heading) => <EmojiText>{heading.title}</EmojiText>}
+      title={t("Contents")}
+    />
   );
 }
-
-const StickyWrapper = styled.div`
-  display: none;
-  position: sticky;
-  top: 90px;
-  max-height: calc(100vh - 90px);
-  width: ${EditorStyleHelper.tocWidth}px;
-
-  ${hideScrollbars()}
-
-  padding: 0 16px;
-  overflow-y: auto;
-  border-radius: ${(props) => props.theme.exui.radii.extraLarge};
-  background: ${s("background")};
-
-  ${glassSurface}
-
-  ${breakpoint("tablet")`
-    display: block;
-    z-index: ${depths.toc};
-  `};
-`;
-
-const Heading = styled.h3`
-  display: flex;
-  align-items: center;
-  gap: 0.375rem;
-  font-size: ${exuiTokens.typography.smallFontSize};
-  font-weight: 600;
-  color: ${s("textTertiary")};
-  letter-spacing: 0.03em;
-  margin-top: 10px;
-`;
-
-const Prefix = styled.span`
-  color: ${s("textSecondary")};
-  margin-inline-end: 0.25em;
-  user-select: none;
-`;
-
-const ListItem = styled.li<{ level: number; active?: boolean }>`
-  margin-left: ${(props) => (props.level - 1) * 10}px;
-  margin-bottom: 8px;
-  line-height: 1.3;
-  word-break: break-word;
-
-  a {
-    font-weight: ${(props) => (props.active ? "600" : "inherit")};
-    color: ${(props) => (props.active ? props.theme.accent : props.theme.text)};
-
-    ${Prefix} {
-      color: ${(props) =>
-        props.active ? props.theme.accent : props.theme.textSecondary};
-    }
-  }
-`;
-
-const Link = styled.a`
-  color: ${s("text")};
-  font-size: ${exuiTokens.typography.bodyFontSize};
-
-  &:hover {
-    color: ${s("accent")};
-  }
-`;
-
-const List = styled.ol`
-  padding: 0;
-  list-style: none;
-`;
 
 export default observer(Contents);

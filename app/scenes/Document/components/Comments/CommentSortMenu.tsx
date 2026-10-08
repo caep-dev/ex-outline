@@ -5,6 +5,7 @@ import { s } from "@shared/styles";
 import { UserPreference } from "@shared/types";
 import type { Option } from "~/components/InputSelect";
 import { InputSelect } from "~/components/InputSelect";
+import useStores from "~/hooks/useStores";
 import useCurrentUser from "~/hooks/useCurrentUser";
 import { CommentSortType } from "~/types";
 
@@ -18,6 +19,7 @@ type Props = {
 const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
   const { t } = useTranslation();
   const user = useCurrentUser();
+  const { auth } = useStores();
 
   const preferredSortType = user.getPreference(
     UserPreference.SortCommentsByOrderInDocument
@@ -29,7 +31,7 @@ const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
 
   const handleChange = React.useCallback(
     (val: CommentSortType | "resolved") => {
-      if (val !== "resolved") {
+      if (!auth.logoutPending && val !== "resolved") {
         if (val !== preferredSortType) {
           user.setPreference(
             UserPreference.SortCommentsByOrderInDocument,
@@ -41,7 +43,7 @@ const CommentSortMenu = ({ viewingResolved, onChange }: Props) => {
 
       onChange?.(val);
     },
-    [user, onChange, preferredSortType]
+    [user, onChange, preferredSortType, auth]
   );
 
   const options: Option[] = React.useMemo(

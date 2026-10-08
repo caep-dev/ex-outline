@@ -6,7 +6,6 @@ import { observer } from "mobx-react";
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { mergeRefs } from "react-merge-refs";
-import { Link } from "react-router-dom";
 /**
  *
  * OUTLINE ICON BLOCK
@@ -24,6 +23,10 @@ import type Document from "~/models/Document";
 import Badge from "~/components/Badge";
 import { useModelSelection } from "~/components/ModelSelectionContext";
 import DocumentMeta from "~/components/DocumentMeta";
+import {
+  DocsSearchResultContent,
+  DocsSearchResultLink,
+} from "~/components/DocsSearch";
 import Flex from "~/components/Flex";
 import Highlight from "~/components/Highlight";
 import NudeButton from "~/components/NudeButton";
@@ -214,39 +217,48 @@ function DocumentListItem(
                 )}
               </DocumentIconWrapper>
             </IconWrapper>
-            <Content>
-              <Heading dir={document.dir}>
-                <Title
+            <DocsSearchResultContent
+              dir={document.dir}
+              title={
+                <Highlight
                   text={document.titleWithDefault}
                   highlight={highlight}
                   dir={document.dir}
                 />
-                {document.isBadgedNew && document.createdBy?.id !== user.id && (
-                  <Badge yellow>{t("New")}</Badge>
-                )}
-                {document.isDraft && showDraft && (
-                  <Tooltip content={t("Only visible to you")} placement="top">
-                    <Badge>{t("Draft")}</Badge>
-                  </Tooltip>
-                )}
-                {canStar && !isMobile && <StarButton document={document} />}
-              </Heading>
-
-              {!queryIsInTitle && (
-                <ResultContext
-                  text={context}
-                  highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
-                  processResult={replaceResultMarks}
+              }
+              titleActions={
+                <>
+                  {document.isBadgedNew &&
+                    document.createdBy?.id !== user.id && (
+                      <Badge yellow>{t("New")}</Badge>
+                    )}
+                  {document.isDraft && showDraft && (
+                    <Tooltip content={t("Only visible to you")} placement="top">
+                      <Badge>{t("Draft")}</Badge>
+                    </Tooltip>
+                  )}
+                  {canStar && !isMobile && <StarButton document={document} />}
+                </>
+              }
+              excerpt={
+                !queryIsInTitle && context ? (
+                  <Highlight
+                    text={context}
+                    highlight={highlight ? SEARCH_RESULT_REGEX : undefined}
+                    processResult={replaceResultMarks}
+                  />
+                ) : undefined
+              }
+              metadata={
+                <DocumentMeta
+                  document={document}
+                  showCollection={showCollection}
+                  showPublished={showPublished}
+                  showParentDocuments={showParentDocuments}
+                  showLastViewed
                 />
-              )}
-              <DocumentMeta
-                document={document}
-                showCollection={showCollection}
-                showPublished={showPublished}
-                showParentDocuments={showParentDocuments}
-                showLastViewed
-              />
-            </Content>
+              }
+            />
           </Flex>
           <Actions>
             <DocumentMenu
@@ -309,12 +321,6 @@ const SelectButton = styled(NudeButton)<{
     `}
 `;
 
-const Content = styled.div`
-  flex-grow: 1;
-  flex-shrink: 1;
-  min-width: 0;
-`;
-
 const Actions = styled(EventBoundary)`
   display: none;
   align-items: center;
@@ -333,31 +339,14 @@ const Actions = styled(EventBoundary)`
   `};
 `;
 
-const DocumentLink = styled(Link)<{
+const DocumentLink = styled(DocsSearchResultLink)<{
   $isStarred?: boolean;
   $isDragging?: boolean;
   $menuOpen?: boolean;
   $selectable?: boolean;
 }>`
-  display: flex;
-  align-items: center;
-  margin: 10px -8px;
-  padding: 6px 8px;
-  border-radius: ${(props) => props.theme.exui.components.sidebarItem.default.radius};
-  max-height: 50vh;
-  width: calc(100vw - 8px);
-  cursor: var(--pointer);
   transition: opacity 250ms ease;
   opacity: ${(props) => (props.$isDragging ? 0.1 : 1)};
-
-  &:focus-visible {
-    outline: none;
-    box-shadow: ${(props) => props.theme.exui.shadow.focus};
-  }
-
-  ${breakpoint("tablet")`
-    width: auto;
-  `};
 
   ${Actions} {
     opacity: 0;
@@ -421,37 +410,6 @@ const DocumentLink = styled(Link)<{
         opacity: 0.5;
       }
     `}
-`;
-
-const Heading = styled.span<{ rtl?: boolean }>`
-  display: flex;
-  justify-content: ${(props) => (props.rtl ? "flex-end" : "flex-start")};
-  align-items: center;
-  margin-top: 0;
-  margin-bottom: 0.1em;
-  white-space: nowrap;
-  color: ${s("text")};
-  font-family: ${(props) => props.theme.exui.typography.fontFamily};
-  font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
-  font-size: 1.125rem;
-  line-height: 1.2;
-  gap: 4px;
-`;
-
-const Title = styled(Highlight)`
-  max-width: 90%;
-  overflow: hidden;
-  text-overflow: ellipsis;
-`;
-
-const ResultContext = styled(Highlight)`
-  display: block;
-  color: ${s("textSecondary")};
-  font-size: ${(props) => props.theme.exui.typography.bodyFontSize};
-  margin-top: -0.25em;
-  margin-bottom: 0.25em;
-  max-height: 90px;
-  overflow: hidden;
 `;
 
 export default observer(React.forwardRef(DocumentListItem));

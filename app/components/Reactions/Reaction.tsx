@@ -112,6 +112,8 @@ const Reaction: React.FC<Props> = ({
   onRemoveReaction,
 }) => {
   const user = useCurrentUser();
+  const { auth } = useStores();
+  const writesDisabled = disabled || auth.logoutPending;
 
   const active = reaction.userIds.includes(user.id);
 
@@ -125,18 +127,25 @@ const Reaction: React.FC<Props> = ({
   const handleClick = React.useCallback(
     (event: React.SyntheticEvent<HTMLButtonElement>) => {
       event.stopPropagation();
+      if (auth.logoutPending) {
+        return;
+      }
       if (active) {
         void onRemoveReaction(reaction.emoji);
       } else {
         void onAddReaction(reaction.emoji);
       }
     },
-    [reaction, active, onAddReaction, onRemoveReaction]
+    [reaction, active, onAddReaction, onRemoveReaction, auth]
   );
 
   const DisplayedEmoji = React.useMemo(
     () => (
-      <EmojiButton disabled={disabled} $active={active} onClick={handleClick}>
+      <EmojiButton
+        disabled={writesDisabled}
+        $active={active}
+        onClick={handleClick}
+      >
         <Flex gap={6} justify="center" align="center">
           {isUUID(reaction.emoji) ? (
             <CustomEmoji size={15} value={reaction.emoji} />
@@ -147,7 +156,7 @@ const Reaction: React.FC<Props> = ({
         </Flex>
       </EmojiButton>
     ),
-    [reaction.emoji, reaction.userIds, disabled, active, handleClick]
+    [reaction.emoji, reaction.userIds, writesDisabled, active, handleClick]
   );
 
   return tooltipContent ? (

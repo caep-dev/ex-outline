@@ -1,21 +1,26 @@
 // @vitest-environment jsdom
-import {
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from "@testing-library/react";
+import { cleanup, fireEvent, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import PublicOnlyGate from "./PublicOnlyGate";
 
+import type { ReactElement } from "react";
+import { ThemeProvider } from "styled-components";
+import { light } from "@shared/styles/theme";
+import { renderWithTheme } from "~/test/renderWithTheme";
 const post = vi.hoisted(() => vi.fn());
-vi.mock("~/utils/ApiClient", () => ({ client: { post } }));
+const scope = vi.hoisted(() => ({ generation: 0 }));
+vi.mock("~/hooks/useStores", () => ({
+  default: () => ({ publicDocs: scope }),
+}));
+vi.mock("~/utils/ApiClient", () => ({ client: { fetch: post } }));
 vi.mock("~/scenes/WebsitePublic", () => ({
   PublicDocumentView: () => <p>Safe public reader</p>,
 }));
 
-beforeEach(() => post.mockReset());
+beforeEach(() => {
+  post.mockReset();
+  scope.generation = 0;
+});
 afterEach(() => cleanup());
 
 describe("integrated document access gate", () => {
@@ -31,7 +36,9 @@ describe("integrated document access gate", () => {
     );
     expect(await screen.findByText("Safe public reader")).toBeTruthy();
     expect(screen.queryByText("Private document effects")).toBeNull();
-    expect(post).toHaveBeenCalledWith("/documents.info", { id: "public-slug" });
+    expect(post).toHaveBeenCalledWith("/documents.info", "POST", {
+      id: "public-slug",
+    });
   });
 
   it("mounts the existing document scene only after a normal access response", async () => {
@@ -85,7 +92,7 @@ describe("integrated document access gate", () => {
       </PublicOnlyGate>
     );
     expect(await screen.findByRole("alert")).toHaveTextContent(
-      "Document unavailable"
+      "temporarily unavailable"
     );
     expect(screen.queryByText("Private document effects")).toBeNull();
     fireEvent.click(screen.getByRole("button", { name: "Retry" }));
@@ -93,3 +100,50 @@ describe("integrated document access gate", () => {
     await waitFor(() => expect(post).toHaveBeenCalledTimes(2));
   });
 });
+
+it("unmounts authorized content immediately on identity change and ignores the late member answer", async () => {
+  let complete: ((value: object) => void) | undefined;
+  post
+    .mockResolvedValueOnce({ data: { document: { id: "old" } } })
+    .mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          complete = resolve;
+        })
+    );
+  const view = render(
+    <PublicOnlyGate documentSlug="same">
+      <p>Member effect</p>
+    </PublicOnlyGate>
+  );
+  expect(await screen.findByText("Member effect")).toBeTruthy();
+  scope.generation = 1;
+  view.rerender(
+    <PublicOnlyGate documentSlug="same">
+      <p>Member effect</p>
+    </PublicOnlyGate>
+  );
+  expect(screen.queryByText("Member effect")).toBeNull();
+  scope.generation = 2;
+  post.mockResolvedValueOnce({
+    publicOnly: true,
+    data: { document: { id: "new" } },
+  });
+  view.rerender(
+    <PublicOnlyGate documentSlug="same">
+      <p>Member effect</p>
+    </PublicOnlyGate>
+  );
+  complete?.({ data: { document: { id: "stale" } } });
+  expect(await screen.findByText("Safe public reader")).toBeTruthy();
+  expect(screen.queryByText("Member effect")).toBeNull();
+});
+
+function render(node: ReactElement) {
+  const view = renderWithTheme(node);
+  return {
+    ...view,
+    rerender: (next: ReactElement) =>
+      view.rerender(<ThemeProvider theme={light}>{next}</ThemeProvider>),
+  };
+}

@@ -1,5 +1,5 @@
 import { observer } from "mobx-react";
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useTranslation, Trans } from "react-i18next";
 import { toast } from "sonner";
 import styled from "styled-components";
@@ -19,21 +19,26 @@ type Props = {
 };
 
 function DocumentPublish({ document }: Props) {
-  const { dialogs, policies } = useStores();
+  const { auth, dialogs, policies } = useStores();
   const { t } = useTranslation();
   const collectionTrees = useCollectionTrees();
   const [selectedPath, selectPath] = useState<NavigationNode | null>(null);
-  const publishOptions = useMemo(
-    () =>
-      collectionTrees.filter((node) =>
-        node.collectionId
-          ? policies.get(node.collectionId)?.abilities.createDocument
-          : true
-      ),
-    [policies, collectionTrees]
+  const [sessionGeneration] = useState(auth.sessionGeneration);
+  const canPublish = () =>
+    !auth.logoutPending &&
+    (!auth.websiteIntegrationEnabled ||
+      auth.sessionGeneration === sessionGeneration);
+  const publishingDisabled = !canPublish();
+  const publishOptions = collectionTrees.filter((node) =>
+    node.collectionId
+      ? policies.abilities(node.collectionId).createDocument
+      : true
   );
 
   const publish = async (path = selectedPath) => {
+    if (!canPublish()) {
+      return;
+    }
     if (!path) {
       toast.message(t("Select a location to publish"));
       return;
@@ -42,16 +47,25 @@ function DocumentPublish({ document }: Props) {
     try {
       const { type, id: parentDocumentId } = path;
 
-      const collectionId = path.collectionId as string;
+      const collectionId = path.collectionId;
+      if (!collectionId || !policies.abilities(collectionId).createDocument) {
+        return;
+      }
 
       // Also move it under if selected path corresponds to another doc
       if (type === "document") {
         await document.move({ collectionId, parentDocumentId });
       }
 
+      if (!canPublish() || !policies.abilities(collectionId).createDocument) {
+        return;
+      }
       document.collectionId = collectionId;
       await document.save(undefined, { publish: true });
 
+      if (!canPublish()) {
+        return;
+      }
       toast.success(t("Document published"));
 
       dialogs.closeAllModals();
@@ -83,7 +97,10 @@ function DocumentPublish({ document }: Props) {
             t("Select a location to publish")
           )}
         </StyledText>
-        <Button disabled={!selectedPath} onClick={() => publish()}>
+        <Button
+          disabled={publishingDisabled || !selectedPath}
+          onClick={() => publish()}
+        >
           {t("Publish")}
         </Button>
       </Footer>

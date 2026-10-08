@@ -19,6 +19,7 @@ import type {
 import { StatusFilter as TStatusFilter } from "@shared/types";
 import ArrowKeyNavigation from "~/components/ArrowKeyNavigation";
 import DocumentListItem from "~/components/DocumentListItem";
+import { DocsSearchResultList } from "~/components/DocsSearch";
 import DocumentSelectionToolbar from "~/components/DocumentSelectionToolbar";
 import Fade from "~/components/Fade";
 import Flex from "~/components/Flex";
@@ -495,17 +496,20 @@ function Search({
                   items={data ?? []}
                 >
                   {() =>
-                    data?.length && !error
-                      ? data.map((result) => (
+                    data?.length && !error ? (
+                      <DocsSearchResultList
+                        items={data}
+                        keyFor={(result) => result.document.id}
+                        renderResult={(result) => (
                           <DocumentListItem
-                            key={result.document.id}
                             document={result.document}
                             highlight={query}
                             context={result.context}
                             showCollection
                           />
-                        ))
-                      : null
+                        )}
+                      />
+                    ) : null
                   }
                 </StyledArrowKeyNavigation>
                 {embedded && loading && (

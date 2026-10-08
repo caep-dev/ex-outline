@@ -5,11 +5,7 @@ import { observer } from "mobx-react";
  *
  * import { SearchIcon, HomeIcon, SidebarIcon } from "outline-icons";
  */
-import {
-  SearchIcon,
-  HomeIcon,
-  SidebarToggleIcon,
-} from "@shared/components/LucideIcon";
+import { SidebarToggleIcon } from "@shared/components/LucideIcon";
 import { useEffect, useState, useCallback, useRef } from "react";
 import {
   DragActiveProvider,
@@ -30,6 +26,7 @@ import * as Scenes from "~/routes/scenes";
 import { homePath, searchPath } from "~/utils/routeHelpers";
 import Tooltip from "../Tooltip";
 import Sidebar from "./Sidebar";
+import { DocsNavigation } from "./DocsNavigation";
 import ArchiveLink from "./components/ArchiveLink";
 import Collections from "./components/Collections";
 import DraggableSection, {
@@ -41,8 +38,6 @@ import { DismissableSidebarAction } from "./components/DismissableSidebarAction"
 import HistoryNavigation from "./components/HistoryNavigation";
 import Section from "./components/Section";
 import SharedWithMe from "./components/SharedWithMe";
-import { SidebarBrand } from "./components/SidebarBrand";
-import SidebarLink from "./components/SidebarLink";
 import Starred from "./components/Starred";
 import ToggleButton from "./components/ToggleButton";
 import TrashLink from "./components/TrashLink";
@@ -109,82 +104,71 @@ function AppSidebar() {
       <DragActiveProvider>
         <DragPlaceholder />
 
-        <SidebarBrand>
-          {isMobile ? null : (
-            <Tooltip
-              content={t("Toggle sidebar")}
-              shortcut={`${metaDisplay}+.`}
-            >
-              <CollapseButton
-                icon={<SidebarToggleIcon aria-hidden />}
-                aria-label={
-                  ui.sidebarCollapsed
-                    ? t("Expand sidebar")
-                    : t("Collapse sidebar")
-                }
-                aria-controls="sidebar"
-                aria-expanded={!ui.sidebarIsClosed}
-                onClick={() => {
-                  ui.toggleCollapsedSidebar();
-                  (document.activeElement as HTMLElement)?.blur();
-                }}
+        <DocsNavigation
+          homePath={homePath()}
+          searchPath={searchPath()}
+          view={{ items: [], expandedIds: new Set<string>() }}
+          onToggle={() => undefined}
+          onHomeClickIntent={Scenes.Home.preload}
+          onSearchClickIntent={Scenes.Search.preload}
+          onSearchClick={handleSearchClick}
+          brandActions={
+            isMobile ? null : (
+              <Tooltip
+                content={t("Toggle sidebar")}
+                shortcut={`${metaDisplay}+.`}
+              >
+                <CollapseButton
+                  icon={<SidebarToggleIcon aria-hidden />}
+                  aria-label={
+                    ui.sidebarCollapsed
+                      ? t("Expand sidebar")
+                      : t("Collapse sidebar")
+                  }
+                  aria-controls="sidebar"
+                  aria-expanded={!ui.sidebarIsClosed}
+                  onClick={() => {
+                    ui.toggleCollapsedSidebar();
+                    (document.activeElement as HTMLElement)?.blur();
+                  }}
+                />
+              </Tooltip>
+            )
+          }
+          quickActions={canCreateAny && <DraftsLink />}
+          beforeCollections={
+            <SidebarScrollable flex shadow ref={scrollRef}>
+              <SidebarScrollProvider value={scrollArea}>
+                {sectionOrder.map((section) => (
+                  <DraggableSection key={section} section={section}>
+                    {sectionContent[section]}
+                  </DraggableSection>
+                ))}
+              </SidebarScrollProvider>
+            </SidebarScrollable>
+          }
+          afterCollections={
+            <Section>
+              <DismissableSidebarAction
+                id="sidebar-import-hidden"
+                action={navigateToImport}
               />
-            </Tooltip>
-          )}
-        </SidebarBrand>
-        <Overflow>
-          <Section>
-            <SidebarLink
-              to={homePath()}
-              icon={<HomeIcon />}
-              exact={false}
-              label={t("Home")}
-              onClickIntent={Scenes.Home.preload}
-            />
-            <SidebarLink
-              to={searchPath()}
-              icon={<SearchIcon />}
-              label={t("Search")}
-              exact={false}
-              onClick={handleSearchClick}
-              onClickIntent={Scenes.Search.preload}
-            />
-            {canCreateAny && <DraftsLink />}
-          </Section>
-        </Overflow>
-        <SidebarScrollable flex shadow ref={scrollRef}>
-          <SidebarScrollProvider value={scrollArea}>
-            {sectionOrder.map((section) => (
-              <DraggableSection key={section} section={section}>
-                {sectionContent[section]}
-              </DraggableSection>
-            ))}
-          </SidebarScrollProvider>
-        </SidebarScrollable>
-        <Section>
-          <DismissableSidebarAction
-            id="sidebar-import-hidden"
-            action={navigateToImport}
-          />
-          {can.createDocument && (
-            <>
-              <ArchiveArea>
-                <ArchiveLink />
-              </ArchiveArea>
-              <TrashLink />
-            </>
-          )}
-        </Section>
+              {can.createDocument && (
+                <>
+                  <ArchiveArea>
+                    <ArchiveLink />
+                  </ArchiveArea>
+                  <TrashLink />
+                </>
+              )}
+            </Section>
+          }
+        />
       </DragActiveProvider>
       <HistoryNavigation />
     </Sidebar>
   );
 }
-
-const Overflow = styled.div`
-  overflow: hidden;
-  flex-shrink: 0;
-`;
 
 const SidebarScrollable = styled(Scrollable)`
   flex: 1;

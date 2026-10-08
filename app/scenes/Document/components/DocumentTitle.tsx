@@ -11,7 +11,6 @@ import isMarkdown from "@shared/editor/lib/isMarkdown";
 import normalizePastedMarkdown from "@shared/editor/lib/markdown/normalize";
 import { sliceWithoutFirstNode } from "@shared/editor/lib/sliceWithoutFirstNode";
 import { extraArea, s } from "@shared/styles";
-import { light } from "@shared/styles/theme";
 import {
   getCurrentDateAsString,
   getCurrentDateTimeAsString,
@@ -27,6 +26,7 @@ import useBoolean from "~/hooks/useBoolean";
 import usePolicy from "~/hooks/usePolicy";
 import { useTranslation } from "react-i18next";
 import lazyWithRetry from "~/utils/lazyWithRetry";
+import { readingTitleStyles } from "./DocumentReadingFrame";
 
 const IconPicker = lazyWithRetry(() => import("~/components/IconPicker"));
 
@@ -54,9 +54,6 @@ type Props = {
   /** Callback called when focus leaves the input */
   onBlur?: React.FocusEventHandler<HTMLSpanElement>;
 };
-
-const lineHeight = "1.25";
-const fontSize = "2.25em";
 
 const DocumentTitle = React.forwardRef(function DocumentTitle_(
   {
@@ -249,6 +246,7 @@ const DocumentTitle = React.forwardRef(function DocumentTitle_(
       maxLength={DocumentValidation.maxTitleLength}
       readOnly={readOnly}
       aria-label={t("Document title")}
+      data-docs-focus="true"
       dir="auto"
       ref={mergeRefs([ref, externalRef])}
     >
@@ -290,14 +288,7 @@ const StyledIconPicker = styled(IconPicker)`
 `;
 
 const Title = styled(ContentEditable)<TitleProps>`
-  position: relative;
-  line-height: ${lineHeight};
-  margin-top: 8vh;
-  margin-bottom: 0.5em;
-  font-size: ${fontSize};
-  font-weight: 600;
-  border: 0;
-  padding: 0;
+  ${readingTitleStyles}
   cursor: ${(props) => (props.readOnly ? "default" : "text")};
 
   > span {
@@ -327,9 +318,6 @@ const Title = styled(ContentEditable)<TitleProps>`
   }
 
   ${breakpoint("tablet")`
-    margin-top: 6vh;
-    margin-left: 0;
-
     &:hover {
       ${PopoverButton} {
         opacity: 0.5;
@@ -339,12 +327,6 @@ const Title = styled(ContentEditable)<TitleProps>`
         }
       }
     }`};
-
-  @media print {
-    color: ${light.text};
-    -webkit-text-fill-color: ${light.text};
-    background: none;
-  }
 `;
 
 export default observer(DocumentTitle);

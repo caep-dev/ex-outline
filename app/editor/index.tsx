@@ -96,6 +96,8 @@ export type Props = {
   focusedCommentId?: string;
   /** If the editor should not allow editing */
   readOnly?: boolean;
+  /** Renders mention labels statically without member prefetch or unfurl requests. */
+  publicReader?: boolean;
   /**
    * Whether we are rendering a cached version of the document while multiplayer loads.
    * This is used to disable some editor functionality
@@ -417,7 +419,11 @@ export class Editor extends React.PureComponent<
   private createNodeViews(): { [name: string]: NodeViewConstructor } {
     return Object.fromEntries(
       this.extensions.extensions
-        .filter((extension: ReactNode) => extension.component)
+        .filter(
+          (extension: ReactNode) =>
+            typeof extension.component === "function" &&
+            (!this.props.publicReader || extension.name !== "mention")
+        )
         .map((extension: ReactNode) => [
           extension.name,
           (

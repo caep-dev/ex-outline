@@ -61,7 +61,18 @@ export default class PoliciesStore extends Store<Policy> {
    */
   abilities(id: string) {
     const policy = this.get(id);
-    return policy ? policy.flattenedAbilities : this.defaultAbilities;
+    const abilities = policy
+      ? policy.flattenedAbilities
+      : this.defaultAbilities;
+    if (!this.rootStore.auth?.logoutPending) {
+      return abilities;
+    }
+    return Object.fromEntries(
+      Object.entries(abilities).map(([name, allowed]) => [
+        name,
+        /^(read|download|export)/.test(name) && allowed,
+      ])
+    );
   }
 
   private defaultAbilities = Object.freeze({} as Record<string, boolean>);

@@ -99,6 +99,14 @@ export function useDocumentSave({
   const sidebarContext = useLocationSidebarContext();
   const isMounted = useIsMounted();
 
+  const sessionGeneration = useRef(auth.sessionGeneration).current;
+  const writable = () =>
+    !auth.logoutPending &&
+    (!auth.websiteIntegrationEnabled ||
+      auth.sessionGeneration === sessionGeneration);
+  const writableRef = useRef(writable);
+  writableRef.current = writable;
+
   // State
   const [isUploading, setIsUploading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
@@ -136,7 +144,7 @@ export function useDocumentSave({
       } = {}
     ) => {
       // prevent saves when we are already saving
-      if (document.isSaving) {
+      if (!writableRef.current() || document.isSaving) {
         return;
       }
 
@@ -168,6 +176,9 @@ export function useDocumentSave({
 
       try {
         const savedDocument = await document.save(undefined, options);
+        if (!writableRef.current()) {
+          return;
+        }
         isEditorDirtyRef.current = false;
         if (isMounted()) {
           setIsEditorDirty(false);
@@ -227,7 +238,7 @@ export function useDocumentSave({
     (template: Template | Revision, selection?: Selection) => {
       const editor = editorRef.current;
 
-      if (!editor) {
+      if (!writableRef.current() || !editor) {
         return;
       }
 
@@ -283,7 +294,7 @@ export function useDocumentSave({
   const handleSelectTemplate = useCallback(
     async (template: Template | Revision) => {
       const editor = editorRef.current;
-      if (!editor) {
+      if (!writableRef.current() || !editor) {
         return;
       }
 
@@ -310,6 +321,9 @@ export function useDocumentSave({
 
   const handleChangeTitle = useCallback(
     (value: string) => {
+      if (!writableRef.current()) {
+        return;
+      }
       setTitle(value);
       titleRef.current = value;
       document.title = value;
@@ -321,6 +335,9 @@ export function useDocumentSave({
 
   const handleChangeIcon = useCallback(
     (icon: string | null, color: string | null) => {
+      if (!writableRef.current()) {
+        return;
+      }
       document.icon = icon;
       document.color = color;
       void onSaveRef.current();
@@ -347,6 +364,9 @@ export function useDocumentSave({
   useEffect(
     () => () => {
       autosave.cancel();
+      if (!writableRef.current()) {
+        return;
+      }
       const currentDoc = editorRef.current?.view.state.doc;
       const isEditorEmpty =
         !currentDoc || ProsemirrorHelper.isEmpty(currentDoc);

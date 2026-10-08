@@ -20,6 +20,7 @@ import ErrorBoundary from "~/components/ErrorBoundary";
 import LoadingIndicator from "~/components/LoadingIndicator";
 import PageTitle from "~/components/PageTitle";
 import PlaceholderDocument from "~/components/PlaceholderDocument";
+import { DocsStatus } from "~/components/DocsStatus";
 import RegisterKeyDown from "~/components/RegisterKeyDown";
 import { MeasuredContainer } from "~/components/MeasuredContainer";
 import type { Editor as TEditor } from "~/editor";
@@ -28,10 +29,17 @@ import { useLocationSidebarContext } from "~/hooks/useLocationSidebarContext";
 import useStores from "~/hooks/useStores";
 import isTextInput from "~/utils/isTextInput";
 import { client } from "~/utils/ApiClient";
+import { websitePublicTranslation } from "~/utils/websitePublicTranslation";
 import { emojiToUrl } from "~/utils/emoji";
 import { documentHistoryPath, documentEditPath } from "~/utils/routeHelpers";
 import { useDocumentSave } from "../hooks/useDocumentSave";
 import Container from "./Container";
+import {
+  ReadingMain,
+  ReadingBody,
+  ReadingContents,
+  ReadingPrintContents,
+} from "./DocumentReadingFrame";
 import Contents from "./Contents";
 import Editor from "./Editor";
 import Header from "./Header";
@@ -74,7 +82,7 @@ interface Props {
 function DocumentScene({
   document,
   revision,
-  readOnly,
+  readOnly: originalReadOnly,
   abilities,
   shareId,
   tocPosition,
@@ -82,7 +90,8 @@ function DocumentScene({
   children,
 }: Props) {
   const { auth, ui, dialogs } = useStores();
-  const { t } = useTranslation();
+  const readOnly = originalReadOnly || auth.logoutPending;
+  const { t, i18n } = useTranslation();
   const history = useHistory();
   const location = useLocation<LocationState>();
   const sidebarContext = useLocationSidebarContext();
@@ -267,7 +276,7 @@ function DocumentScene({
       ev.preventDefault();
       ev.stopPropagation();
 
-      if (document.publishedAt) {
+      if (auth.logoutPending || document.publishedAt) {
         return;
       }
 
@@ -283,7 +292,7 @@ function DocumentScene({
         });
       }
     },
-    [document, dialogs, t, onSave]
+    [auth, document, dialogs, t, onSave]
   );
 
   const goBack = useCallback(() => {
@@ -380,25 +389,40 @@ function DocumentScene({
               onSave={onSave}
             />
           )}
-          <Main
+          <ReadingMain
             fullWidth={document.fullWidth}
             tocPosition={tocPos}
             style={fullWidthTransformOffsetStyle}
           >
             <React.Suspense
               fallback={
-                <EditorContainer
+                <ReadingBody
                   docFullWidth={document.fullWidth}
                   showContents={showContents}
                   tocPosition={tocPos}
                 >
-                  <PlaceholderDocument />
-                </EditorContainer>
+                  {auth.websiteIntegrationEnabled ? (
+                    <DocsStatus
+                      state="loading"
+                      title={t("Loading")}
+                      content={t(
+                        "Loading document…",
+                        websitePublicTranslation(
+                          i18n.language,
+                          "Loading document…",
+                          "正在加载文档正文，请稍候。"
+                        )
+                      )}
+                    />
+                  ) : (
+                    <PlaceholderDocument />
+                  )}
+                </ReadingBody>
               }
             >
               <MeasuredContainer
                 name="document"
-                as={EditorContainer}
+                as={ReadingBody}
                 docFullWidth={document.fullWidth}
                 showContents={showContents}
                 tocPosition={tocPos}
@@ -415,9 +439,9 @@ function DocumentScene({
                     <Notices document={document} readOnly={readOnly} />
 
                     {showContents && (
-                      <PrintContentsContainer>
+                      <ReadingPrintContents>
                         <Contents />
-                      </PrintContentsContainer>
+                      </ReadingPrintContents>
                     )}
                     <Editor
                       id={document.id}
@@ -439,7 +463,7 @@ function DocumentScene({
                       onPublish={onPublish}
                       onCancel={goBack}
                       readOnly={readOnly}
-                      canUpdate={abilities.update}
+                      canUpdate={abilities.update && !auth.logoutPending}
                       canComment={abilities.comment}
                       autoFocus={document.createdAt === document.updatedAt}
                     >
@@ -451,117 +475,21 @@ function DocumentScene({
                 )}
               </MeasuredContainer>
               {showContents && (
-                <ContentsContainer
+                <ReadingContents
                   docFullWidth={document.fullWidth}
                   position={tocPos}
                 >
                   <Contents />
-                </ContentsContainer>
+                </ReadingContents>
               )}
             </React.Suspense>
-          </Main>
+          </ReadingMain>
           {children}
         </Container>
       </MeasuredContainer>
     </ErrorBoundary>
   );
 }
-
-type MainProps = {
-  fullWidth: boolean;
-  tocPosition: TOCPosition | false;
-};
-
-const Main = styled.div<MainProps>`
-  margin-top: 4px;
-
-  ${breakpoint("tablet")`
-    display: grid;
-    grid-template-columns: ${({ fullWidth, tocPosition }: MainProps) =>
-      fullWidth
-        ? tocPosition === TOCPosition.Left
-          ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
-          : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(46em + ${EditorStyleHelper.documentGutter})`}) 1fr`};
-  `};
-
-  ${breakpoint("desktopLarge")`
-    grid-template-columns: ${({ fullWidth, tocPosition }: MainProps) =>
-      fullWidth
-        ? tocPosition === TOCPosition.Left
-          ? `${EditorStyleHelper.tocWidth}px minmax(0, 1fr)`
-          : `minmax(0, 1fr) ${EditorStyleHelper.tocWidth}px`
-        : `1fr minmax(0, ${`calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`}) 1fr`};
-  `};
-
-  @media print {
-    display: block;
-    max-width: ${({ fullWidth }: MainProps) =>
-      fullWidth
-        ? `100%`
-        : `calc(${EditorStyleHelper.documentWidth} + ${EditorStyleHelper.documentGutter})`};
-  }
-`;
-
-type ContentsContainerProps = {
-  docFullWidth: boolean;
-  position: TOCPosition | false;
-};
-
-const ContentsContainer = styled.div<ContentsContainerProps>`
-  ${breakpoint("tablet")`
-    margin-top: calc(44px + 6vh);
-
-    grid-row: 1;
-    grid-column: ${({ docFullWidth, position }: ContentsContainerProps) =>
-      position === TOCPosition.Left ? 1 : docFullWidth ? 2 : 3};
-    justify-self: ${({ position }: ContentsContainerProps) =>
-      position === TOCPosition.Left ? "end" : "start"};
-  `};
-
-  @media print {
-    display: none;
-  }
-`;
-
-const PrintContentsContainer = styled.div`
-  display: none;
-  margin: 0 -12px;
-
-  @media print {
-    display: block;
-  }
-`;
-
-type EditorContainerProps = {
-  docFullWidth: boolean;
-  showContents: boolean;
-  tocPosition: TOCPosition | false;
-};
-
-const EditorContainer = styled.div<EditorContainerProps>`
-  // Adds space to the gutter to make room for icon & heading annotations
-  padding: 0 32px;
-
-  ${breakpoint("tablet")`
-    padding: 0 44px;
-    grid-row: 1;
-
-    // Decides the editor column position & span
-    grid-column: ${({
-      docFullWidth,
-      showContents,
-      tocPosition,
-    }: EditorContainerProps) =>
-      docFullWidth
-        ? showContents
-          ? tocPosition === TOCPosition.Left
-            ? 2
-            : 1
-          : "1 / -1"
-        : 2};
-  `};
-`;
 
 const Background = styled(Container)`
   position: relative;

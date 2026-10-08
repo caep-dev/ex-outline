@@ -48,6 +48,9 @@ export function createAction(
     variant: "action",
     perform: definition.perform
       ? (context) => {
+          if (context.stores.auth.logoutPending) {
+            return;
+          }
           // We must use the specific analytics name here as the action name is
           // translated and potentially contains user strings.
           if (definition.analyticsName) {
@@ -165,7 +168,9 @@ export function actionToMenuItem(
     case "action": {
       const title = resolve<string>(action.name, context);
       const visible = resolve<boolean>(action.visible, context) ?? true;
-      const disabled = resolve<boolean>(action.disabled, context);
+      const disabled =
+        (action.variant === "action" && context.stores.auth.logoutPending) ||
+        resolve<boolean>(action.disabled, context);
       const shortcut = resolve<string[] | undefined>(action.shortcut, context);
       const icon =
         !!action.icon && action.iconInContextMenu !== false
@@ -344,6 +349,9 @@ export async function performAction(
   action: Exclude<ActionVariant, ActionWithChildren>,
   context: ActionContext
 ) {
+  if (action.variant === "action" && context.stores.auth.logoutPending) {
+    return;
+  }
   const perform =
     action.variant === "action"
       ? () => action.perform(context)

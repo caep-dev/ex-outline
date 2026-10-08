@@ -98,10 +98,13 @@ function CommentForm({
   const hasFocusedOnMount = React.useRef(false);
   const theme = useTheme();
   const { t } = useTranslation();
-  const { comments } = useStores();
+  const { comments, auth } = useStores();
   const user = useCurrentUser();
 
   const reset = React.useCallback(async () => {
+    if (auth.logoutPending) {
+      return;
+    }
     const isEmpty = editorRef.current?.isEmpty() ?? true;
 
     if (isEmpty && thread?.isNew) {
@@ -110,7 +113,7 @@ function CommentForm({
       }
       await thread.delete();
     }
-  }, [editor, thread]);
+  }, [editor, thread, auth]);
 
   useOnClickOutside(formRef, reset);
 
@@ -121,6 +124,9 @@ function CommentForm({
 
   const handleCreateComment = action(async (event: React.FormEvent) => {
     event.preventDefault();
+    if (auth.logoutPending) {
+      return;
+    }
 
     onSaveDraft(undefined);
     setForceRender((s) => ++s);
@@ -170,6 +176,9 @@ function CommentForm({
 
   const handleCreateReply = action(async (event: React.FormEvent) => {
     event.preventDefault();
+    if (auth.logoutPending) {
+      return;
+    }
     if (!draft) {
       return;
     }
@@ -286,6 +295,9 @@ function CommentForm({
     event.stopPropagation();
     event.preventDefault();
 
+    if (auth.logoutPending) {
+      return;
+    }
     const files = getEventFiles(event);
     if (!files.length) {
       return;
@@ -297,7 +309,9 @@ function CommentForm({
   const handleImageUpload = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     event.preventDefault();
-    file.current?.click();
+    if (!auth.logoutPending) {
+      file.current?.click();
+    }
   };
 
   const handleUpArrowAtStart = () => {
@@ -387,6 +401,7 @@ function CommentForm({
           )}
           <React.Suspense fallback={<div style={{ height: 24 }} />}>
             <CommentEditor
+              readOnly={auth.logoutPending}
               key={`${forceRender}`}
               ref={mergeRefs([editorRef, handleMounted])}
               defaultValue={draft}
@@ -409,7 +424,11 @@ function CommentForm({
           {(inputFocused || draft) && (
             <Flex justify="space-between" gap={8}>
               <HStack>
-                <ButtonSmall type="submit" borderOnHover>
+                <ButtonSmall
+                  disabled={auth.logoutPending}
+                  type="submit"
+                  borderOnHover
+                >
                   {thread && !thread.isNew ? t("Reply") : t("Post")}
                 </ButtonSmall>
                 <ButtonSmall onClick={handleCancel} neutral borderOnHover>
@@ -417,7 +436,10 @@ function CommentForm({
                 </ButtonSmall>
               </HStack>
               <Tooltip content={t("Upload image")} placement="top">
-                <NudeButton onClick={handleImageUpload}>
+                <NudeButton
+                  disabled={auth.logoutPending}
+                  onClick={handleImageUpload}
+                >
                   <ImageIcon color={theme.textTertiary} />
                 </NudeButton>
               </Tooltip>
