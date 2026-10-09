@@ -2142,9 +2142,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@exre/exui@npm:^0.7.0":
-  version: 0.7.0
-  resolution: "@exre/exui@npm:0.7.0"
+"@exre/exui@npm:^0.8.0":
+  version: 0.8.0
+  resolution: "@exre/exui@npm:0.8.0"
   dependencies:
     "@fontsource-variable/outfit": "npm:^5.2.8"
   peerDependencies:
@@ -2155,7 +2155,7 @@ __metadata:
       optional: true
     react-dom:
       optional: true
-  checksum: 10c0/7ae49d6654948194ea51f4e7ab579f897e8f854e21b727a76a54097585dda37682c28615c6dd8d9857915147a7876eb2b6e6b7f1107efe0475711afb716b8342
+  checksum: 10c0/0c61be2965a7a3d85f8e6e6586d4cfd4e227d095cc0fa8ed831df30fe7349520c779363208ef26f26e709bc6c9eced84f7f34b8528ba08ed4f818ba62c428fca
   languageName: node
   linkType: hard
 
@@ -15901,7 +15901,7 @@ __metadata:
     "@dnd-kit/sortable": "npm:^7.0.2"
     "@dotenvx/dotenvx": "npm:^1.75.1"
     "@emoji-mart/data": "npm:^1.2.1"
-    "@exre/exui": "npm:^0.7.0"
+    "@exre/exui": "npm:^0.8.0"
     "@faker-js/faker": "npm:^8.4.1"
     "@fast-csv/parse": "npm:^5.0.7"
     "@firecrawl/pdf-inspector": "npm:^1.11.2"
