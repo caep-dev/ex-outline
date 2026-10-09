@@ -133,6 +133,18 @@ export class PublicDocsStore {
     };
   }
 
+  /**
+   * Initializes the directory once per generation without advancing cached pagination.
+   *
+   * @returns the pending initialization, or a completed promise for cached state.
+   */
+  ensureCollections(): Promise<void> {
+    if (this.collections.status !== "idle") {
+      return this.inflight.get("collections") ?? Promise.resolve();
+    }
+    return this.loadNextCollections();
+  }
+
   /** Appends one collection page, or retries the complete directory from zero. */
   loadNextCollections(restart = false): Promise<void> {
     if (restart) {
@@ -332,8 +344,14 @@ export class PublicDocsStore {
     this.invalidate();
   }
 
-  /** Revalidates a collection route, including directory entries on later pages. */
-  loadCollection(collectionId: string): Promise<void> {
+  /**
+   * Resolves a collection from cached pages, optionally revalidating its directory and tree.
+   *
+   * @param collectionId the public collection to locate.
+   * @param revalidate whether to restart directory pagination and refresh the tree.
+   * @returns a promise that settles when the collection and its tree have been resolved.
+   */
+  loadCollection(collectionId: string, revalidate = false): Promise<void> {
     const generation = this.generation;
     const epoch = ++this.collectionEpoch;
     this.inflight.delete("collection");
@@ -342,7 +360,9 @@ export class PublicDocsStore {
       this.selectedCollection = { status: "loading" };
     });
     return this.read("collection", async () => {
-      await this.loadNextCollections(true);
+      if (revalidate) {
+        await this.loadNextCollections(true);
+      }
       const current = () =>
         generation === this.generation && epoch === this.collectionEpoch;
       const found = await this.findCollection(collectionId, current);
@@ -362,7 +382,7 @@ export class PublicDocsStore {
         this.selectedCollection = { status: "ready", data: found };
         this.expandedIds.add(collectionId);
       });
-      await this.loadCollectionTree(collectionId, true);
+      await this.loadCollectionTree(collectionId, revalidate);
     });
   }
 
@@ -428,7 +448,7 @@ export class PublicDocsStore {
           this.document = { status: "ready", data: response.data };
           this.expandedIds.add(found.id);
         });
-        await this.loadCollectionTree(found.id, true);
+        await this.loadCollectionTree(found.id, revalidate);
         if (!current()) {
           return;
         }

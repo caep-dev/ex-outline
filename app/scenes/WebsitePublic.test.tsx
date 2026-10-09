@@ -185,55 +185,70 @@ const page = <T,>(data: T[], offset = 0, hasMore = false) => ({
   data,
   pagination: { offset, limit: 100, hasMore },
 });
-function renderPublic(path: string, comments = false, routeControl = false) {
-  return renderWithTheme(
-    <HelmetProvider>
-      <MemoryRouter initialEntries={[path]}>
+function renderPublic(
+  path: string,
+  comments = false,
+  routeControl = false,
+  sharedHistory = false
+) {
+  if (sharedHistory) {
+    history.replace(path);
+  }
+  const routes = (
+    <>
+      <Route
+        render={({ location }) => (
+          <output data-testid="reading-location">
+            {location.pathname + location.search + location.hash}
+          </output>
+        )}
+      />
+      {routeControl && (
         <Route
-          render={({ location }) => (
-            <output data-testid="reading-location">
-              {location.pathname + location.search + location.hash}
-            </output>
+          render={({ history }) => (
+            <button onClick={() => history.push("/search")}>
+              Navigate search route
+            </button>
           )}
         />
-        {routeControl && (
-          <Route
-            render={({ history }) => (
-              <button onClick={() => history.push("/search")}>
-                Navigate search route
-              </button>
-            )}
-          />
-        )}
-        <WebsiteIdentityController>
-          <Route
-            exact
-            path="/"
-            render={() => <WebsitePublic kind="directory" />}
-          />
-          <Route
-            exact
-            path="/public/collection/:collectionId"
-            render={() => <WebsitePublic kind="directory" />}
-          />
-          <Route
-            exact
-            path="/doc/:documentSlug"
-            render={() =>
-              comments ? (
-                <PublicDocumentView allowComments />
-              ) : (
-                <WebsitePublic kind="document" />
-              )
-            }
-          />
-          <Route
-            exact
-            path="/search"
-            render={() => <WebsitePublic kind="search" />}
-          />
-        </WebsiteIdentityController>
-      </MemoryRouter>
+      )}
+      <WebsiteIdentityController>
+        <Route
+          exact
+          path="/"
+          render={() => <WebsitePublic kind="directory" />}
+        />
+        <Route
+          exact
+          path="/public/collection/:collectionId"
+          render={() => <WebsitePublic kind="directory" />}
+        />
+        <Route
+          exact
+          path="/doc/:documentSlug"
+          render={() =>
+            comments ? (
+              <PublicDocumentView allowComments />
+            ) : (
+              <WebsitePublic kind="document" />
+            )
+          }
+        />
+        <Route
+          exact
+          path="/search"
+          render={() => <WebsitePublic kind="search" />}
+        />
+      </WebsiteIdentityController>
+    </>
+  );
+  return renderWithTheme(
+    <HelmetProvider>
+      {sharedHistory ? (
+        <Router history={history}>{routes}</Router>
+      ) : (
+        <MemoryRouter initialEntries={[path]}>{routes}</MemoryRouter>
+      )}
     </HelmetProvider>
   );
 }
@@ -303,6 +318,71 @@ it("shows the shared public navigation and lazily loads an expanded collection",
   expect(
     within(nav).getByRole("button", { name: "Login" })
   ).toBeInTheDocument();
+});
+it("keeps the public sidebar ready without refetching its directory across routes", async () => {
+  renderPublic(collection.url, false, false, true);
+  let navigation = await screen.findByRole("navigation", {
+    name: "Documents navigation",
+  });
+  const documentLink = await within(navigation).findByRole("link", {
+    name: "Welcome",
+  });
+  await userEvent.click(documentLink);
+  await screen.findByRole("heading", { name: "Welcome" });
+  navigation = screen.getByRole("navigation", {
+    name: "Documents navigation",
+  });
+  expect(
+    mocks.fetch.mock.calls.filter(
+      (call) => call[0] === "/public.collections.list"
+    )
+  ).toHaveLength(1);
+  expect(within(navigation).queryByRole("status")).toBeNull();
+  expect(
+    within(navigation).getByRole("link", { name: "Guides" })
+  ).toBeVisible();
+  await userEvent.click(
+    within(navigation).getByRole("link", { name: "Guides" })
+  );
+  await waitFor(() =>
+    expect(
+      within(screen.getByRole("main")).getByRole("link", { name: "Welcome" })
+    ).toBeVisible()
+  );
+  expect(
+    mocks.fetch.mock.calls.filter(
+      (call) => call[0] === "/public.collections.list"
+    )
+  ).toHaveLength(1);
+  expect(
+    mocks.fetch.mock.calls.filter(
+      (call) => call[0] === "/public.documents.list"
+    )
+  ).toHaveLength(1);
+});
+it("does not show sidebar loading when navigating with a cached collection tree", async () => {
+  renderPublic(collection.url, false, false, true);
+  const navigation = await screen.findByRole("navigation", {
+    name: "Documents navigation",
+  });
+  const documentLink = await within(navigation).findByRole("link", {
+    name: "Welcome",
+  });
+  // Hold any redundant directory/tree read so a loading flash cannot be missed.
+  mocks.fetch.mockImplementation((path) =>
+    path === "/public.documents.info"
+      ? Promise.resolve({ data: info })
+      : new Promise(() => {})
+  );
+  await userEvent.click(documentLink);
+  await screen.findByRole("heading", { name: "Welcome" });
+  const currentNavigation = screen.getByRole("navigation", {
+    name: "Documents navigation",
+  });
+  expect(within(currentNavigation).queryByRole("status")).toBeNull();
+  expect(
+    within(currentNavigation).getByRole("link", { name: "Welcome" })
+  ).toBeVisible();
 });
 it("shows shared error status with retry rather than an empty directory", async () => {
   mocks.fetch.mockRejectedValueOnce(new Error("private database detail"));

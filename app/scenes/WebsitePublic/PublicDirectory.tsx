@@ -20,7 +20,7 @@ import { websitePublicTranslation } from "~/utils/websitePublicTranslation";
 import { PublicFeedback } from "./PublicFeedback";
 import { PublicReadingNavigation } from "./PublicReadingNavigation";
 
-/** Revalidates public collection routes and presents the shared directory. */
+/** Resolves public collection routes and presents the cached shared directory. */
 export const PublicDirectory = observer(function PublicDirectory() {
   const { publicDocs } = useStores();
   const { t, i18n } = useTranslation();
@@ -64,7 +64,7 @@ export const PublicDirectory = observer(function PublicDirectory() {
             publicDocs.collectionKey === collectionId ? state.reason : undefined
           }
           retry={() => {
-            void publicDocs.loadCollection(collectionId);
+            void publicDocs.loadCollection(collectionId, true);
           }}
         />
       ) : directoryPending ? (

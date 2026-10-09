@@ -31,7 +31,7 @@ export function WebsitePublic({
   const initialized = auth.websiteIntegrationInitialized;
   useEffect(() => {
     if (initialized) {
-      void publicDocs.loadNextCollections();
+      void publicDocs.ensureCollections();
     }
   }, [publicDocs, initialized, generation]);
   useEffect(

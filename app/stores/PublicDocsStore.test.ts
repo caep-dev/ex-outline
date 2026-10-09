@@ -53,6 +53,73 @@ beforeEach(() => {
 });
 
 describe("public projection lifecycle", () => {
+  it("initializes once, shares pending reads, and does not advance cached pages on mount", async () => {
+    const pending = deferred<ReturnType<typeof page<PublicCollection>>>();
+    fetch.mockReturnValueOnce(pending.promise);
+    const store = new PublicDocsStore();
+    const first = store.ensureCollections();
+    expect(store.ensureCollections()).toBe(first);
+    pending.resolve(page([collection("a")], 0, true));
+    await first;
+    store.leaveRoute();
+    await store.ensureCollections();
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(store.hasMoreCollections).toBe(true);
+    store.invalidate();
+    fetch.mockResolvedValueOnce(page([]));
+    await store.ensureCollections();
+    expect(fetch).toHaveBeenCalledTimes(2);
+    expect(store.collections.data).toEqual([]);
+  });
+  it("explicit collection retry refreshes both cached directory and tree", async () => {
+    fetch.mockImplementation((path) =>
+      Promise.resolve(
+        path === "/public.collections.list"
+          ? page([collection("c")])
+          : page([doc("old")])
+      )
+    );
+    const store = new PublicDocsStore();
+    await store.loadCollection("c");
+    fetch.mockImplementation((path) =>
+      Promise.resolve(
+        path === "/public.collections.list"
+          ? page([{ ...collection("c"), name: "Updated" }])
+          : page([doc("new")])
+      )
+    );
+    await store.loadCollection("c", true);
+    expect(store.selectedCollection.data?.name).toBe("Updated");
+    expect(store.trees.get("c")?.data?.[0].id).toBe("new");
+    expect(fetch).toHaveBeenCalledTimes(4);
+  });
+  it("reuses paginated directory and ready trees across collection routes", async () => {
+    fetch.mockImplementation((path, _method, body) =>
+      Promise.resolve(
+        path === "/public.collections.list"
+          ? body.offset === 0
+            ? page([collection("a")], 0, true)
+            : page([collection("b")], 1)
+          : page([doc(`${body.collectionId}-doc`)])
+      )
+    );
+    const store = new PublicDocsStore();
+    await store.loadCollection("a");
+    store.leaveRoute();
+    await store.loadCollection("b");
+    store.leaveRoute();
+    await store.loadCollection("a");
+    expect(
+      fetch.mock.calls
+        .filter((call) => call[0] === "/public.collections.list")
+        .map((call) => call[2].offset)
+    ).toEqual([0, 1]);
+    expect(
+      fetch.mock.calls
+        .filter((call) => call[0] === "/public.documents.list")
+        .map((call) => call[2].collectionId)
+    ).toEqual(["a", "b"]);
+  });
   it.each(["network", "service"])(
     "collapses a canceled pending tree after forced %s failure and restores it from navigation",
     async (reason) => {
