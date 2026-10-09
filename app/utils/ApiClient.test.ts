@@ -69,6 +69,17 @@ describe("ApiClient CSRF headers", () => {
     expect(requestHeaders(fetchMock).has(CSRF.headerName)).toBe(false);
   });
 
+  it.each(["omit", "same-origin", "include"] as const)(
+    "honors the caller's %s credentials policy",
+    async (credentials) => {
+      await client.fetch("/auth.config", "POST", undefined, {
+        credentials,
+        retry: false,
+      });
+      expect(fetchMock.mock.lastCall?.[1]?.credentials).toBe(credentials);
+    }
+  );
+
   it("keeps the upstream read-only exemption", async () => {
     env.WEBSITE_INTEGRATION_ENABLED = false;
 

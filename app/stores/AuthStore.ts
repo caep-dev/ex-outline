@@ -246,7 +246,12 @@ export default class AuthStore extends Store<Team> {
 
   @action
   fetchConfig = async () => {
-    const res = await client.post("/auth.config");
+    // Public bootstrap configuration must not depend on stale login cookies.
+    const res = await client.post(
+      "/auth.config",
+      undefined,
+      this.websiteIntegrationEnabled ? { credentials: "omit" } : undefined
+    );
     invariant(res?.data, "Config not available");
     this.config = res.data;
   };

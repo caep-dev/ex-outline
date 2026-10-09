@@ -252,7 +252,7 @@ class ApiClient {
         body,
         headers,
         redirect: "follow",
-        credentials: "same-origin",
+        credentials: options.credentials ?? "same-origin",
         cache: "no-cache",
       });
     } catch (_err) {
