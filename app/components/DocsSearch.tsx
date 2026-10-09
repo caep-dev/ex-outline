@@ -9,6 +9,8 @@ import Flex from "~/components/Flex";
 import Text from "~/components/Text";
 import { HStack } from "~/components/primitives/HStack";
 
+const resultHeadingLineHeight = "1.35rem";
+
 interface DocsSearchFormProps {
   label: string;
   query: string;
@@ -227,7 +229,9 @@ export function DocsSearchResults({
               renderResult(result)
             ) : (
               <DocsSearchResultLink to={result.to} aria-label={result.title}>
-                <ResultIcon aria-hidden />
+                <DocsSearchResultIcon>
+                  <DocumentIcon aria-hidden />
+                </DocsSearchResultIcon>
                 <DocsSearchResultContent
                   title={result.title}
                   excerpt={result.excerpt}
@@ -297,9 +301,14 @@ export const DocsSearchResultLink = styled(Link)`
   `};
 `;
 
-const ResultIcon = styled(DocumentIcon)`
+/** Centers a result icon on the title's first line, independently of its excerpt. */
+export const DocsSearchResultIcon = styled.span`
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   align-self: flex-start;
   flex-shrink: 0;
+  height: ${resultHeadingLineHeight};
   margin-inline-end: 4px;
   color: ${s("textSecondary")};
 `;
@@ -320,7 +329,7 @@ const ResultHeading = styled.span`
   font-family: ${(props) => props.theme.exui.typography.fontFamily};
   font-weight: ${(props) => props.theme.exui.typography.fontWeightMedium};
   font-size: 1.125rem;
-  line-height: 1.2;
+  line-height: ${resultHeadingLineHeight};
   gap: 4px;
 `;
 

@@ -5,11 +5,11 @@ import { useTranslation } from "react-i18next";
 import { useParams } from "react-router-dom";
 import styled from "styled-components";
 import { CollectionIcon, DocumentIcon } from "@shared/components/LucideIcon";
-import { s } from "@shared/styles";
 import { DocsStatus } from "~/components/DocsStatus";
 import {
   DocsSearchResultLink,
   DocsSearchResultContent,
+  DocsSearchResultIcon,
 } from "~/components/DocsSearch";
 import Button from "~/components/Button";
 import Editor from "~/components/Editor";
@@ -106,7 +106,9 @@ export const PublicDirectory = observer(function PublicDirectory() {
                   {tree.data.map((item) => (
                     <li key={item.id}>
                       <DirectoryLink to={item.to} aria-label={item.label}>
-                        <RowIcon as={DocumentIcon} aria-hidden />
+                        <DocsSearchResultIcon>
+                          <DocumentIcon aria-hidden />
+                        </DocsSearchResultIcon>
                         <DocsSearchResultContent title={item.label} />
                       </DirectoryLink>
                     </li>
@@ -134,7 +136,9 @@ export const PublicDirectory = observer(function PublicDirectory() {
                   {collections.data.map((item) => (
                     <li key={item.id}>
                       <DirectoryLink to={item.url} aria-label={item.name}>
-                        <RowIcon as={CollectionIcon} aria-hidden />
+                        <DocsSearchResultIcon>
+                          <CollectionIcon aria-hidden />
+                        </DocsSearchResultIcon>
                         <DocsSearchResultContent
                           title={item.name}
                           excerpt={
@@ -212,11 +216,4 @@ const DirectoryLink = styled(DocsSearchResultLink)`
   width: auto;
   max-width: 100%;
   min-width: 0;
-`;
-
-const RowIcon = styled(DocumentIcon)`
-  align-self: flex-start;
-  flex-shrink: 0;
-  margin-inline-end: 4px;
-  color: ${s("textSecondary")};
 `;
