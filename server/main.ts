@@ -57,6 +57,9 @@ export async function start(id: number, disconnect: () => void) {
   const localIntegration =
     env.WEBSITE_INTEGRATION_ENABLED &&
     websiteIntegrationConfig().mode === "local";
+  const nativeIntegration =
+    env.WEBSITE_INTEGRATION_ENABLED &&
+    websiteIntegrationConfig().mode === "deployment";
   // Ensure plugins are loaded
   PluginManager.loadPlugins();
 
@@ -66,9 +69,10 @@ export async function start(id: number, disconnect: () => void) {
   }
 
   // Find if SSL certs are available
-  const ssl = localIntegration
-    ? { key: undefined, cert: undefined }
-    : getSSLOptions();
+  const ssl =
+    localIntegration || nativeIntegration
+      ? { key: undefined, cert: undefined }
+      : getSSLOptions();
   const useHTTPS = !!ssl.key && !!ssl.cert;
 
   // If a --port flag is passed then it takes priority over the env variable
@@ -166,7 +170,7 @@ export async function start(id: number, disconnect: () => void) {
     );
   });
 
-  if (localIntegration) {
+  if (localIntegration || nativeIntegration) {
     server.listen(Number(normalizedPort), "127.0.0.1");
   } else {
     server.listen(normalizedPort);

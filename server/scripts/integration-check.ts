@@ -4,7 +4,10 @@ import { sequelize } from "@server/storage/database";
 
 async function main() {
   const args = process.argv.slice(2);
-  if (args.length !== 2 || args[0] !== "--admin-user-id" || !isUUID(args[1])) {
+  if (
+    args.length !== 0 &&
+    (args.length !== 2 || args[0] !== "--admin-user-id" || !isUUID(args[1]))
+  ) {
     throw new Error("INTEGRATION_CHECK_ADMIN_REQUIRED");
   }
   const result = await assertIntegrationReady(args[1]);

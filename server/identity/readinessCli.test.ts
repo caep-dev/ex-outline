@@ -112,7 +112,25 @@ it("runs the real readiness CLI successfully against a migrated bootstrapped out
   const repeated = await check();
   expect(repeated.stdout).toBe(result.stdout);
   expect(await snapshot()).toBe(before);
-});
+  const ordinary = await runFile(
+    process.execPath,
+    [path.resolve("build/server/scripts/integration-check.js")],
+    { env: childEnvironment, timeout: 20_000 }
+  );
+  expect(ordinary.stdout).toBe(result.stdout);
+  expect(await snapshot()).toBe(before);
+  await expect(
+    runFile(
+      process.execPath,
+      [
+        path.resolve("build/server/scripts/integration-check.js"),
+        "--admin-user-id",
+      ],
+      { env: childEnvironment, timeout: 20_000 }
+    )
+  ).rejects.toThrow();
+  expect(await snapshot()).toBe(before);
+}, 60_000);
 
 it("rejects missing migration column issuer administrator provider identity and authentication without repairing data", async () => {
   const healthy = await snapshot();
