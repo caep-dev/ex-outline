@@ -1,7 +1,8 @@
 import { renderWithTheme } from "~/test/renderWithTheme";
 import { MemoryRouter, Route } from "react-router-dom";
-import { cleanup, screen } from "@testing-library/react";
+import { cleanup, screen, within } from "@testing-library/react";
 import { Suspense } from "react";
+import { HelmetProvider } from "react-helmet-async";
 import type { EmbedDescriptor } from "@shared/editor/embeds";
 import { vi } from "vitest";
 import Editor from "./Editor";
@@ -193,7 +194,9 @@ it("initializes the public adapter contents using the actual wrapper and lazy co
     <MemoryRouter initialEntries={["/doc/published"]}>
       <Suspense fallback={<p>Loading reader</p>}>
         <Route path="/doc/:documentSlug">
-          <PublicDocumentView />
+          <HelmetProvider>
+            <PublicDocumentView />
+          </HelmetProvider>
         </Route>
       </Suspense>
     </MemoryRouter>
@@ -206,23 +209,43 @@ it("initializes the public adapter contents using the actual wrapper and lazy co
     )
   ).toBeTruthy();
   expect(
-    await screen.findAllByRole("link", {
+    // JSDOM does not apply the desktop media query; inspect the actual desktop
+    // contents subtree so the print-only duplicate cannot satisfy this check.
+    await within(getContents()).findAllByRole("link", {
       name: "Initial heading",
+      hidden: true,
     })
   ).toHaveLength(1);
-  expect(screen.getAllByRole("navigation", { name: "Contents" })).toHaveLength(
-    1
-  );
-  expect(screen.getByRole("navigation", { name: "Contents" })).toBeVisible();
+  expect(
+    within(getContents()).getAllByRole("navigation", {
+      hidden: true,
+    })
+  ).toHaveLength(1);
+  expect(
+    within(getContents()).getByRole("navigation", { hidden: true })
+  ).toHaveAttribute("aria-label", "Contents");
   const toggle = screen.getByRole("button", { name: "Contents" });
+  expect(toggle).toHaveAttribute("aria-expanded", "true");
   toggle.focus();
   await user.keyboard("{Enter}");
-  expect(screen.queryByRole("link", { name: "Initial heading" })).toBeNull();
+  expect(document.getElementById("docs-reading-contents")).toBeNull();
+  expect(toggle).toHaveAttribute("aria-expanded", "false");
   await user.keyboard("{Enter}");
-  expect(screen.getAllByRole("link", { name: "Initial heading" })).toHaveLength(
-    1
-  );
+  expect(
+    within(getContents()).getAllByRole("link", {
+      name: "Initial heading",
+      hidden: true,
+    })
+  ).toHaveLength(1);
   expect(toggle).toHaveAttribute("aria-expanded", "true");
   expect(screen.queryByText("Something went wrong")).toBeNull();
   expect(mocks.integrations.fetchAll).not.toHaveBeenCalled();
+
+  function getContents() {
+    const contents = document.getElementById("docs-reading-contents");
+    if (!contents) {
+      throw new Error("Expected initialized desktop contents");
+    }
+    return contents;
+  }
 }, 15000);
