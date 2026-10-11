@@ -20,6 +20,18 @@ const schema = new Schema({
       attrs: { src: {} },
       toDOM: (node) => ["img", { src: node.attrs.src }],
     },
+    attachment: {
+      inline: true,
+      group: "inline",
+      attrs: {
+        href: {},
+        title: {},
+        size: {},
+        contentType: {},
+        preview: {},
+      },
+      toDOM: (node) => ["a", { href: node.attrs.href }, node.attrs.title],
+    },
   },
 });
 
@@ -134,5 +146,51 @@ describe("insertFiles image lifecycle", () => {
       expect(uploading).toBe(false);
       expect(notices).toEqual(["Upload failed"]);
     });
+  });
+
+  it("uploads a plain attachment through its detached placeholder without a theme provider", async () => {
+    let finishUpload: (url: string) => void = () => {
+      throw new Error("Upload has not started");
+    };
+    const uploadFile = vi.fn(
+      () =>
+        new Promise<string>((resolve) => {
+          finishUpload = resolve;
+        })
+    );
+    await insertFiles(
+      view,
+      new Event("change"),
+      1,
+      [
+        new File(["acceptance"], "runtime-attachment.txt", {
+          type: "text/plain",
+        }),
+      ],
+      {
+        uploadFile,
+        isAttachment: true,
+        onFileUploadStart: () => {
+          uploading = true;
+        },
+        onFileUploadStop: () => {
+          uploading = false;
+        },
+      }
+    );
+    expect(uploadFile).toHaveBeenCalledOnce();
+    expect(view.dom.querySelector(".file.placeholder")?.textContent).toContain(
+      "txt"
+    );
+    expect(uploading).toBe(true);
+
+    finishUpload("/docs/api/attachments.redirect?id=attachment");
+    await vi.waitFor(() => expect(uploading).toBe(false));
+    expect(view.dom.querySelector(".placeholder")).toBeNull();
+    expect(view.state.doc.firstChild?.firstChild?.type.name).toBe("attachment");
+    expect(view.dom.querySelector("a")?.getAttribute("href")).toBe(
+      "/docs/api/attachments.redirect?id=attachment"
+    );
+    expect(view.dom.textContent).toContain("runtime-attachment.txt");
   });
 });

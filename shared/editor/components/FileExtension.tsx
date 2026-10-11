@@ -1,7 +1,7 @@
+import { exuiTokens } from "@exre/exui/tokens";
 import { AttachmentIcon } from "outline-icons";
 import * as React from "react";
 import styled from "styled-components";
-import { s } from "../../styles";
 import { stringToColor } from "../../utils/color";
 
 type Props = {
@@ -26,7 +26,7 @@ export default function FileExtension(props: Props) {
 }
 
 const Icon = styled.span<{ $size: number }>`
-  font-family: ${s("fontFamilyMono")};
+  font-family: ${exuiTokens.typography.fontFamilyMono};
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -34,7 +34,7 @@ const Icon = styled.span<{ $size: number }>`
   text-transform: uppercase;
   color: white;
   text-align: center;
-  border-radius: ${(props) => props.theme.exui.radii.small};
+  border-radius: ${exuiTokens.radii.small};
 
   min-width: ${(props) => props.$size}px;
   height: ${(props) => props.$size}px;
