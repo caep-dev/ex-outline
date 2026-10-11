@@ -1,5 +1,8 @@
 import isUUID from "validator/lib/isUUID";
-import { assertIntegrationReady } from "@server/identity/readiness";
+import {
+  assertIntegrationReady,
+  integrationReadinessFailure,
+} from "@server/identity/readiness";
 import { sequelize } from "@server/storage/database";
 
 async function main() {
@@ -21,10 +24,10 @@ if (require.main === module) {
       await sequelize.close();
       process.exitCode = 0;
     },
-    async () => {
+    async (error: unknown) => {
       // oxlint-disable-next-line no-console
       console.error(
-        "Integration check failed; verify configuration, outline migrations and explicit administrator bootstrap"
+        `Integration check failed; ${integrationReadinessFailure(error)}`
       );
       await sequelize.close();
       process.exitCode = 1;

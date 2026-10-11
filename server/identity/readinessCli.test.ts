@@ -163,7 +163,15 @@ it("rejects missing migration column issuer administrator provider identity and 
     const broken = await snapshot();
     await expect(check()).rejects.toMatchObject({
       code: 1,
-      stderr: expect.stringContaining("Integration check failed;"),
+      stderr: expect.stringContaining(
+        table === '"SequelizeMeta"'
+          ? "INTEGRATION_MIGRATIONS_REQUIRED；检查项：Outline migration 未完成"
+          : table === "external_sessions"
+            ? "INTEGRATION_STRUCTURE_INCOMPLETE；检查项：Outline 必需表或列缺失"
+            : table === "website_integrations"
+              ? "INTEGRATION_BOOTSTRAP_REQUIRED_OR_CONFLICT；检查项：Outline 身份未准备"
+              : "INTEGRATION_WORKSPACE_INCOMPLETE；检查项：Outline 工作区"
+      ),
     });
     expect(await snapshot(), table).toBe(broken);
     if (table === "external_sessions") {
@@ -188,7 +196,9 @@ it("rejects missing migration column issuer administrator provider identity and 
   }
   await expect(check(randomUUID())).rejects.toMatchObject({
     code: 1,
-    stderr: expect.stringContaining("Integration check failed;"),
+    stderr: expect.stringContaining(
+      "INTEGRATION_BOOTSTRAP_REQUIRED_OR_CONFLICT"
+    ),
   });
   expect(await snapshot()).toBe(healthy);
 }, 120_000);
